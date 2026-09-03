@@ -25,7 +25,7 @@ def _(mo):
     Scoring is **score-then-average** — each of the three repeats is scored on its own and the bar
     is the mean of those three objectives. That is not the same as averaging the measurements and
     scoring once: the objective hinges at 100 nm, |zeta| = 10 mV and PDI 0.3, so the two orders
-    give different numbers. The white dots are the individual repeats, so every bar is visibly the
+    give different numbers. The dark dots are the individual repeats, so every bar is visibly the
     mean of its own dots.
 
     The objective is Campaign 1's **as published** — paper Eq. 1–4, equal weights, ×10 phase
@@ -34,7 +34,10 @@ def _(mo):
     baseline comparable at all: neither drug loading nor permeability enters the score.
 
     Phase-separated formulations score around 31 and would flatten everything else, so they are
-    named beneath the figure rather than plotted.
+    named in the subtitle rather than plotted.
+
+    The chrome is upstream's — `BatchedBayes:analysis/campaign_comparison.py` — not this repo's
+    usual `Breaking-the-Boundaries` house style. See **Shared chrome** below.
     """)
     return
 
@@ -129,18 +132,21 @@ def _(mo):
     mo.md(r"""
     ## Shared chrome
 
-    The type scale, `FONT_FAMILY` and the 2 px black axis box are the `Breaking-the-Boundaries`
-    campaign suites' own, value for value, so a deck that mixes these slides with those reads as
-    one system.
+    Transcribed from upstream's own leaderboards — `BatchedBayes:analysis/campaign_comparison.py`,
+    `plotly_layout` / `axis_style` / `legend_below` and `fig_leaderboard`. Warm off-white ground,
+    faint horizontal gridlines behind the bars, a hairline `#c3c2b7` axis with no mirror, flat
+    unoutlined bars and dark repeat dots. Deliberately *not* this repo's usual
+    `Breaking-the-Boundaries` chrome: these slides sit beside the upstream analysis figures.
 
-    Hues carry **campaign stage** rather than formulation identity:
+    Hues carry **campaign stage** rather than formulation identity, using upstream's three-colour
+    palette:
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#2067F4` | an optimiser-chosen batch, A–E |
-    | `SCREEN_COLOR` | black | the quasi-random screen that seeded the surrogate |
-    | `PRELIM_COLOR` | `#C4C4C4` | repeats of prior optima — present, deliberately quiet |
-    | `BEST_COLOR` | `#D55E00` | DoE-OPT, the baseline the campaign had to beat |
+    | `BO_COLOR` | `#1baf7a` | an optimiser-chosen batch, A–E — upstream's Campaign 1 green |
+    | `SCREEN_COLOR` | `#898781` | the quasi-random screen that seeded the surrogate |
+    | `PRELIM_COLOR` | `#c3c2b7` | repeats of prior optima — present, deliberately quiet |
+    | `BEST_COLOR` | `#2a78d6` | DoE-OPT, the baseline the campaign had to beat |
 
     Five BO rounds are **one** colour on purpose. They are one campaign under one policy, and
     giving each round its own hue would claim a distinction the method does not make.
@@ -150,67 +156,78 @@ def _(mo):
 
 @app.cell
 def _():
-    BO_COLOR = '#2067F4'
-    SCREEN_COLOR = 'black'
-    PRELIM_COLOR = '#C4C4C4'
-    BEST_COLOR = '#D55E00'
+    # Upstream's palette, value for value: DoE-OPT blue, Campaign 1 green, Campaign 2 amber.
+    BO_COLOR = '#1baf7a'
+    SCREEN_COLOR = '#898781'
+    PRELIM_COLOR = '#c3c2b7'
+    BEST_COLOR = '#2a78d6'
 
-    INK = 'black'
-    INK_SOFT = 'rgba(0, 0, 0, 0.55)'
-    INK_FAINT = 'rgba(0, 0, 0, 0.38)'
+    INK = '#0b0b0b'
+    SECOND = '#52514e'
+    MUTED = '#898781'
+    GRID = '#e1e0d9'
+    SURFACE = '#fcfcfb'
+    AXIS_LINE = '#c3c2b7'
 
-    # The campaign suites' type scale, value for value. Five sizes, no more.
-    TITLE_SIZE = 20
-    AXIS_TITLE_SIZE = 18
-    TICK_SIZE = 18
-    LEGEND_SIZE = 14
-    ANNOTATION_SIZE = 14
+    # Upstream's type scale: title / axis title / tick / legend / annotation.
+    TITLE_SIZE = 16
+    AXIS_TITLE_SIZE = 12
+    TICK_SIZE = 11
+    LEGEND_SIZE = 11
+    ANNOTATION_SIZE = 10
+    SUBTITLE_SIZE = 11
 
-    # Plotly's own default, stated rather than inherited, and pinned identically in the
-    # Breaking-the-Boundaries suites so the agreement is declared instead of coincidental.
-    FONT_FAMILY = 'Open Sans, verdana, arial, sans-serif'
+    FONT_FAMILY = 'sans-serif'
 
-    MARKER_SIZE = 7
-    MARKER_RING = 1.3
+    MARKER_SIZE = 9
+    MARKER_RING = 1.2
     BAR_WIDTH = 0.62
 
-    LEFT_MARGIN = 96
-    RIGHT_MARGIN = 40
-    TOP_MARGIN = 104
-    LEGEND_MARGIN = 164   # bottom gutter the horizontal legend sits in
+    AXIS_STANDOFF = 12
+    YLABEL_STANDOFF = 10
+
+    LEFT_MARGIN = 90
+    RIGHT_MARGIN = 60
+    TOP_MARGIN = 70
+    LEGEND_MARGIN = 130   # bottom gutter the horizontal legend sits in
 
     # Thirty rows will not read at 720 px in one column, so the ranking runs down the left panel
     # and continues down the right. Both panels share one x range, so a bar's length means the
     # same thing on either side.
     PANEL_DOMAIN = {'left': (0.0, 0.42), 'right': (0.58, 1.0)}
 
+    # Upstream `axis_style`: hairline axis, outside ticks, no mirror, gridlines from GRID.
     AXIS_COMMON = dict(
-        linecolor=INK, tickcolor=INK, color=INK,
-        ticks='outside', showline=True, showgrid=False, mirror=True, linewidth=2,
+        gridcolor=GRID, gridwidth=0.8, zeroline=False, linecolor=AXIS_LINE,
+        showline=True, mirror=False, ticks='outside', tickcolor=MUTED,
     )
     return (
-        ANNOTATION_SIZE,
         AXIS_COMMON,
+        AXIS_LINE,
+        AXIS_STANDOFF,
         AXIS_TITLE_SIZE,
         BAR_WIDTH,
         BEST_COLOR,
         BO_COLOR,
         FONT_FAMILY,
         INK,
-        INK_FAINT,
-        INK_SOFT,
         LEFT_MARGIN,
         LEGEND_MARGIN,
         LEGEND_SIZE,
         MARKER_RING,
         MARKER_SIZE,
+        MUTED,
         PANEL_DOMAIN,
         PRELIM_COLOR,
         RIGHT_MARGIN,
         SCREEN_COLOR,
+        SECOND,
+        SUBTITLE_SIZE,
+        SURFACE,
         TICK_SIZE,
         TITLE_SIZE,
         TOP_MARGIN,
+        YLABEL_STANDOFF,
     )
 
 
@@ -294,8 +311,9 @@ def _(mo):
 
 @app.cell
 def _(
-    ANNOTATION_SIZE,
     AXIS_COMMON,
+    AXIS_LINE,
+    AXIS_STANDOFF,
     AXIS_TITLE_SIZE,
     BAR_WIDTH,
     BEST_COLOR,
@@ -304,23 +322,26 @@ def _(
     FIG_WIDTH,
     FONT_FAMILY,
     INK,
-    INK_FAINT,
-    INK_SOFT,
     LEFT_MARGIN,
     LEGEND_MARGIN,
     LEGEND_SIZE,
     MARKER_RING,
     MARKER_SIZE,
+    MUTED,
     PANEL_DOMAIN,
     PRELIM_COLOR,
     RIGHT_MARGIN,
     ROW_LABEL,
     SCREEN_COLOR,
+    SECOND,
     STAGE,
     STAGE_LABEL,
+    SUBTITLE_SIZE,
+    SURFACE,
     TICK_SIZE,
     TITLE_SIZE,
     TOP_MARGIN,
+    YLABEL_STANDOFF,
     board,
     go,
     ranked,
@@ -335,7 +356,7 @@ def _(
     STAGE_ORDER = ('bo', 'screen', 'repeat', 'doe')
     STAGE_RANK = {stage: i for i, stage in enumerate(STAGE_ORDER)}
 
-    AXIS_TITLE = 'Objective  (Lower Is Better)'
+    AXIS_TITLE = 'Mean Objective Of Individually-Scored Repeats  (Lower Is Better)'
 
 
     def build_leaderboard():
@@ -346,7 +367,7 @@ def _(
                    ('right', order[half:], 'x2', 'y2'))
 
         shown_reps = board[board['Exp'].isin(ranked.index)]
-        x_range = [0.0, float(max(ranked.max(), shown_reps['objective'].max())) * 1.07]
+        x_range = [0.0, float(max(ranked.max(), shown_reps['objective'].max())) * 1.1]
 
         traces = []
         legended = set()
@@ -359,68 +380,77 @@ def _(
                     y=[ROW_LABEL[exp] for exp in members],
                     x=[float(ranked[exp]) for exp in members],
                     orientation='h', width=BAR_WIDTH,
-                    marker=dict(color=STAGE_COLOR[stage],
-                                line=dict(color=INK, width=0.8)),
+                    marker_color=STAGE_COLOR[stage],
                     name=STAGE_LABEL[stage], legendgroup=stage,
                     legendrank=1000 + STAGE_RANK[stage],
                     showlegend=stage not in legended,
                     xaxis=x_axis, yaxis=y_axis,
-                    hovertemplate='%{y}<br>mean objective %{x:.3f}<extra></extra>',
+                    hovertemplate='%{y}<br>mean per-rep objective %{x:.3f}<extra></extra>',
                 ))
                 legended.add(stage)
 
             repeats = board[board['Exp'].isin(column)]
             traces.append(go.Scatter(
                 x=repeats['objective'], y=repeats['row_label'], mode='markers',
-                marker=dict(size=MARKER_SIZE, color='white',
-                            line=dict(color=INK, width=MARKER_RING)),
-                name='Individual Repeat', legendgroup='repeat_dot',
+                marker=dict(size=MARKER_SIZE, color=INK, opacity=0.7,
+                            line=dict(color=SURFACE, width=MARKER_RING)),
+                name='Individual Rep', legendgroup='repeat_dot',
                 legendrank=1100,
                 showlegend='repeat_dot' not in legended,
                 xaxis=x_axis, yaxis=y_axis,
                 customdata=repeats['Rep'].astype(str),
-                hovertemplate='%{y} — rep %{customdata}<br>objective %{x:.3f}<extra></extra>',
+                hovertemplate='%{y} — rep %{customdata}'
+                              '<br>per-rep objective %{x:.3f}<extra></extra>',
             ))
             legended.add('repeat_dot')
 
         def x_axis_spec(panel, anchor):
             return dict(title=AXIS_TITLE, range=x_range, domain=PANEL_DOMAIN[panel],
-                        anchor=anchor, zeroline=False,
-                        tickfont=dict(size=TICK_SIZE),
-                        title_font=dict(size=AXIS_TITLE_SIZE), **AXIS_COMMON)
+                        anchor=anchor, showgrid=True,
+                        tickfont=dict(size=TICK_SIZE, color=MUTED),
+                        title_font=dict(size=AXIS_TITLE_SIZE, color=SECOND),
+                        title_standoff=AXIS_STANDOFF, **AXIS_COMMON)
 
         def y_axis_spec(column, anchor):
-            # Half a slot of padding top and bottom keeps the end bars off the axis box.
+            # Half a slot of padding top and bottom keeps the end bars off the axis.
             return dict(type='category', categoryorder='array',
                         categoryarray=[ROW_LABEL[exp] for exp in column][::-1],
-                        range=[-0.5, len(column) - 0.5], anchor=anchor,
-                        tickfont=dict(size=ANNOTATION_SIZE), **AXIS_COMMON)
+                        range=[-0.5, len(column) - 0.5], anchor=anchor, showgrid=False,
+                        ticklabelstandoff=YLABEL_STANDOFF,
+                        tickfont=dict(size=TICK_SIZE, color=INK), **AXIS_COMMON)
+
+        # Upstream draws the zero reference as a per-panel vline; as shapes, one per x axis.
+        zero_lines = [dict(type='line', x0=0, x1=0, y0=0, y1=1,
+                           xref=x_axis, yref='{} domain'.format(y_axis),
+                           line=dict(color=AXIS_LINE, width=1))
+                      for _p, _c, x_axis, y_axis in columns]
 
         layout = go.Layout(
+            template='none',
             title=dict(
-                text='<b>Campaign 1 Leaderboard</b><br>'
-                     '<span style="font-size:{}px;color:{}">Every Blank Formulation, Scored Then '
-                     'Averaged Over Three Repeats, Against The DoE-OPT Screening Optimum  ·  '
-                     'Ranked 1–{}</span>'.format(ANNOTATION_SIZE, INK_SOFT, len(ranked)),
+                text='<b>Campaign 1 — Leaderboard</b>  (score-then-average)<br>'
+                     '<span style="font-size:{}px;color:{}">Every Blank Formulation Against The '
+                     'DoE-OPT Screening Optimum, Ranked 1–{}'
+                     '  ·  Not Shown (Phase-Separated): {}</span>'.format(
+                         SUBTITLE_SIZE, MUTED, len(ranked), ', '.join(separated)),
                 font=dict(size=TITLE_SIZE, color=INK),
-                x=0.5, y=0.95, xanchor='center', yanchor='top'),
+                x=0.01, xanchor='left'),
             xaxis=x_axis_spec('left', 'y'), xaxis2=x_axis_spec('right', 'y2'),
             yaxis=y_axis_spec(order[:half], 'x'),
             yaxis2=y_axis_spec(order[half:], 'x2'),
-            annotations=[dict(
-                x=0.5, y=-0.225, xref='paper', yref='paper',
-                xanchor='center', yanchor='top', showarrow=False,
-                text='Not Shown — Phase-Separated:  {}'.format(', '.join(separated)),
-                font=dict(size=ANNOTATION_SIZE, color=INK_FAINT))],
+            shapes=zero_lines,
             barmode='overlay',
-            plot_bgcolor='white', paper_bgcolor='white',
-            font=dict(family=FONT_FAMILY, color=INK),
+            plot_bgcolor=SURFACE, paper_bgcolor=SURFACE,
+            font=dict(family=FONT_FAMILY, size=12, color=INK),
             width=FIG_WIDTH, height=FIG_HEIGHT,
             margin=dict(l=LEFT_MARGIN, r=RIGHT_MARGIN, t=TOP_MARGIN, b=LEGEND_MARGIN),
             showlegend=True,
-            legend=dict(orientation='h', x=0.5, y=-0.145, xanchor='center', yanchor='top',
+            # Upstream `legend_below`: a fixed 60 px gap under the plot area, in paper units.
+            legend=dict(orientation='h', x=0.5, xanchor='center', yanchor='top',
+                        y=-(60 / max(FIG_HEIGHT - TOP_MARGIN - LEGEND_MARGIN, 120)),
                         bgcolor='rgba(0, 0, 0, 0)',
-                        font=dict(size=LEGEND_SIZE, color=INK)),
+                        font=dict(size=LEGEND_SIZE, color=SECOND)),
+            hoverlabel=dict(font=dict(family=FONT_FAMILY, size=12)),
         )
         return go.Figure(data=traces, layout=layout)
 

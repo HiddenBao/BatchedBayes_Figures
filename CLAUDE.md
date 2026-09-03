@@ -132,6 +132,12 @@ directory guide; the rules are here.
   remote `https://github.com/HiddenBao/Breaking-the-Boundaries`. Its
   `docs/rules/CODING_PRACTICES.md` is the Python style. `Figures/README.md` spells the workflow
   out — **read it before building a suite.**
+- **The two leaderboards are the exception, on purpose.** They wear upstream's analysis chrome
+  (`BatchedBayes:analysis/campaign_comparison.py` — `plotly_layout` / `axis_style` /
+  `legend_below`) so they read beside `analysis/figures/*_leaderboard.svg`: `#fcfcfb` ground,
+  hairline `#c3c2b7` axes with value-axis gridlines, left title, 16/12/11 type, and upstream's
+  `COL` palette. Same cell workflow, different tokens — both chromes are tabled in
+  `Figures/README.md`. Don't "fix" them back to the house style.
 - **Keep the DLL guard** above `import marimo` (see Environment below).
 
 ### Campaign 1 design space — Table 1, confirmed against the CSV

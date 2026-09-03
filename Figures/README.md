@@ -47,6 +47,10 @@ the axes means `y > 1`; below them means `y < 0`.
 
 ## Style
 
+Two chromes live here. The cell workflow above is the same either way — only the tokens differ.
+
+**House (`Breaking-the-Boundaries`)** — the default for a new suite.
+
 | | |
 |---|---|
 | Canvas | 1280 × 720 |
@@ -56,6 +60,24 @@ the axes means `y > 1`; below them means `y < 0`.
 | Axes | 2 px black box, `mirror=True`, ticks outside, no gridlines |
 | Title | centred, `x=0.5`, with an optional grey subtitle line |
 | Legend | horizontal, centred in a bottom gutter (`LEGEND_MARGIN`) |
+
+**Upstream analysis** — both leaderboards, so they sit beside `BatchedBayes:analysis/figures/`.
+Transcribed from that notebook's `plotly_layout` / `axis_style` / `legend_below`.
+
+| | |
+|---|---|
+| Canvas | 1280 × 720 (upstream sizes to content: `44 * rows + 210`) |
+| Type scale | 16 title · 11 subtitle · 12 panel title · 12 axis title · 11 tick · 11 legend |
+| Font | `sans-serif`, `template='none'` |
+| Ground | `#fcfcfb` paper and plot |
+| Axes | hairline `#c3c2b7`, no mirror, ticks outside, `#e1e0d9` gridlines on the value axis only |
+| Palette | DoE-OPT `#2a78d6` · Campaign 1 `#1baf7a` · Campaign 2 `#eda100` |
+| Marks | flat unoutlined bars at `width=0.62`; repeat dots size 9, ink at 70 %, ringed in the ground |
+| Title | left, `x=0.01`, grey subtitle carrying the phase-separated names |
+| Legend | horizontal, centred, 60 px below the plot area |
+
+Upstream is the source of truth for the second one — read `analysis/campaign_comparison.py` in
+`C:/PyCharmProjects/BatchedBayes` rather than inferring it from these suites.
 
 Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](../CLAUDE.md).
 
