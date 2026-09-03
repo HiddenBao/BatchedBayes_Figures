@@ -1,11 +1,9 @@
 # Figures
 
-Slide figure suites. Distinct from `analysis/figures/`, which holds plots the
-`campaign_comparison.py` notebook emits for reading on screen — these are for projecting.
-
-One folder per suite:
+Slide figure suites. One folder per suite:
 
 ```
+objectives.py                 campaign1() / campaign2() — import, never restate
 <Suite_Name>/
 ├── <Suite_Name>_Figures.py   marimo notebook — the figure source
 ├── Output/                   exported SVGs, committed
@@ -14,6 +12,14 @@ One folder per suite:
 
 ```bash
 conda run -n BatchedBayes marimo edit Figures/<Suite_Name>/<Suite_Name>_Figures.py
+```
+
+A suite reads raw measurements straight from `data/`, scores them with `objectives.py`,
+and draws. There are no intermediate datasets.
+
+```python
+sys.path.insert(0, str(REPO / "Figures"))
+from objectives import campaign1, campaign2
 ```
 
 ## Suites
@@ -27,6 +33,10 @@ conda run -n BatchedBayes marimo edit Figures/<Suite_Name>/<Suite_Name>_Figures.
 | `Permeability/` | Effective permeability, A190- and fenofibrate-loaded | Fig. 5 |
 
 None built yet; `Design_Space/` is next.
+
+A `Blank_Campaign/` suite existed at `20600d7` and was deleted at `762e87c` — it
+imported the pruned optimiser package. Recover it from history if it is wanted back,
+but rewire it onto `objectives.py` and `data/`.
 
 Conventions and the numbers a suite must use are in [CLAUDE.md](../CLAUDE.md) — read
 **Campaigns** and **Figure suites** before building one.
