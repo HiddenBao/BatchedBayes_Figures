@@ -4,3 +4,7 @@ __pycache__/
 
 # marimo session cache
 __marimo__/
+
+# IDE noise
+.idea/workspace.xml
+.idea/*.iml

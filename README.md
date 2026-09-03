@@ -1,10 +1,19 @@
-# BatchedBayes
-Temp notes for Bao test
+# BatchedBayes_Personal
 
-Ran script = 
+Analysis and figure work for the BatchedBayes microemulsion campaigns.
 
-python init_linear.py --batch_method thompson --batch_size 10 --max_per_category 1 --mesh_size 21 --fine_mesh_size 11 --top_k_categories 10
+The Bayesian optimiser itself is **not** in this repo — it lives upstream at
+[mcgillresearchgroup/BatchedBayes](https://github.com/mcgillresearchgroup/BatchedBayes).
+This repo keeps the measured data, the scoring and analysis pipeline, and the figure suites.
 
-python init_linear.py --batch_method greedy_ei_screening --batch_size 10 --max_per_category 1 --mesh_size 21 --fine_mesh_size 11 --top_k_categories 10
+See [CLAUDE.md](CLAUDE.md) for the layout, the campaign distinctions, and how to query upstream.
 
-python init_linear.py --batch_method thompson --batch_size 5 --mesh_size 21 --fine_mesh_size 11 --top_k_categories 12
+## Run
+
+```
+conda run -n BatchedBayes python analysis/build_score_datasets.py
+conda run -n BatchedBayes python average_dataset_scores.py
+conda run -n BatchedBayes python analysis/export_leaderboard_data.py
+
+conda run -n BatchedBayes marimo edit analysis/campaign_comparison.py
+```

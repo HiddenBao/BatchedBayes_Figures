@@ -26,7 +26,7 @@ sys.path.insert(0, REPO)
 from score_dataset import compute_component_scores  # noqa: E402
 
 DATADIR = os.path.join(HERE, "datasets")
-SRC = os.path.join(REPO, "BayesianOptimization", "data",
+SRC = os.path.join(REPO, "data",
                    "MicroemulsionFormulation_Comprehensive.csv")
 
 OUTPUTS = ["Droplet_Size", "PDI", "Zeta_P", "Phase_Sep", "Drug_Loading", "Permeability"]

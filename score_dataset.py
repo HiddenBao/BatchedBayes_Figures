@@ -1,16 +1,31 @@
 """
 Score every row in the microemulsion dataset using the objective function
-from applications.py, and report per-target component scores alongside the
-final objective value.
+from the optimiser's applications.py, and report per-target component scores
+alongside the final objective value.
+
+This repository no longer carries the optimiser, so the two values that used to
+come from `MicroemulsionFormulation` -- the dataset path and the output column
+order -- are restated below as constants. They must stay in step with
+`BayesianOptimization/applications.py` in the upstream BatchedBayes repository;
+see CLAUDE.md for where that lives and how to check it.
 """
 
-import sys
 import os
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "BayesianOptimization"))
-from applications import MicroemulsionFormulation
+# Mirrors MicroemulsionFormulation.dataset_path and .output_headers upstream.
+DATASET_PATH = os.path.join(
+    os.path.dirname(__file__), "data", "MicroemulsionFormulation_Comprehensive.csv"
+)
+OUTPUT_HEADERS = [
+    "Droplet_Size",
+    "PDI",
+    "Zeta_P",
+    "Phase_Sep",
+    "Drug_Loading",
+    "Permeability",
+]
 
 
 def compute_component_scores(preds: np.ndarray) -> pd.DataFrame:
@@ -74,10 +89,9 @@ def compute_component_scores(preds: np.ndarray) -> pd.DataFrame:
 
 
 def main():
-    app = MicroemulsionFormulation()
-    raw = pd.read_csv(app.dataset_path)
+    raw = pd.read_csv(DATASET_PATH)
 
-    output_cols = app.output_headers  # [Droplet_Size, PDI, Zeta_P, Phase_Sep, Drug_Loading, Permeability]
+    output_cols = OUTPUT_HEADERS
 
     # Only score formulations with all outputs measured; blank (no-API) rows
     # lack Drug_Loading/Permeability and are excluded. DoE screening rows are
@@ -103,7 +117,7 @@ def main():
     pd.set_option("display.float_format", "{:.4f}".format)
 
     print("=" * 120)
-    print(f"Dataset: {app.dataset_path}")
+    print(f"Dataset: {DATASET_PATH}")
     print(f"Rows: {len(result)}  |  Output columns: {output_cols}")
     print("=" * 120)
     print(result.to_string(index=False))

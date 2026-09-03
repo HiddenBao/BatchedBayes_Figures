@@ -3,7 +3,7 @@ revalidated Campaign 1 champions gained real repeats and DoE-OPT gained a full
 measurement set.
 
 Two things changed in commit 2cba4f2 ("Retire the Jupyter notebook..."), both in
-BayesianOptimization/data/MicroemulsionFormulation_Comprehensive.csv:
+data/MicroemulsionFormulation_Comprehensive.csv:
 
   1. The six revalidated Campaign 1 champions (B4/E2/F5 x A190/Feno) went from ONE
      pre-averaged row each to THREE real repeats.  Their objective is therefore no
@@ -20,6 +20,11 @@ caused by the entries around it moving, not by its own data.
 
 The "before" state is read straight out of git at PREV_REV, so this script stays
 reproducible without keeping a second copy of the datasets in the tree.
+
+NOTE: PREV_REV (71893ac) is a commit in the UPSTREAM BatchedBayes repository, not in
+this one -- this repo's history begins at the "Import BatchedBayes Analysis-Cleanup
+branch" squash. Run this script against a clone of the upstream repo, or re-point
+PREV_REV. See CLAUDE.md.
 
 Re-run:  python analysis/build_ranking_history.py
 """
