@@ -1,0 +1,22 @@
+name: qdot
+
+channels:
+  - pytorch
+  - conda-forge
+
+dependencies:
+  - numpy
+  - scipy
+  - pytorch
+  - matplotlib
+  - pandas
+  - scikit-learn
+  - pip
+  - ipykernel
+  - plotly
+  - pip:
+    - quantile-forest
+    - kaleido        # SVG export for the plotly figures
+    - marimo         # analysis/campaign_comparison.py
+
+  - pytest
