@@ -1,6 +1,6 @@
-# BatchedBayes_Personal
+# BatchedBayes_Figures
 
-Analysis and figure work for the BatchedBayes microemulsion campaigns.
+Figures and analysis for the BatchedBayes microemulsion campaigns.
 
 The Bayesian optimiser itself is **not** in this repo — it lives upstream at
 [mcgillresearchgroup/BatchedBayes](https://github.com/mcgillresearchgroup/BatchedBayes).

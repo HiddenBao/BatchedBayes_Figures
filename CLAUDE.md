@@ -1,8 +1,9 @@
-# BatchedBayes_Personal
+# BatchedBayes_Figures
 
-Analysis and figure work for the BatchedBayes microemulsion campaigns. **This repo does not
-contain the optimiser.** It holds the measured data, the scoring and analysis pipeline, and the
-figure suites built on top of them.
+Figures and analysis for the BatchedBayes microemulsion campaigns. **This repo does not contain
+the optimiser** — it holds the measured data, the scoring and analysis pipeline, and the figure
+suites built on top of them. Renamed from `BatchedBayes_Personal`; the local working copy may
+still sit at `C:/PyCharmProjects/BatchedBayes_Personal`.
 
 ## Upstream: where the optimiser lives
 
@@ -161,7 +162,7 @@ conda run -n BatchedBayes marimo edit analysis/campaign_comparison.py
 
 ### Issue tracker
 
-Issues live as GitHub issues in `HiddenBao/BatchedBayes_Personal`, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues live as GitHub issues in `HiddenBao/BatchedBayes_Figures`, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
