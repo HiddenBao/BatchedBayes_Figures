@@ -124,9 +124,14 @@ directory guide; the rules are here.
   when they read the same CSV. Read `data/` directly; there are no derived datasets.
 - **Import, never restate.** Objective from `Figures/objectives.py`, ranges from the
   paper's Table 1. A suite that hardcodes a range drifts from the campaign it describes.
-- **Export SVG** on a 1280×720 pixel grid, one data unit to one exported pixel.
-- **Style follows the `Breaking-the-Boundaries` suites** value for value — white ground, 2 px
-  black mirrored axis box, no gridlines, five type sizes, horizontal legend in a bottom gutter.
+- **Export SVG** at 1280×720, one data unit to one exported pixel.
+- **Follow the `Breaking-the-Boundaries` workflow** value for value — plotly + marimo, the cell
+  order, one `go.Layout` with explicit axis `domain=`s (never `make_subplots`), white ground,
+  2 px black mirrored axis box, no gridlines, five type sizes (20/18/18/14/14), centred title,
+  horizontal legend in a bottom gutter. Local clone: `C:/PyCharmProjects/Breaking-the-Boundaries`;
+  remote `https://github.com/HiddenBao/Breaking-the-Boundaries`. Its
+  `docs/rules/CODING_PRACTICES.md` is the Python style. `Figures/README.md` spells the workflow
+  out — **read it before building a suite.**
 - **Keep the DLL guard** above `import marimo` (see Environment below).
 
 ### Campaign 1 design space — Table 1, confirmed against the CSV
