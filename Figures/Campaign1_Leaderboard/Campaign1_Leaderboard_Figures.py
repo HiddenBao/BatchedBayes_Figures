@@ -143,17 +143,22 @@ def _(mo):
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#0072B2` | an optimiser-chosen batch, A–E |
-    | `SCREEN_COLOR` | `#56B4E9` | the quasi-random screen that seeded the surrogate |
-    | `PRELIM_COLOR` | `#BBBBBB` | repeats of prior optima — present, deliberately quiet |
-    | `BEST_COLOR` | `#D55E00` | DoE-OPT, the baseline the campaign had to beat |
+    | `BO_COLOR` | `#0072B2` | blue — an optimiser-chosen batch, A–E |
+    | `SCREEN_COLOR` | `#7EB6DE` | pale blue — the quasi-random screen that seeded the surrogate |
+    | `PRELIM_COLOR` | `#BFA07A` | light brown — repeats of prior optima, deliberately quiet |
+    | `BEST_COLOR` | `#E17000` | orange — DoE-OPT, the baseline the campaign had to beat |
 
     `BO_COLOR` is also the Campaign 2 slide's champion hue: a formulation the optimiser chose looks
     the same on both boards, whether it is ranked blank here or revalidated loaded there. DoE-OPT is
-    the one warm mark on this slide, so the baseline reads at a glance.
+    the one saturated warm mark on this slide, so the baseline reads at a glance.
 
-    The four are Okabe–Ito, so they stay distinct under deuteranopia and protanopia and survive a
-    greyscale print.
+    The screen is a **tint of the optimiser blue**, not a fifth hue. Both stages produced campaign
+    data on the same design space; the screen was simply not chosen by the surrogate, and a tint
+    says *related but earlier* where a separate hue would claim a separate kind of thing. Purple is
+    held back for Campaign 2, which is a different campaign — see the Campaign 2 suite.
+
+    Brown against orange is the one pair that narrows under deuteranopia. They stay separable on
+    saturation and lightness rather than hue alone, and the two never rank adjacent.
 
     Five BO rounds are **one** colour on purpose. They are one campaign under one policy, and
     giving each round its own hue would claim a distinction the method does not make.
@@ -163,11 +168,11 @@ def _(mo):
 
 @app.cell
 def _():
-    # Okabe-Ito. BO_COLOR is shared with the Campaign 2 slide's champion series on purpose.
-    BO_COLOR = '#0072B2'       # deep blue    -- optimiser batches A-E
-    SCREEN_COLOR = '#56B4E9'   # sky blue     -- quasi-random screen
-    PRELIM_COLOR = '#BBBBBB'   # grey         -- prior-optimum repeats
-    BEST_COLOR = '#D55E00'     # vermillion   -- DoE-OPT
+    # BO_COLOR and BEST_COLOR are shared with the Campaign 2 slide on purpose.
+    BO_COLOR = '#0072B2'       # blue         -- optimiser batches A-E
+    SCREEN_COLOR = '#7EB6DE'   # pale blue    -- quasi-random screen, a tint of BO_COLOR
+    PRELIM_COLOR = '#BFA07A'   # light brown  -- prior-optimum repeats
+    BEST_COLOR = '#E17000'     # orange       -- DoE-OPT
 
     INK = '#0b0b0b'
     SECOND = '#52514e'

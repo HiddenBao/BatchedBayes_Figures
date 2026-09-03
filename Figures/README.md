@@ -71,15 +71,18 @@ Transcribed from that notebook's `plotly_layout` / `axis_style` / `legend_below`
 | Font | `sans-serif`, `template='none'` |
 | Ground | `#fcfcfb` paper and plot |
 | Axes | hairline `#c3c2b7`, no mirror, ticks outside, `#e1e0d9` gridlines on the value axis only |
-| Palette | Okabe–Ito, shared across both slides: optimiser / C1 champion `#0072B2` · quasi-random screen `#56B4E9` · prior-optimum repeats `#BBBBBB` · Campaign 2 `#009E73` · DoE-OPT `#D55E00` |
+| Palette | shared across both slides: optimiser / C1 champion `#0072B2` blue · quasi-random screen `#7EB6DE` pale blue · prior-optimum repeats `#BFA07A` light brown · Campaign 2 `#7A52A1` purple · DoE-OPT `#E17000` orange |
 | Marks | flat unoutlined bars at `width=0.62`; repeat dots size 9, ink at 70 %, ringed in the ground |
 | Title | left, `x=0.01`, grey subtitle carrying the phase-separated names |
 | Legend | horizontal, centred, 60 px below the plot area |
 
 The layout is upstream's — read `analysis/campaign_comparison.py` in
 `C:/PyCharmProjects/BatchedBayes` rather than inferring it from these suites. The palette is not:
-upstream's `COL` was swapped for Okabe–Ito so the series stay distinct under colour-vision
-deficiency and in greyscale.
+upstream's `COL` was replaced.
+
+The screen is a **tint** of the optimiser blue rather than a fifth hue — both stages produced
+campaign data on the same design space, and a tint says *related but earlier* where a separate hue
+would claim a separate kind of thing. Purple is reserved for Campaign 2, which genuinely is one.
 
 **A hue means the same thing on both leaderboards.** `#0072B2` is a formulation the optimiser
 chose — an A–E batch on the Campaign 1 board, a revalidated champion on the Campaign 2 one — and

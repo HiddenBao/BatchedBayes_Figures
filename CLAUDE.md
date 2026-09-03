@@ -136,8 +136,10 @@ directory guide; the rules are here.
   (`BatchedBayes:analysis/campaign_comparison.py` — `plotly_layout` / `axis_style` /
   `legend_below`) so they read beside `analysis/figures/*_leaderboard.svg`: `#fcfcfb` ground,
   hairline `#c3c2b7` axes with value-axis gridlines, left title, 16/12/11 type. The palette is
-  **not** upstream's `COL` — it is Okabe–Ito, and a hue means the same thing on both boards:
-  `#0072B2` is optimiser output (an A–E batch, or a revalidated champion) and `#D55E00` is DoE-OPT.
+  **not** upstream's `COL`, and a hue means the same thing on both boards: `#0072B2` blue is
+  optimiser output (an A–E batch, or a revalidated champion), `#7EB6DE` its tint is the screen,
+  `#BFA07A` light brown the prior-optimum repeats, `#7A52A1` purple Campaign 2, `#E17000` orange
+  DoE-OPT.
   Row labels are bare formulation ids — `Ran*` → `S*`, `Misc*` → `M*`, no rank prefix. Same cell
   workflow, different tokens — both chromes are tabled in `Figures/README.md`. Don't "fix" them
   back to the house style.

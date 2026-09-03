@@ -140,27 +140,31 @@ def _(mo):
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#009E73` | a Campaign 2 formulation |
-    | `C1_COLOR` | `#0072B2` | a revalidated Campaign 1 champion |
-    | `BEST_COLOR` | `#D55E00` | DoE-OPT, the screening baseline |
+    | `BO_COLOR` | `#7A52A1` | purple — a Campaign 2 formulation |
+    | `C1_COLOR` | `#0072B2` | blue — a revalidated Campaign 1 champion |
+    | `BEST_COLOR` | `#E17000` | orange — DoE-OPT, the screening baseline |
 
     Two hues carry across to the Campaign 1 slide unchanged. `BEST_COLOR` is DoE-OPT on both, and
     `C1_COLOR` is that slide's optimiser hue — a formulation the optimiser chose looks the same
     whether it is ranked blank there or revalidated loaded here, which is the whole point of
     putting the champions on this board.
 
-    All three are Okabe–Ito, so they stay distinct under deuteranopia and protanopia and survive a
-    greyscale print.
+    Purple appears on neither slide except here, which is what makes it read as *the new campaign*
+    against the blue it is being measured against. The Campaign 1 slide spends its blues on
+    optimiser and screen and keeps purple free for exactly this.
+
+    Purple, blue and orange are far enough apart in hue and lightness to survive deuteranopia,
+    protanopia and a greyscale print.
     """)
     return
 
 
 @app.cell
 def _():
-    # Okabe-Ito. C1_COLOR and BEST_COLOR match the Campaign 1 slide's BO_COLOR and BEST_COLOR.
-    BO_COLOR = '#009E73'    # bluish green -- Campaign 2
-    C1_COLOR = '#0072B2'    # deep blue    -- revalidated Campaign 1 champion
-    BEST_COLOR = '#D55E00'  # vermillion   -- DoE-OPT
+    # C1_COLOR and BEST_COLOR match the Campaign 1 slide's BO_COLOR and BEST_COLOR.
+    BO_COLOR = '#7A52A1'    # purple  -- Campaign 2
+    C1_COLOR = '#0072B2'    # blue    -- revalidated Campaign 1 champion
+    BEST_COLOR = '#E17000'  # orange  -- DoE-OPT
 
     INK = '#0b0b0b'
     SECOND = '#52514e'
