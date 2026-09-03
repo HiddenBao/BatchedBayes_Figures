@@ -1,3 +1,19 @@
+# --- Windows + conda DLL guard: must run before *any* other import --------------------------
+# The existing guard in the imports cell below runs too late for a plain `python <file>` launch:
+# `import marimo` pulls in the numeric stack first, so the process is already dead. PyCharm runs
+# the configured conda interpreter directly rather than through `conda activate`, which is exactly
+# that launch -- exit code 0xC06D007F / 3228369023, STATUS_DELAY_LOAD_FAILED, no traceback.
+# See Figures/Blank_Campaign/Blank_Campaign_Figures.py for the same block and its caveats.
+import os as _os
+import sys as _sys
+
+if _os.name == "nt":
+    _dll_dir = _os.path.join(_sys.prefix, "Library", "bin")
+    if _os.path.isdir(_dll_dir):
+        _os.add_dll_directory(_dll_dir)
+        _os.environ["PATH"] = _dll_dir + _os.pathsep + _os.environ.get("PATH", "")
+# --------------------------------------------------------------------------------------------
+
 import marimo
 
 __generated_with = "0.24.0"

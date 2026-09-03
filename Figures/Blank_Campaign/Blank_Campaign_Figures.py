@@ -1,3 +1,29 @@
+# --- Windows + conda DLL guard: must run before *any* other import --------------------------
+# The numeric wheels delay-load their DLLs (MKL, OpenBLAS, libstdc++) from <env>/Library/bin,
+# which is only on PATH once the environment is *activated*. PyCharm runs the configured conda
+# interpreter directly rather than through `conda activate`, so a Run/Debug launch -- and a
+# notebook kernel started the same way -- dies with exit code 0xC06D007F / 3228369023,
+# STATUS_DELAY_LOAD_FAILED and no traceback.
+#
+# This sits above `import marimo` on purpose: marimo pulls in the numeric stack itself, so a
+# guard inside a cell (the placement analysis/campaign_comparison.py uses) runs too late to
+# save a plain `python <file>` launch. The cell below repeats it for the case where marimo
+# started fine and only the cell's own imports would fail.
+#
+# Whether marimo preserves top-level code through a UI save is NOT established -- `marimo export
+# script` keeps these comments but drops the statements. If the block ever disappears, PyCharm
+# launches start failing again with 0xC06D007F while `conda run -n BatchedBayes` keeps working;
+# paste it back, or fix it at the environment level with a sitecustomize.py.
+import os as _os
+import sys as _sys
+
+if _os.name == "nt":
+    _dll_dir = _os.path.join(_sys.prefix, "Library", "bin")
+    if _os.path.isdir(_dll_dir):
+        _os.add_dll_directory(_dll_dir)
+        _os.environ["PATH"] = _dll_dir + _os.pathsep + _os.environ.get("PATH", "")
+# --------------------------------------------------------------------------------------------
+
 import marimo
 
 __generated_with = "0.24.0"
