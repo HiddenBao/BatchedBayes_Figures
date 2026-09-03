@@ -92,8 +92,21 @@ def _(mo):
 @app.cell
 def _():
     import importlib.util
+    import os
     import sys
     from pathlib import Path
+
+    # Windows + conda: the numeric wheels delay-load their DLLs (MKL, OpenBLAS, libstdc++) from
+    # <env>/Library/bin, which is only on PATH once the environment is *activated*. A kernel
+    # launched without activation -- marimo started from an unactivated shell, or an IDE plugin --
+    # therefore dies on `import numpy` with no traceback: exit code 0xC06D007F / 3228369023,
+    # STATUS_DELAY_LOAD_FAILED. Putting the directory back before the first numeric import makes
+    # the notebook run under either launch path. Same guard as analysis/campaign_comparison.py.
+    if os.name == 'nt':
+        _dll_dir = os.path.join(sys.prefix, 'Library', 'bin')
+        if os.path.isdir(_dll_dir):
+            os.add_dll_directory(_dll_dir)
+            os.environ['PATH'] = _dll_dir + os.pathsep + os.environ.get('PATH', '')
 
     import numpy as np
     import pandas as pd
