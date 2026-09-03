@@ -12,7 +12,6 @@ See [CLAUDE.md](CLAUDE.md) for the layout, the campaign distinctions, and how to
 
 ```
 conda run -n BatchedBayes python analysis/build_score_datasets.py
-conda run -n BatchedBayes python average_dataset_scores.py
 conda run -n BatchedBayes python analysis/export_leaderboard_data.py
 
 conda run -n BatchedBayes marimo edit analysis/campaign_comparison.py

@@ -1,22 +1,23 @@
-name: qdot
+# Analysis and figure environment. The optimiser is not in this repo, so its
+# dependencies (pytorch, scikit-learn, quantile-forest, scipy, pytest) are gone --
+# see the upstream BatchedBayes repo if you need to run the optimiser itself.
+#
+#   conda env create -f environment.yml
+#   conda env update -f environment.yml --prune
+
+name: BatchedBayes
 
 channels:
-  - pytorch
   - conda-forge
 
 dependencies:
+  - python >=3.11
   - numpy
-  - scipy
-  - pytorch
-  - matplotlib
   - pandas
-  - scikit-learn
-  - pip
-  - ipykernel
   - plotly
+  - ipykernel        # marimo notebook kernels
+  - pip
   - pip:
-    - quantile-forest
-    - kaleido        # SVG export for the plotly figures
-    - marimo         # analysis/campaign_comparison.py
-
-  - pytest
+    - kaleido        # static SVG/PNG export for the plotly figures
+    - marimo         # analysis/campaign_comparison.py and the Figures/ suites
+    - pypdf          # reading docs/paper/

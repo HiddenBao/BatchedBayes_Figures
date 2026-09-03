@@ -56,13 +56,6 @@ git -C $UP branch -a
 
 If the local clone is stale or missing, `git -C $UP fetch --all` first, or clone the remote.
 
-### The two constants mirrored here
-
-`score_dataset.py` used to import `MicroemulsionFormulation`. With the optimiser gone it restates
-the only two values it needed — `DATASET_PATH` and `OUTPUT_HEADERS` — as module constants. If the
-upstream output column order or dataset filename ever changes, these drift silently. Check them
-against upstream `applications.py` before trusting a score.
-
 ### Scripts that reference upstream history
 
 `analysis/build_ranking_history.py` reads its "before" state from `git show 71893ac:...`. That
@@ -73,28 +66,43 @@ clone of the upstream repo, or re-point `PREV_REV`.
 
 ```
 data/                 measured formulation data + descriptor lookup tables
-score_dataset.py      compute_component_scores() -- the objective, and a CLI report
-average_dataset_scores.py
 analysis/
-  build_score_datasets.py     data/ -> analysis/datasets/*.csv        (run first)
+  build_score_datasets.py     BOTH objectives + data/ -> datasets/*.csv   (run first)
   export_leaderboard_data.py  leaderboard CSVs
   build_ranking_history.py    needs upstream history, see above
   campaign_comparison.py      marimo notebook -- the analysis document
   datasets/                   generated; regenerate, don't hand-edit
   figures/                    generated SVGs
 Figures/              slide figure suites -- see Figures/README.md for the folder convention
-docs/paper/           the published Campaign 1 paper
+docs/paper/           the published Campaign 1 paper (Gunawardena-2026_Microemulsion-BO.pdf)
 ```
 
-Pipeline order: `analysis/build_score_datasets.py` → `average_dataset_scores.py` →
-`analysis/export_leaderboard_data.py`.
+Pipeline: `analysis/build_score_datasets.py` → `analysis/export_leaderboard_data.py`.
+The first writes all nine dataset CSVs, per-rep and `_avg`; the second reads the `_avg`
+files. There is no root-level script any more — `score_dataset.py` and
+`average_dataset_scores.py` were folded into `build_score_datasets.py`.
+
+### The two objectives
+
+`build_score_datasets.py` implements both, and they are **not** interchangeable:
+
+- `original_objective` — Campaign 1 **as published** (paper Eq. 1–4): equal weights,
+  `+10*phase_sep`, PDI hinged at 0.3. → `campaign1_scores_original_objective.csv`.
+  **Act 1 figures use this.**
+- `compute_component_scores` — Campaign 2's weighted form:
+  `(3*size + 2*pdi + 1*zeta + 2*drug_loading + 3*perm) / max(1-phase_sep, 0.01)`,
+  PDI hinged at 0.1. Everything else uses this.
+
+`compute_component_scores` used to live in `score_dataset.py`, which imported
+`MicroemulsionFormulation`. Both are gone; if upstream's objective changes, this function
+drifts silently.
 
 ## Campaigns — do not mix them up
 
 The repo spans two campaigns with **different design spaces**, and upstream `main` carries
 Campaign 2's code. Deriving a Campaign 1 figure from Campaign 2's constants is the easy mistake.
 
-- **Campaign 1** — published as `docs/paper/s41120-026-00176-0.pdf` (Gunawardena, Chau et al.,
+- **Campaign 1** — published as `docs/paper/Gunawardena-2026_Microemulsion-BO.pdf` (Gunawardena, Chau et al.,
   *AAPS Open* 2026;12:34). **Table 1 of that paper is the authoritative design space** — read it
   rather than inferring ranges from code. Three continuous dials: oil volume 7.5–22.5 %, Smix
   **ratio** 3:1–1:3, sonication 0–3 min. It is a ratio because
@@ -102,13 +110,41 @@ Campaign 2's code. Deriving a Campaign 1 figure from Campaign 2's constants is t
   5 cosurfactants. 22 seed experiments (5 prior optima + 10 quasi-random + 7 repeats) then 25
   proposals in five batches of five. Its objective is Eq. 1–4: equal weights, ×10 phase-separation
   term, PDI hinged at 0.3 — implemented as `original_objective` in
-  `analysis/build_score_datasets.py`, **not** by `score_dataset.py`.
+  `analysis/build_score_datasets.py` as `original_objective`.
 - **Campaign 2** — per-API transfer tracks (`Part2_A190`, `Part2_Feno`). Independent surfactant
   and cosurfactant volumes, wider oil range, a different objective and a tighter PDI hinge (0.1
   here vs the paper's 0.3).
 
 Experiment-stage prefixes in `Exp`: `DoE*` (prior optima) · `Misc*` (repeats) · `Ran*`
 (quasi-random screen) · `A`–`E` (Campaign 1 batches) · `F` (Campaign 2).
+
+## Figure suites
+
+`Figures/<Suite_Name>/` — a marimo notebook plus its `Output/` SVGs. `Figures/README.md` is the
+directory guide; the rules are here.
+
+- **A suite owns a slide, not a dataset.** Two figures on different slides are two suites, even
+  when they read the same CSV.
+- **Import, never restate.** Objective from `analysis/build_score_datasets.py`, ranges from the
+  paper's Table 1. A suite that hardcodes a range drifts from the campaign it describes.
+- **Export SVG** on a 1280×720 pixel grid, one data unit to one exported pixel.
+- **Style follows the `Breaking-the-Boundaries` suites** value for value — white ground, 2 px
+  black mirrored axis box, no gridlines, five type sizes, horizontal legend in a bottom gutter.
+- **Keep the DLL guard** above `import marimo` (see Environment below).
+
+### Campaign 1 design space — Table 1, confirmed against the CSV
+
+| Parameter | Design space |
+|---|---|
+| Oil volume | 7.5 – 22.5 % |
+| Smix ratio (surfactant : cosurfactant) | 3:1 – 1:3 |
+| Sonication time | 0 – 3 min |
+| Oil | Oleic Acid, Capryol 90, Soybean Oil, Maisine Oil, Capmul MCM |
+| Surfactant | PEG 400, Tween 80, Tween 20, Labrasol |
+| Cosurfactant | Tween 80, Transcutol HP, Propylene Glycol, Ethanol, PEG 400 |
+
+PEG 400 and Tween 80 each appear in two columns — the space is roles a molecule can play, not
+three independent lists. 5 × 4 × 5 = 100 declared systems; the campaign ran 15.
 
 ## Environment
 

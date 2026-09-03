@@ -1,7 +1,18 @@
 """Regenerates every scored dataset in analysis/datasets/ from the comprehensive CSV.
 
 These files used to be produced ad hoc; this script is their single source of
-truth. Run it, then average_dataset_scores.py, then export_leaderboard_data.py.
+truth. Run it, then export_leaderboard_data.py.
+
+It also carries the objective itself -- `compute_component_scores` -- which used
+to live in a root-level score_dataset.py. Two objectives are implemented here and
+they are NOT interchangeable:
+
+  compute_component_scores  Campaign 2's weighted form: 3*size + 2*pdi + 1*zeta
+                            + 2*drug_loading + 3*permeability, divided by
+                            stability, PDI hinged at 0.1.
+  original_objective        Campaign 1 AS PUBLISHED (Eq. 1-4 of the paper):
+                            equal weights, +10*phase_sep, PDI hinged at 0.3.
+                            Act 1 figures use this one.
 
   campaign1_scores.csv                     every non-Campaign-2 row (blank screening,
                                            the DoE screening rows, and the revalidated
@@ -10,20 +21,18 @@ truth. Run it, then average_dataset_scores.py, then export_leaderboard_data.py.
                                            physicochemical-only objective
   campaign2_scores.csv                     every row with all six outputs measured
   campaign2_scores_A190.csv / _Feno.csv    that file split by API
+  <name>_avg.csv                           each of the above averaged per
+                                           formulation, then scored
 
 Campaign 2 experiments are the only ones whose Exp starts with 'A-' or 'F-'.
 """
 import os
-import sys
 
 import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-sys.path.insert(0, REPO)
-
-from score_dataset import compute_component_scores  # noqa: E402
 
 DATADIR = os.path.join(HERE, "datasets")
 SRC = os.path.join(REPO, "data",
@@ -33,6 +42,99 @@ OUTPUTS = ["Droplet_Size", "PDI", "Zeta_P", "Phase_Sep", "Drug_Loading", "Permea
 ID_COLS = ["Exp", "Rep", "Oil", "Surfactant", "Cosurfactant", "API_Name",
            "Oil_V", "Surfactant_V", "Cosurfactant_V", "Sonication"]
 C2_PREFIXES = ("A-", "F-")
+
+
+def compute_component_scores(preds: np.ndarray) -> pd.DataFrame:
+    """Return a DataFrame of each intermediate score and the final objective."""
+    size = preds[:, 0]
+    pdi  = preds[:, 1]
+    zeta = preds[:, 2]
+    sep  = preds[:, 3]
+    dl   = preds[:, 4]
+    perm = preds[:, 5]
+
+    size_score = np.maximum(0.0, (size - 100.0) / 900.0)
+
+    pdi_score = np.where(
+        pdi >= 0.1,
+        (pdi - 0.1) / 0.9,
+        -(0.1 - pdi) / (0.9 * 5.0),
+    )
+
+    zeta_score = np.maximum(0.0, (np.abs(zeta) - 10.0) / 10.0)
+
+    dl_dist = np.abs(dl - 100.0)
+    dl_score = np.where(
+        np.isnan(dl), 0.0,
+        np.where(
+            dl_dist <= 5.0,
+            dl_dist / 130.0,
+            5.0 / 130.0 + (dl_dist - 5.0) / 26.0,
+        ),
+    )
+
+    perm_score = np.where(
+        np.isnan(perm), 0.0,
+        np.where(
+            perm <= 20e-6,
+            (20e-6 - perm) / 20e-6,
+            -(perm - 20e-6) / (20e-6 * 5.0),
+        ),
+    )
+
+    formulation_loss = (
+        3.0 * size_score
+        + 2.0 * pdi_score
+        + 1.0 * zeta_score
+        + 2.0 * dl_score
+        + 3.0 * perm_score
+    )
+    stability = 1.0 - np.clip(sep, 0.0, 1.0)
+    objective = formulation_loss / np.maximum(stability, 0.01)
+
+    return pd.DataFrame({
+        "size_score (w=3)":  size_score,
+        "pdi_score  (w=2)":  pdi_score,
+        "zeta_score (w=1)":  zeta_score,
+        "dl_score   (w=2)":  dl_score,
+        "perm_score (w=3)":  perm_score,
+        "formulation_loss":  formulation_loss,
+        "stability_factor":  stability,
+        "objective":         objective,
+    })
+
+
+AVG_ID_COLS = ["Oil", "Surfactant", "Cosurfactant", "API_Name",
+               "Oil_V", "Surfactant_V", "Cosurfactant_V", "Sonication"]
+
+
+def average_scores(per_rep):
+    """Average each formulation's repeats, then score the averages.
+
+    Not the same as averaging the per-rep objectives: the score terms hinge
+    (100 nm, |zeta| = 10 mV, PDI, drug-loading bands), so the two orders differ.
+    Campaign 1's revalidated champions exist only as a pre-averaged row, so
+    averaging measurements first puts every formulation on the same footing.
+    """
+    rows = []
+    for exp, grp in per_rep.groupby("Exp", sort=False):
+        reps = grp[grp["Rep"].astype(str).str.lower() != "avg"]
+        use = reps if len(reps) else grp
+        row = {"Exp": exp, "n_reps": len(reps) if len(reps) else "pre-avg"}
+        for c in AVG_ID_COLS:
+            if c in use.columns:
+                row[c] = use[c].iloc[0] if use[c].dtype == object else use[c].mean()
+        for c in OUTPUTS:
+            row[c] = use[c].mean()
+        rows.append(row)
+    out = pd.DataFrame(rows)
+    scores = compute_component_scores(out[OUTPUTS].to_numpy(dtype=float))
+    return (pd.concat([out, scores], axis=1)
+            .sort_values("objective", ascending=True).reset_index(drop=True))
+
+
+AVG_SOURCES = ["campaign1_scores", "campaign2_scores",
+               "campaign2_scores_A190", "campaign2_scores_Feno"]
 
 
 def original_objective(df):
@@ -82,6 +184,14 @@ def main(src=SRC, datadir=DATADIR):
         path = os.path.join(datadir, f"{stem}.csv")
         df.to_csv(path, index=False)
         print(f"{stem}: {len(df)} rows -> {path}")
+
+    # ---- average-then-score companions, consumed by export_leaderboard_data.py ----
+    for stem in AVG_SOURCES:
+        avg = average_scores(written[stem])
+        path = os.path.join(datadir, f"{stem}_avg.csv")
+        avg.to_csv(path, index=False)
+        written[f"{stem}_avg"] = avg
+        print(f"{stem}_avg: {len(written[stem])} per-rep rows -> {len(avg)} formulations -> {path}")
     return written
 
 
