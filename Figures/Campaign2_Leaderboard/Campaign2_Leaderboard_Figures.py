@@ -140,22 +140,27 @@ def _(mo):
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#eda100` | a Campaign 2 formulation |
-    | `C1_COLOR` | `#1baf7a` | a revalidated Campaign 1 champion |
-    | `BEST_COLOR` | `#2a78d6` | DoE-OPT, the screening baseline |
+    | `BO_COLOR` | `#009E73` | a Campaign 2 formulation |
+    | `C1_COLOR` | `#0072B2` | a revalidated Campaign 1 champion |
+    | `BEST_COLOR` | `#D55E00` | DoE-OPT, the screening baseline |
 
-    `BEST_COLOR` means DoE-OPT on both slides, which is what lets a reader carry the baseline from
-    one to the other.
+    Two hues carry across to the Campaign 1 slide unchanged. `BEST_COLOR` is DoE-OPT on both, and
+    `C1_COLOR` is that slide's optimiser hue — a formulation the optimiser chose looks the same
+    whether it is ranked blank there or revalidated loaded here, which is the whole point of
+    putting the champions on this board.
+
+    All three are Okabe–Ito, so they stay distinct under deuteranopia and protanopia and survive a
+    greyscale print.
     """)
     return
 
 
 @app.cell
 def _():
-    # Upstream's `COL`, value for value.
-    BO_COLOR = '#eda100'
-    C1_COLOR = '#1baf7a'
-    BEST_COLOR = '#2a78d6'
+    # Okabe-Ito. C1_COLOR and BEST_COLOR match the Campaign 1 slide's BO_COLOR and BEST_COLOR.
+    BO_COLOR = '#009E73'    # bluish green -- Campaign 2
+    C1_COLOR = '#0072B2'    # deep blue    -- revalidated Campaign 1 champion
+    BEST_COLOR = '#D55E00'  # vermillion   -- DoE-OPT
 
     INK = '#0b0b0b'
     SECOND = '#52514e'
@@ -277,8 +282,8 @@ def _(DATA_CSV, campaign2, pd):
         mean_objective = rows.groupby('Exp')['objective'].mean().sort_values()
         ranked = mean_objective[mean_objective < SEP_CUT]
         separated = sorted(mean_objective[mean_objective >= SEP_CUT].index)
-        row_label = {exp: '{}  {}'.format(i, 'DoE-OPT' if exp == DOE else exp)
-                     for i, exp in enumerate(ranked.index, 1)}
+        # Rank is already the row order, so it is not spelled out in the label.
+        row_label = {exp: 'DoE-OPT' if exp == DOE else exp for exp in ranked.index}
         repeats = rows[rows['Exp'].isin(ranked.index)].copy()
         repeats['row_label'] = repeats['Exp'].map(row_label)
         return ranked, separated, row_label, repeats
@@ -343,7 +348,7 @@ def _(
     SERIES_ORDER = ('c2', 'c1', 'doe')
     SERIES_RANK = {series: i for i, series in enumerate(SERIES_ORDER)}
 
-    AXIS_TITLE = 'Mean Objective Of Individually-Scored Repeats  (Lower Is Better)'
+    AXIS_TITLE = 'Mean Objective Score'
     PANEL_AXES = {'A190': ('x', 'y'), 'Feno': ('x2', 'y2')}
 
 

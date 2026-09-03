@@ -135,9 +135,12 @@ directory guide; the rules are here.
 - **The two leaderboards are the exception, on purpose.** They wear upstream's analysis chrome
   (`BatchedBayes:analysis/campaign_comparison.py` — `plotly_layout` / `axis_style` /
   `legend_below`) so they read beside `analysis/figures/*_leaderboard.svg`: `#fcfcfb` ground,
-  hairline `#c3c2b7` axes with value-axis gridlines, left title, 16/12/11 type, and upstream's
-  `COL` palette. Same cell workflow, different tokens — both chromes are tabled in
-  `Figures/README.md`. Don't "fix" them back to the house style.
+  hairline `#c3c2b7` axes with value-axis gridlines, left title, 16/12/11 type. The palette is
+  **not** upstream's `COL` — it is Okabe–Ito, and a hue means the same thing on both boards:
+  `#0072B2` is optimiser output (an A–E batch, or a revalidated champion) and `#D55E00` is DoE-OPT.
+  Row labels are bare formulation ids — `Ran*` → `S*`, `Misc*` → `M*`, no rank prefix. Same cell
+  workflow, different tokens — both chromes are tabled in `Figures/README.md`. Don't "fix" them
+  back to the house style.
 - **Keep the DLL guard** above `import marimo` (see Environment below).
 
 ### Campaign 1 design space — Table 1, confirmed against the CSV

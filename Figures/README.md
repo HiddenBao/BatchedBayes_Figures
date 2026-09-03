@@ -71,13 +71,23 @@ Transcribed from that notebook's `plotly_layout` / `axis_style` / `legend_below`
 | Font | `sans-serif`, `template='none'` |
 | Ground | `#fcfcfb` paper and plot |
 | Axes | hairline `#c3c2b7`, no mirror, ticks outside, `#e1e0d9` gridlines on the value axis only |
-| Palette | DoE-OPT `#2a78d6` · Campaign 1 `#1baf7a` · Campaign 2 `#eda100` |
+| Palette | Okabe–Ito, shared across both slides: optimiser / C1 champion `#0072B2` · quasi-random screen `#56B4E9` · prior-optimum repeats `#BBBBBB` · Campaign 2 `#009E73` · DoE-OPT `#D55E00` |
 | Marks | flat unoutlined bars at `width=0.62`; repeat dots size 9, ink at 70 %, ringed in the ground |
 | Title | left, `x=0.01`, grey subtitle carrying the phase-separated names |
 | Legend | horizontal, centred, 60 px below the plot area |
 
-Upstream is the source of truth for the second one — read `analysis/campaign_comparison.py` in
-`C:/PyCharmProjects/BatchedBayes` rather than inferring it from these suites.
+The layout is upstream's — read `analysis/campaign_comparison.py` in
+`C:/PyCharmProjects/BatchedBayes` rather than inferring it from these suites. The palette is not:
+upstream's `COL` was swapped for Okabe–Ito so the series stay distinct under colour-vision
+deficiency and in greyscale.
+
+**A hue means the same thing on both leaderboards.** `#0072B2` is a formulation the optimiser
+chose — an A–E batch on the Campaign 1 board, a revalidated champion on the Campaign 2 one — and
+`#D55E00` is DoE-OPT on both. That is what lets a reader carry a formulation from one slide to the
+next.
+
+Row labels are the formulation id, no rank number: `Ran*` renders as `S*` (screen) and `Misc*` as
+`M*` (prior-optimum repeat). Rank is the row order, so it is not spelled out twice.
 
 Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](../CLAUDE.md).
 

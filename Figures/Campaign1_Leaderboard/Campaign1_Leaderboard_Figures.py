@@ -143,10 +143,17 @@ def _(mo):
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#1baf7a` | an optimiser-chosen batch, A–E — upstream's Campaign 1 green |
-    | `SCREEN_COLOR` | `#898781` | the quasi-random screen that seeded the surrogate |
-    | `PRELIM_COLOR` | `#c3c2b7` | repeats of prior optima — present, deliberately quiet |
-    | `BEST_COLOR` | `#2a78d6` | DoE-OPT, the baseline the campaign had to beat |
+    | `BO_COLOR` | `#0072B2` | an optimiser-chosen batch, A–E |
+    | `SCREEN_COLOR` | `#56B4E9` | the quasi-random screen that seeded the surrogate |
+    | `PRELIM_COLOR` | `#BBBBBB` | repeats of prior optima — present, deliberately quiet |
+    | `BEST_COLOR` | `#D55E00` | DoE-OPT, the baseline the campaign had to beat |
+
+    `BO_COLOR` is also the Campaign 2 slide's champion hue: a formulation the optimiser chose looks
+    the same on both boards, whether it is ranked blank here or revalidated loaded there. DoE-OPT is
+    the one warm mark on this slide, so the baseline reads at a glance.
+
+    The four are Okabe–Ito, so they stay distinct under deuteranopia and protanopia and survive a
+    greyscale print.
 
     Five BO rounds are **one** colour on purpose. They are one campaign under one policy, and
     giving each round its own hue would claim a distinction the method does not make.
@@ -156,11 +163,11 @@ def _(mo):
 
 @app.cell
 def _():
-    # Upstream's palette, value for value: DoE-OPT blue, Campaign 1 green, Campaign 2 amber.
-    BO_COLOR = '#1baf7a'
-    SCREEN_COLOR = '#898781'
-    PRELIM_COLOR = '#c3c2b7'
-    BEST_COLOR = '#2a78d6'
+    # Okabe-Ito. BO_COLOR is shared with the Campaign 2 slide's champion series on purpose.
+    BO_COLOR = '#0072B2'       # deep blue    -- optimiser batches A-E
+    SCREEN_COLOR = '#56B4E9'   # sky blue     -- quasi-random screen
+    PRELIM_COLOR = '#BBBBBB'   # grey         -- prior-optimum repeats
+    BEST_COLOR = '#D55E00'     # vermillion   -- DoE-OPT
 
     INK = '#0b0b0b'
     SECOND = '#52514e'
@@ -285,11 +292,26 @@ def _(DATA_CSV, campaign1, pd):
 
     _mean = board.groupby('Exp')['objective'].mean().sort_values()
     ranked = _mean[_mean < SEP_CUT]
-    separated = sorted(_mean[_mean >= SEP_CUT].index)
+    _separated_ids = _mean[_mean >= SEP_CUT].index
 
-    # Rank prefixes make the two-column split read as one list of 1..N, not two boards.
-    ROW_LABEL = {exp: '{}  {}'.format(i, 'DoE-OPT' if exp == 'DoEOPT' else exp)
-                 for i, exp in enumerate(ranked.index, 1)}
+    # `Ran` and `Misc` are dataset ids, not names a reader should have to decode: S is the
+    # screen, M a prior-optimum repeat. Rank is already the row order, so it is not spelled out.
+    def row_label_of(exp: str) -> str:
+        if exp == 'DoEOPT':
+            return 'DoE-OPT'
+        if exp.startswith('Ran'):
+            return 'S' + exp[3:]
+        if exp.startswith('Misc'):
+            return 'M' + exp[4:]
+        return exp
+
+
+    ROW_LABEL = {exp: row_label_of(exp) for exp in ranked.index}
+    assert len(set(ROW_LABEL.values())) == len(ROW_LABEL), 'row labels collide'
+
+    # The named-but-unplotted list wears the same names as the rows, sorted S2 before S10.
+    separated = sorted((row_label_of(exp) for exp in _separated_ids),
+                       key=lambda name: (name[0], int(name[1:]) if name[1:].isdigit() else 0))
     board['row_label'] = board['Exp'].map(ROW_LABEL)
     STAGE = {exp: stage_of(exp) for exp in ranked.index}
 
@@ -356,7 +378,7 @@ def _(
     STAGE_ORDER = ('bo', 'screen', 'repeat', 'doe')
     STAGE_RANK = {stage: i for i, stage in enumerate(STAGE_ORDER)}
 
-    AXIS_TITLE = 'Mean Objective Of Individually-Scored Repeats  (Lower Is Better)'
+    AXIS_TITLE = 'Mean Objective Score'
 
 
     def build_leaderboard():
