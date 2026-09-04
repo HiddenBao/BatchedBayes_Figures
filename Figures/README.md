@@ -69,20 +69,29 @@ Transcribed from that notebook's `plotly_layout` / `axis_style` / `legend_below`
 | Canvas | 1280 × 720 (upstream sizes to content: `44 * rows + 210`) |
 | Type scale | 16 title · 11 subtitle · 12 panel title · 12 axis title · 11 tick · 11 legend |
 | Font | `sans-serif`, `template='none'` |
-| Ground | `#fcfcfb` paper and plot |
+| Ground | white paper and plot |
 | Axes | hairline `#c3c2b7`, no mirror, ticks outside, `#e1e0d9` gridlines on the value axis only |
-| Palette | shared across both slides: optimiser / C1 champion `#0072B2` blue · quasi-random screen `#7EB6DE` pale blue · prior-optimum repeats `#BFA07A` light brown · Campaign 2 `#7A52A1` purple · DoE-OPT `#E17000` orange |
-| Marks | flat unoutlined bars at `width=0.62`; repeat dots size 9, ink at 70 %, ringed in the ground |
+| Palette | `Breaking-the-Boundaries` tokens, shared across both slides: Campaign 1 optimiser / champion `#2067F4` · quasi-random screen `#C4C4C4` (`TRIAL_COLOR`) · Campaign 2 `#6FB7E8` · DoE-OPT `#D55E00` |
+| Marks | flat unoutlined bars at `width=0.62`; repeat dots size 9.5, ink at 70 %, ringed in the ground at `MARKER_RING = 2` |
 | Title | left, `x=0.01`, grey subtitle carrying the phase-separated names |
 | Legend | horizontal, centred, 60 px below the plot area |
 
-The layout is upstream's — read `analysis/campaign_comparison.py` in
-`C:/PyCharmProjects/BatchedBayes` rather than inferring it from these suites. The palette is not:
-upstream's `COL` was replaced.
+Only the **layout** is upstream's — read `analysis/campaign_comparison.py` in
+`C:/PyCharmProjects/BatchedBayes` rather than inferring it from these suites. The palette and the
+marker come from `Breaking-the-Boundaries` instead, so the leaderboards wear upstream's structure and
+the house's colour.
 
-The screen is a **tint** of the optimiser blue rather than a fifth hue — both stages produced
-campaign data on the same design space, and a tint says *related but earlier* where a separate hue
-would claim a separate kind of thing. Purple is reserved for Campaign 2, which genuinely is one.
+Two of those borrowings carry meaning, not just a hex:
+
+- **The screen is grey** because in the `Breaking-the-Boundaries` campaign plots the screening phase
+  is a `SCREEN_BAND` — `rgba(0, 0, 0, 0.055)`, a shaded region the optimisation runs across rather
+  than a series competing with it. A bar chart cannot shade a region, so the screen wears that band
+  as a fill: present, positioned, visibly not the campaign.
+- **The two campaigns are two depths of one blue.** Campaign 2 transfers the method to a loaded
+  formulation rather than replacing it, so a second hue would claim a break the method does not make.
+
+`Misc*` (prior-optimum repeats) is **not on the Campaign 1 board** — it is prior art the campaign
+inherited, not campaign output. It is still in `data/` and still scored.
 
 **A hue means the same thing on both leaderboards.** `#0072B2` is a formulation the optimiser
 chose — an A–E batch on the Campaign 1 board, a revalidated champion on the Campaign 2 one — and
@@ -98,7 +107,7 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 
 | Folder | Slide | Paper figure |
 |---|---|---|
-| `Campaign1_Leaderboard/` | Every blank formulation ranked against the DoE-OPT screening optimum | — |
+| `Campaign1_Leaderboard/` | The optimiser batches and the quasi-random screen against DoE-OPT | — |
 | `Campaign2_Leaderboard/` | Both API tracks ranked, with the Campaign 1 champions and DoE-OPT | — |
 | `Design_Space/` | DoE → Batched Bayes: what the optimiser could search that the screening design could not | Table 1 |
 | `Campaign_Progress/` | Objective per formulation in campaign order, running best | Fig. 2 |

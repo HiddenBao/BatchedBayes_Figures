@@ -134,13 +134,16 @@ directory guide; the rules are here.
   out — **read it before building a suite.**
 - **The two leaderboards are the exception, on purpose.** They wear upstream's analysis chrome
   (`BatchedBayes:analysis/campaign_comparison.py` — `plotly_layout` / `axis_style` /
-  `legend_below`) so they read beside `analysis/figures/*_leaderboard.svg`: `#fcfcfb` ground,
-  hairline `#c3c2b7` axes with value-axis gridlines, left title, 16/12/11 type. The palette is
-  **not** upstream's `COL`, and a hue means the same thing on both boards: `#0072B2` blue is
-  optimiser output (an A–E batch, or a revalidated champion), `#7EB6DE` its tint is the screen,
-  `#BFA07A` light brown the prior-optimum repeats, `#7A52A1` purple Campaign 2, `#E17000` orange
-  DoE-OPT.
-  Row labels are bare formulation ids — `Ran*` → `S*`, `Misc*` → `M*`, no rank prefix. Same cell
+  `legend_below`) so they read beside `analysis/figures/*_leaderboard.svg`: hairline axes with
+  value-axis gridlines, left title, 16/12/11 type — but on a **white** ground, not upstream's
+  `#fcfcfb`. The palette is **not** upstream's `COL`: it is `Breaking-the-Boundaries`
+  tokens, and a hue means the same thing on both boards — `#2067F4` is Campaign 1 optimiser output
+  (an A–E batch, or a revalidated champion), `#C4C4C4` (BtB's `TRIAL_COLOR`) the quasi-random screen,
+  `#6FB7E8` Campaign 2, `#D55E00` DoE-OPT. Markers use BtB's `MARKER_RING = 2`.
+  The screen is grey because BtB draws screening as a shaded `SCREEN_BAND` rather than a competing
+  series; a bar chart wears that band as a fill. `Misc*` (prior-optimum repeats) is **off** the
+  Campaign 1 board — inherited prior art, not campaign output.
+  Row labels are bare formulation ids — `Ran*` → `S*`, no rank prefix. Same cell
   workflow, different tokens — both chromes are tabled in `Figures/README.md`. Don't "fix" them
   back to the house style.
 - **Keep the DLL guard** above `import marimo` (see Environment below).

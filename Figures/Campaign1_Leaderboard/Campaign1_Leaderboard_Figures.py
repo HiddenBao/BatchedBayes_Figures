@@ -19,8 +19,9 @@ def _(mo):
     mo.md(r"""
     # Campaign 1 Leaderboard Figure Suite
 
-    One slide: **every blank formulation the campaign produced, ranked against the DoE-OPT
-    screening optimum.**
+    One slide: **the campaign against the baseline it had to beat.** Three things are on the
+    board and nothing else — the DoE-OPT screening optimum, the quasi-random screen that seeded
+    the surrogate, and the 25 optimiser proposals in batches A–E.
 
     Scoring is **score-then-average** — each of the three repeats is scored on its own and the bar
     is the mean of those three objectives. That is not the same as averaging the measurements and
@@ -36,8 +37,9 @@ def _(mo):
     Phase-separated formulations score around 31 and would flatten everything else, so they are
     named in the subtitle rather than plotted.
 
-    The chrome is upstream's — `BatchedBayes:analysis/campaign_comparison.py` — not this repo's
-    usual `Breaking-the-Boundaries` house style. See **Shared chrome** below.
+    The chrome is upstream's — `BatchedBayes:analysis/campaign_comparison.py` — but the palette
+    and the marker are `Breaking-the-Boundaries`': its `TRIAL_COLOR` grey, its `#D55E00`
+    comparator, and its `MARKER_RING = 2`. See **Shared chrome** below.
     """)
     return
 
@@ -132,33 +134,28 @@ def _(mo):
     mo.md(r"""
     ## Shared chrome
 
-    Transcribed from upstream's own leaderboards — `BatchedBayes:analysis/campaign_comparison.py`,
-    `plotly_layout` / `axis_style` / `legend_below` and `fig_leaderboard`. Warm off-white ground,
-    faint horizontal gridlines behind the bars, a hairline `#c3c2b7` axis with no mirror, flat
-    unoutlined bars and dark repeat dots. Deliberately *not* this repo's usual
-    `Breaking-the-Boundaries` chrome: these slides sit beside the upstream analysis figures.
+    The *layout* is upstream's — `BatchedBayes:analysis/campaign_comparison.py`, its
+    `plotly_layout` / `axis_style` / `legend_below` and `fig_leaderboard`: faint gridlines behind
+    the bars, a hairline axis with no mirror, flat unoutlined bars, a left title. The *palette* and
+    the marker are `Breaking-the-Boundaries`'. The ground is white, to sit on a white slide.
 
-    Hues carry **campaign stage** rather than formulation identity, using upstream's three-colour
-    palette:
+    Three bars, three hues, each one a `Breaking-the-Boundaries` token so a deck mixing these
+    slides with those reads as one system:
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#0072B2` | blue — an optimiser-chosen batch, A–E |
-    | `SCREEN_COLOR` | `#7EB6DE` | pale blue — the quasi-random screen that seeded the surrogate |
-    | `PRELIM_COLOR` | `#BFA07A` | light brown — repeats of prior optima, deliberately quiet |
-    | `BEST_COLOR` | `#E17000` | orange — DoE-OPT, the baseline the campaign had to beat |
+    | `BO_COLOR` | `#2067F4` | an optimiser-chosen batch, A–E — the deck primary, and `Summit_Digital_Twin`'s `MEAN_LABEL` |
+    | `SCREEN_COLOR` | `#C4C4C4` | the quasi-random screen — `TRIAL_COLOR` |
+    | `BEST_COLOR` | `#D55E00` | DoE-OPT, the baseline the campaign had to beat — the comparator hue |
 
-    `BO_COLOR` is also the Campaign 2 slide's champion hue: a formulation the optimiser chose looks
-    the same on both boards, whether it is ranked blank here or revalidated loaded there. DoE-OPT is
-    the one saturated warm mark on this slide, so the baseline reads at a glance.
+    The screen is **grey on purpose**. In the `Breaking-the-Boundaries` campaign plots the screening
+    phase is a `SCREEN_BAND` — `rgba(0, 0, 0, 0.055)`, a shaded region the optimisation runs across
+    rather than a series competing with it. A bar chart cannot shade a region, so the screen wears
+    that band as a fill instead: present, positioned, and visibly not the campaign.
 
-    The screen is a **tint of the optimiser blue**, not a fifth hue. Both stages produced campaign
-    data on the same design space; the screen was simply not chosen by the surrogate, and a tint
-    says *related but earlier* where a separate hue would claim a separate kind of thing. Purple is
-    held back for Campaign 2, which is a different campaign — see the Campaign 2 suite.
-
-    Brown against orange is the one pair that narrows under deuteranopia. They stay separable on
-    saturation and lightness rather than hue alone, and the two never rank adjacent.
+    `BEST_COLOR` is the one warm mark on the slide, and it means DoE-OPT on the Campaign 2 board
+    too. `BO_COLOR` likewise carries across — it is the revalidated champions there. A reader who
+    learns a hue on one slide keeps it on the next.
 
     Five BO rounds are **one** colour on purpose. They are one campaign under one policy, and
     giving each round its own hue would claim a distinction the method does not make.
@@ -169,17 +166,17 @@ def _(mo):
 @app.cell
 def _():
     # BO_COLOR and BEST_COLOR are shared with the Campaign 2 slide on purpose.
-    BO_COLOR = '#0072B2'       # blue         -- optimiser batches A-E
-    SCREEN_COLOR = '#7EB6DE'   # pale blue    -- quasi-random screen, a tint of BO_COLOR
-    PRELIM_COLOR = '#BFA07A'   # light brown  -- prior-optimum repeats
-    BEST_COLOR = '#E17000'     # orange       -- DoE-OPT
+    BO_COLOR = '#2067F4'       # blue  -- optimiser batches A-E; the deck primary
+    SCREEN_COLOR = '#C4C4C4'   # grey  -- quasi-random screen; BtB's TRIAL_COLOR
+    BEST_COLOR = '#D55E00'     # red   -- DoE-OPT; BtB's comparator hue
 
+    # White ground to sit on a white slide, not upstream's warm #fcfcfb.
     INK = '#0b0b0b'
-    SECOND = '#52514e'
-    MUTED = '#898781'
-    GRID = '#e1e0d9'
-    SURFACE = '#fcfcfb'
-    AXIS_LINE = '#c3c2b7'
+    SECOND = '#3F4652'
+    MUTED = '#6B7280'
+    GRID = '#E6E8EC'
+    SURFACE = '#ffffff'
+    AXIS_LINE = '#B9BEC7'
 
     # Upstream's type scale: title / axis title / tick / legend / annotation.
     TITLE_SIZE = 16
@@ -191,8 +188,8 @@ def _():
 
     FONT_FAMILY = 'sans-serif'
 
-    MARKER_SIZE = 9
-    MARKER_RING = 1.2
+    MARKER_SIZE = 9.5
+    MARKER_RING = 2   # BtB's value: a ringed marker still reads at print size
     BAR_WIDTH = 0.62
 
     AXIS_STANDOFF = 12
@@ -230,7 +227,6 @@ def _():
         MARKER_SIZE,
         MUTED,
         PANEL_DOMAIN,
-        PRELIM_COLOR,
         RIGHT_MARGIN,
         SCREEN_COLOR,
         SECOND,
@@ -248,9 +244,14 @@ def _(mo):
     mo.md(r"""
     ## The board
 
-    Every formulation measured **blank**, plus DoE-OPT. That is the 25 optimiser proposals
-    (batches A–E), the 10 quasi-random screen runs and the 7 prior-optimum repeats — 42
-    formulations — against the one screening optimum.
+    Three stages and nothing else: the 25 optimiser proposals (batches A–E), the 10 quasi-random
+    screen runs, and DoE-OPT.
+
+    The 7 prior-optimum repeats (`Misc*`) are **excluded**. They are re-measurements of
+    formulations the *previous* study had already settled on — prior art the campaign inherited,
+    not something it produced or set out to beat. Ranking them beside the campaign invited a
+    comparison this slide is not making, and they took a quarter of the rows to do it. They are
+    still in `data/` and still scored by `objectives.py`; they are simply not on this board.
 
     The four DoE screening rows (`DoE1`, `DoE4`, `DoE10`, `DoE11`) are **not** here: they were
     measured A190-loaded and are prior-art points, not campaign output. DoE-OPT earns its place as
@@ -273,7 +274,6 @@ def _(DATA_CSV, campaign1, pd):
     STAGE_LABEL = {
         'bo': 'Optimiser Batches A–E',
         'screen': 'Quasi-Random Screen',
-        'repeat': 'Prior-Optimum Repeats',
         'doe': 'DoE-OPT (Screening Baseline)',
     }
 
@@ -282,33 +282,27 @@ def _(DATA_CSV, campaign1, pd):
         """Return the campaign stage that produced `exp`; hue carries this."""
         if exp == 'DoEOPT':
             return 'doe'
-        if exp.startswith('Ran'):
-            return 'screen'
-        if exp.startswith('Misc'):
-            return 'repeat'
-        return 'bo'
+        return 'screen' if exp.startswith('Ran') else 'bo'
 
 
     _raw = pd.read_csv(DATA_CSV)
     _raw['objective'] = campaign1(_raw)['objective']
 
     _is_blank = _raw['API_Name'].astype(str).str.lower().eq('blank')
-    board = _raw[_is_blank | _raw['Exp'].eq('DoEOPT')].copy()
+    # `Misc*` is prior art the campaign inherited, not campaign output -- off the board.
+    _is_repeat = _raw['Exp'].str.startswith('Misc')
+    board = _raw[(_is_blank & ~_is_repeat) | _raw['Exp'].eq('DoEOPT')].copy()
 
     _mean = board.groupby('Exp')['objective'].mean().sort_values()
     ranked = _mean[_mean < SEP_CUT]
     _separated_ids = _mean[_mean >= SEP_CUT].index
 
-    # `Ran` and `Misc` are dataset ids, not names a reader should have to decode: S is the
-    # screen, M a prior-optimum repeat. Rank is already the row order, so it is not spelled out.
+    # `Ran` is a dataset id, not a name a reader should have to decode: S is the screen. Rank is
+    # already the row order, so it is not spelled out again.
     def row_label_of(exp: str) -> str:
         if exp == 'DoEOPT':
             return 'DoE-OPT'
-        if exp.startswith('Ran'):
-            return 'S' + exp[3:]
-        if exp.startswith('Misc'):
-            return 'M' + exp[4:]
-        return exp
+        return 'S' + exp[3:] if exp.startswith('Ran') else exp
 
 
     ROW_LABEL = {exp: row_label_of(exp) for exp in ranked.index}
@@ -356,7 +350,6 @@ def _(
     MARKER_SIZE,
     MUTED,
     PANEL_DOMAIN,
-    PRELIM_COLOR,
     RIGHT_MARGIN,
     ROW_LABEL,
     SCREEN_COLOR,
@@ -374,13 +367,8 @@ def _(
     ranked,
     separated,
 ):
-    STAGE_COLOR = {
-        'bo': BO_COLOR,
-        'screen': SCREEN_COLOR,
-        'repeat': PRELIM_COLOR,
-        'doe': BEST_COLOR,
-    }
-    STAGE_ORDER = ('bo', 'screen', 'repeat', 'doe')
+    STAGE_COLOR = {'bo': BO_COLOR, 'screen': SCREEN_COLOR, 'doe': BEST_COLOR}
+    STAGE_ORDER = ('bo', 'screen', 'doe')
     STAGE_RANK = {stage: i for i, stage in enumerate(STAGE_ORDER)}
 
     AXIS_TITLE = 'Mean Objective Score'
@@ -456,8 +444,8 @@ def _(
             template='none',
             title=dict(
                 text='<b>Campaign 1 — Leaderboard</b>  (score-then-average)<br>'
-                     '<span style="font-size:{}px;color:{}">Every Blank Formulation Against The '
-                     'DoE-OPT Screening Optimum, Ranked 1–{}'
+                     '<span style="font-size:{}px;color:{}">The Optimiser Batches And The '
+                     'Quasi-Random Screen Against The DoE-OPT Baseline, Ranked 1–{}'
                      '  ·  Not Shown (Phase-Separated): {}</span>'.format(
                          SUBTITLE_SIZE, MUTED, len(ranked), ', '.join(separated)),
                 font=dict(size=TITLE_SIZE, color=INK),

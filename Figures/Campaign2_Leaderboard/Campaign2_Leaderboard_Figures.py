@@ -27,7 +27,7 @@ def _(mo):
     rankings: a formulation's objective depends on the API it was loaded with.
 
     Scoring is **score-then-average**, as on the Campaign 1 slide — each repeat scored on its own,
-    the bar is the mean of the three, and the dark dots are the repeats themselves.
+    the bar is the mean of the three, and the ringed dots are the repeats themselves.
 
     The objective is Campaign 2's weighted form — `3·size + 2·pdi + 1·zeta + 2·drug_loading +
     3·permeability`, divided by the stability factor, PDI hinged at 0.1 — imported from
@@ -131,30 +131,29 @@ def _(mo):
     mo.md(r"""
     ## Shared chrome
 
-    The same tokens as the Campaign 1 slide, so the two read as one pair, and both are transcribed
-    from upstream's own leaderboards — `BatchedBayes:analysis/campaign_comparison.py`,
-    `plotly_layout` / `axis_style` / `legend_below` and `fig_leaderboard`.
+    The same tokens as the Campaign 1 slide, so the two read as one pair. The *layout* is
+    upstream's — `BatchedBayes:analysis/campaign_comparison.py`, its `plotly_layout` /
+    `axis_style` / `legend_below` and `fig_leaderboard`. The *palette* is
+    `Breaking-the-Boundaries`', and the ground is white to sit on a white slide.
 
-    Hues carry **which campaign produced the formulation**, and these are upstream's `COL` dict
-    exactly:
+    Hues carry **which campaign produced the formulation**:
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#7A52A1` | purple — a Campaign 2 formulation |
-    | `C1_COLOR` | `#0072B2` | blue — a revalidated Campaign 1 champion |
-    | `BEST_COLOR` | `#E17000` | orange — DoE-OPT, the screening baseline |
+    | `BO_COLOR` | `#6FB7E8` | sky blue — a Campaign 2 formulation |
+    | `C1_COLOR` | `#2067F4` | blue — a revalidated Campaign 1 champion |
+    | `BEST_COLOR` | `#D55E00` | red — DoE-OPT, the screening baseline |
 
-    Two hues carry across to the Campaign 1 slide unchanged. `BEST_COLOR` is DoE-OPT on both, and
-    `C1_COLOR` is that slide's optimiser hue — a formulation the optimiser chose looks the same
-    whether it is ranked blank there or revalidated loaded here, which is the whole point of
-    putting the champions on this board.
+    Two of the three carry across to the Campaign 1 slide unchanged. `BEST_COLOR` is DoE-OPT on
+    both, and `C1_COLOR` is that slide's optimiser hue — a formulation the optimiser chose looks
+    the same whether it is ranked blank there or revalidated loaded here, which is the whole point
+    of putting the champions on this board.
 
-    Purple appears on neither slide except here, which is what makes it read as *the new campaign*
-    against the blue it is being measured against. The Campaign 1 slide spends its blues on
-    optimiser and screen and keeps purple free for exactly this.
-
-    Purple, blue and orange are far enough apart in hue and lightness to survive deuteranopia,
-    protanopia and a greyscale print.
+    The two campaigns are **two depths of one blue**, not two hues. Both are Bayesian optimisation
+    over the same chemistry; Campaign 2 transfers the method to a loaded formulation rather than
+    replacing it. A second hue would claim a break the method does not make, so the newer campaign
+    takes the lighter tone and the champions keep the deck primary they earned on slide 1. Only
+    DoE-OPT, which is not a campaign at all, sits outside the family.
     """)
     return
 
@@ -162,16 +161,17 @@ def _(mo):
 @app.cell
 def _():
     # C1_COLOR and BEST_COLOR match the Campaign 1 slide's BO_COLOR and BEST_COLOR.
-    BO_COLOR = '#7A52A1'    # purple  -- Campaign 2
-    C1_COLOR = '#0072B2'    # blue    -- revalidated Campaign 1 champion
-    BEST_COLOR = '#E17000'  # orange  -- DoE-OPT
+    BO_COLOR = '#6FB7E8'    # sky blue  -- Campaign 2
+    C1_COLOR = '#2067F4'    # blue      -- revalidated Campaign 1 champion; the deck primary
+    BEST_COLOR = '#D55E00'  # red       -- DoE-OPT; BtB's comparator hue
 
+    # White ground to sit on a white slide, not upstream's warm #fcfcfb.
     INK = '#0b0b0b'
-    SECOND = '#52514e'
-    MUTED = '#898781'
-    GRID = '#e1e0d9'
-    SURFACE = '#fcfcfb'
-    AXIS_LINE = '#c3c2b7'
+    SECOND = '#3F4652'
+    MUTED = '#6B7280'
+    GRID = '#E6E8EC'
+    SURFACE = '#ffffff'
+    AXIS_LINE = '#B9BEC7'
 
     # Upstream's type scale: title / panel title / axis title / tick / legend / annotation.
     TITLE_SIZE = 16
@@ -183,8 +183,8 @@ def _():
 
     FONT_FAMILY = 'sans-serif'
 
-    MARKER_SIZE = 9
-    MARKER_RING = 1.2
+    MARKER_SIZE = 9.5
+    MARKER_RING = 2   # BtB's value: a ringed marker still reads at print size
     BAR_WIDTH = 0.62
 
     AXIS_STANDOFF = 12
