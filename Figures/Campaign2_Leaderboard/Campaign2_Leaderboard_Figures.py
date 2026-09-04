@@ -136,37 +136,51 @@ def _(mo):
     `axis_style` / `legend_below` and `fig_leaderboard`. The *palette* is
     `Breaking-the-Boundaries`', and the ground is white to sit on a white slide.
 
-    Hues carry **which campaign produced the formulation**:
+    Hue carries **what produced the formulation** — and inside Campaign 2, **which API track**:
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `C2_RAMP` | `#D3B8E8` → `#5A2E8C` | purple, three steps — Campaign 2's batches, A palest to C darkest |
+    | `TRACK_RAMP['A190']` | `#D3B8E8` → `#5A2E8C` | purple, three steps — A190's batches, A palest to C darkest |
+    | `TRACK_RAMP['Feno']` | `#8FCFB3` → `#00572B` | green, the same three steps — fenofibrate's batches |
     | `C1_COLOR` | `#2067F4` | blue — a revalidated Campaign 1 champion |
     | `BEST_COLOR` | `#D55E00` | red — DoE-OPT, the screening baseline |
 
-    Two of the three carry across to the Campaign 1 slide unchanged. `BEST_COLOR` is DoE-OPT on
+    The comparators carry across to the Campaign 1 slide unchanged. `BEST_COLOR` is DoE-OPT on
     both, and `C1_COLOR` is that slide's optimiser hue — a formulation the optimiser chose looks
     the same whether it is ranked blank there or revalidated loaded here, which is the whole point
     of putting the champions on this board.
 
-    The two campaigns are **two depths of one blue**, not two hues. Both are Bayesian optimisation
-    over the same chemistry; Campaign 2 transfers the method to a loaded formulation rather than
-    replacing it. A second hue would claim a break the method does not make, so the newer campaign
-    takes the lighter tone and the champions keep the deck primary they earned on slide 1. Only
-    DoE-OPT, which is not a campaign at all, sits outside the family.
+    **Lightness is batch order; hue is the track.** A190 and fenofibrate were separate
+    optimisations over the same chemistry — separate surrogates, separate batches — so the two
+    boards are two rankings, and giving them one shared ramp left the panel title carrying that
+    difference alone. Now the bars carry it too.
+
+    The two ramps are **matched step for step in lightness** — `#D3B8E8` and `#8FCFB3` are both
+    L\* ≈ 78, `#9B6BC8` and `#009565` both ≈ 54, `#5A2E8C` and `#00572B` both ≈ 30 — so batch B is
+    the same *depth* on either board and only the hue differs. Depth reads across the boards, hue
+    reads within one, and neither channel does the other's job.
+
+    The green is anchored on Okabe-Ito's bluish green `#009E73`, the colourblind-safe set
+    `#D55E00` and `#E69F00` already come from, so it joins the deck as a sibling rather than a
+    stranger; purple against green separates at ΔE 53 / 101 / 98 step for step. Campaign 1 keeps
+    its blue and DoE-OPT, which is not a campaign at all, sits outside the family.
     """)
     return
 
 
 @app.cell
 def _():
-    # Campaign 2's batches, in purple: one hue in three steps of lightness, A palest to C
-    # darkest. It is the same *device* as the Campaign 1 slide's blue ramp -- lightness is batch
-    # order -- in a different family, because the family is what says which campaign this is.
-    C2_RAMP = {
-        'A': '#D3B8E8',
-        'B': '#9B6BC8',
-        'C': '#5A2E8C',
+    # Campaign 2's batches, one ramp per API track: three steps of lightness, A palest to C
+    # darkest. Same *device* as the Campaign 1 slide's blue ramp -- lightness is batch order --
+    # but within Campaign 2 the family says which API, because the two tracks were separate
+    # optimisations and the panel title was carrying that difference alone.
+    #
+    # The two ramps are matched step for step in L* (78 / 54 / 30), so a batch sits at the same
+    # depth on either board and only the hue differs. The green is anchored on Okabe-Ito's
+    # bluish green #009E73 -- the colourblind-safe set #D55E00 and #E69F00 come from.
+    TRACK_RAMP = {
+        'A190': {'A': '#D3B8E8', 'B': '#9B6BC8', 'C': '#5A2E8C'},   # purple
+        'Feno': {'A': '#8FCFB3', 'B': '#009565', 'C': '#00572B'},   # green
     }
     C1_COLOR = '#2067F4'    # blue      -- revalidated Campaign 1 champion; the deck primary
     BEST_COLOR = '#D55E00'  # red       -- DoE-OPT; BtB's comparator hue
@@ -216,7 +230,6 @@ def _():
         BAR_WIDTH,
         BEST_COLOR,
         C1_COLOR,
-        C2_RAMP,
         FONT_FAMILY,
         INK,
         LEFT_MARGIN,
@@ -234,6 +247,7 @@ def _():
         TICK_SIZE,
         TITLE_SIZE,
         TOP_MARGIN,
+        TRACK_RAMP,
         YLABEL_STANDOFF,
     )
 
@@ -269,8 +283,13 @@ def _(DATA_CSV, campaign2, pd):
 
     C2_BATCHES = ('A', 'B', 'C')
 
+    # A batch series belongs to one track, so its legend entry names the track: the two boards
+    # no longer share a hue that one 'Batch A' entry could stand for.
+    TRACK_NAME = {'A190': 'A190', 'Feno': 'Fenofibrate'}
+
     SERIES_LABEL = dict(
-        [(letter, 'Batch {}'.format(letter)) for letter in C2_BATCHES]
+        [((api, letter), '{} Batch {}'.format(TRACK_NAME[api], letter))
+         for api in PANELS for letter in C2_BATCHES]
         + [('c1', 'Campaign 1 Champion (Revalidated)'),
            ('doe', 'DoE-OPT (Screening Baseline)')])
 
@@ -281,14 +300,16 @@ def _(DATA_CSV, campaign2, pd):
     def series_of(api: str, exp: str) -> str:
         """Return the series that produced `exp` on `api`'s board; hue carries this.
 
-        A Campaign 2 row resolves to its own batch letter -- `A-B3` is batch B -- so the bar can
-        wear that batch's step of the ramp. Campaign 2 ids are `<api>-<batch><n>`.
+        A Campaign 2 row resolves to its own track and batch letter -- `A-B3` is A190's batch B
+        -- so the bar can wear that track's ramp at that batch's step. Campaign 2 ids are
+        `<api>-<batch><n>`. The comparators are one series each across both boards and so are not
+        track-qualified.
         """
         if exp == DOE:
             return 'doe'
         if exp in CHAMPIONS[api]:
             return 'c1'
-        return exp[2]
+        return (api, exp[2])
 
 
     def build_board(api: str):
@@ -334,7 +355,6 @@ def _(
     BEST_COLOR,
     BOARDS,
     C1_COLOR,
-    C2_RAMP,
     FIG_HEIGHT,
     FIG_WIDTH,
     FONT_FAMILY,
@@ -357,12 +377,18 @@ def _(
     TICK_SIZE,
     TITLE_SIZE,
     TOP_MARGIN,
+    TRACK_RAMP,
     YLABEL_STANDOFF,
     go,
     series_of,
 ):
-    SERIES_COLOR = dict(C2_RAMP, c1=C1_COLOR, doe=BEST_COLOR)
-    SERIES_ORDER = tuple(C2_RAMP) + ('c1', 'doe')
+    SERIES_COLOR = dict(
+        [((api, letter), TRACK_RAMP[api][letter])
+         for api in PANELS for letter in TRACK_RAMP[api]],
+        c1=C1_COLOR, doe=BEST_COLOR)
+    # Reading order: each track's own batches palest to darkest, then the shared comparators.
+    SERIES_ORDER = tuple((api, letter) for api in PANELS
+                         for letter in sorted(TRACK_RAMP[api])) + ('c1', 'doe')
     SERIES_RANK = {series: i for i, series in enumerate(SERIES_ORDER)}
 
     AXIS_TITLE = 'Mean Objective Score'
@@ -399,7 +425,7 @@ def _(
                     x=[float(ranked[exp]) for exp in members],
                     orientation='h', width=BAR_WIDTH,
                     marker_color=SERIES_COLOR[series],
-                    name=SERIES_LABEL[series], legendgroup=series,
+                    name=SERIES_LABEL[series], legendgroup=str(series),
                     legendrank=1000 + SERIES_RANK[series],
                     showlegend=series not in legended,
                     xaxis=x_axis, yaxis=y_axis,

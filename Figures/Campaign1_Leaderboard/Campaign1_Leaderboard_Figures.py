@@ -143,11 +143,11 @@ def _(mo):
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BATCH_RAMP` | `#B4D2FC` → `#0A2455` | the five optimiser batches, A palest to E darkest — the same ramp as `Campaign_Progress` |
+    | `BATCH_RAMP` | `#B4D2FC` → `#0A2455` | the five optimiser batches, A palest to E darkest — the same ramp as `Campaign1_Progress` |
     | `SCREEN_COLOR` | `#C4C4C4` | the quasi-random screen — `TRIAL_COLOR` |
     | `BEST_COLOR` | `#D55E00` | DoE-OPT, the baseline the campaign had to beat — the comparator hue |
 
-    The batch ramp is shared with `Campaign_Progress` value for value, and that is the point of it
+    The batch ramp is shared with `Campaign1_Progress` value for value, and that is the point of it
     here. On the progression slide a reader watches the blues deepen from A to E across the x axis;
     on this board the same five blues are re-sorted by score. A bar's hue therefore says *which
     batch found this*, and the eye can ask whether the dark end of the ramp collected at the top.
@@ -171,7 +171,7 @@ def _(mo):
 
 @app.cell
 def _():
-    # The batch ramp is shared with Campaign_Progress; BEST_COLOR with the Campaign 2 slide.
+    # The batch ramp is shared with Campaign1_Progress; BEST_COLOR with the Campaign 2 slide.
     # One blue in five steps of lightness, A palest to E darkest: sequential, so it encodes the
     # order the batches ran in and nothing else. #2067F4, the deck primary, is its midpoint.
     BATCH_RAMP = {

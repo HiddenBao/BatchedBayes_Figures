@@ -90,8 +90,8 @@ def _(mo):
     launches it *is* the kernel. Run it from the **`BatchedBayes`** conda environment:
 
     ```
-    conda run -n BatchedBayes marimo edit Figures/Campaign_Progress/Campaign_Progress_Figures.py
-    conda run -n BatchedBayes python Figures/Campaign_Progress/Campaign_Progress_Figures.py
+    conda run -n BatchedBayes marimo edit Figures/Campaign1_Progress/Campaign1_Progress_Figures.py
+    conda run -n BatchedBayes python Figures/Campaign1_Progress/Campaign1_Progress_Figures.py
     ```
     """)
     return
@@ -157,7 +157,7 @@ def _(Path, sys):
         _HERE = Path.cwd()
 
     REPO_ROOT = _find_repo_root(_HERE)
-    OUTPUT_DIR = REPO_ROOT / 'Figures' / 'Campaign_Progress' / 'Output'
+    OUTPUT_DIR = REPO_ROOT / 'Figures' / 'Campaign1_Progress' / 'Output'
     DATA_CSV = REPO_ROOT / 'data' / 'MicroemulsionFormulation_Comprehensive.csv'
 
     # objectives.py is the single source of the objective; never restate a formula here.
@@ -492,7 +492,7 @@ def _(DATA_CSV, campaign1, pd):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## The figure — `Campaign_Progress`
+    ## The figure — `Campaign1_Progress`
 
     One `go.Layout` with explicit `domain=`s rather than `make_subplots`, per the house workflow.
     Four axes: `x`/`y` are the stable panel, `x2`/`y2` the separated strip above it. `x2` matches
@@ -768,7 +768,7 @@ def _(
     progress_figure,
 ):
     FIGURES = {
-        'Campaign_Progress': (progress_figure, FIG_WIDTH, FIG_HEIGHT),
+        'Campaign1_Progress': (progress_figure, FIG_WIDTH, FIG_HEIGHT),
     }
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

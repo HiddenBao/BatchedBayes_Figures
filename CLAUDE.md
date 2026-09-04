@@ -112,6 +112,23 @@ Campaign 2's code. Deriving a Campaign 1 figure from Campaign 2's constants is t
   and cosurfactant volumes, wider oil range, a different objective and a tighter PDI hinge (0.1
   here vs the paper's 0.3).
 
+  **Its prior is the whole file, not the loaded rows.** `MicroemulsionFormulation.get_dataset`
+  (upstream `BayesianOptimization/applications.py`) is a plain `pd.read_csv` of `dataset_path`
+  returning every row unfiltered, and `API_Name` is one of `input_headers` and is one-hot encoded
+  — so the blank Campaign 1 measurements are *training data*, not excluded rows.
+  `fixed_categories = {"API_Name": ...}  # Change per campaign` pins the **proposal mesh** to one
+  API; it does not filter the fit. Upstream's `MicroemulsionFormulation_Comprehensive.csv` on
+  `main` is 237 rows (141 blank / 48 A190 / 48 Feno), and each per-API file in `data/` here is
+  that file **minus the other track's fifteen batches** — 192 rows, both APIs' revalidation runs
+  included. A track's prior is therefore all 47 blank Campaign 1 formulations, all six loaded
+  revalidation runs, and its own earlier batches. Do not equate "the prior" with "what a Campaign
+  2 figure can plot": the objective reads drug loading and permeability, so only loaded rows have
+  a like-for-like score.
+
+  In an `Exp` id, `A` is A190 and `F` is fenofibrate — batch prefix (`A-B3`, `F-B3`) and
+  revalidation suffix (`B4_A`, `B4_F`) alike. Check it against `API_Name` rather than trusting
+  the id.
+
 Experiment-stage prefixes in `Exp`: `DoE*` (prior optima) · `Misc*` (repeats) · `Ran*`
 (quasi-random screen) · `A`–`E` (Campaign 1 batches) · `F` (Campaign 2).
 
@@ -139,7 +156,11 @@ directory guide; the rules are here.
   `#fcfcfb`. The palette is **not** upstream's `COL`: it is `Breaking-the-Boundaries`
   tokens, and a hue means the same thing on both boards. **Batch order is lightness, campaign is
   family:** Campaign 1's batches are a blue ramp `#B4D2FC` (A) → `#0A2455` (E), shared step for step
-  with `Campaign_Progress`; Campaign 2's are a purple ramp `#D3B8E8` (A) → `#5A2E8C` (C). `#C4C4C4`
+  with `Campaign1_Progress`. **Campaign 2 has one ramp per API track**, matched step for step in
+  lightness so a batch is the same depth on either: A190 is purple `#D3B8E8` (A) → `#9B6BC8` (B) →
+  `#5A2E8C` (C), fenofibrate is green `#8FCFB3` → `#009565` → `#00572B` (anchored on Okabe-Ito's
+  `#009E73`, the set `#D55E00` and `#E69F00` come from). Inside Campaign 2 hue means **which API**,
+  not which campaign. `#C4C4C4`
   (BtB's `TRIAL_COLOR`) is the quasi-random screen, `#D55E00` DoE-OPT, and `#2067F4` — the blue
   ramp's midpoint — the revalidated Campaign 1 champions on the Campaign 2 board. Markers use BtB's
   `MARKER_RING = 2`.
