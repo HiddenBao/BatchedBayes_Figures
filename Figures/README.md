@@ -115,7 +115,16 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Stability/` | 30-day storage stability, blank and loaded | Figs. 3–4 |
 | `Permeability/` | Effective permeability, A190- and fenofibrate-loaded | Fig. 5 |
 
-The two leaderboards are built; the rest are not. `Design_Space/` is next.
+The two leaderboards and `Campaign_Progress/` are built; the rest are not. `Design_Space/` is next.
+
+`Campaign_Progress/` is the only suite with a **broken value axis**. Thirteen Campaign 1
+formulations phase-separated, and the objective's ×10 term parks every one of them at 31 while
+the stable campaign lives below 1.1. It draws the stable runs in a tall panel and the separated
+cluster in a short one above, sharing one x axis via `matches='x'` — so the paper's "13
+formulations grouped at an objective score of 31" is still countable without flattening the
+campaign. It adds two hues to the shared palette, both prior art: `#E69F00` the previous DoE
+screen and `#CC79A7` the `Misc*` formulations. `#D55E00` is still DoE-OPT and `#2067F4` still the
+optimiser batches, as on both leaderboards.
 
 A `Blank_Campaign/` suite existed at `20600d7` and was deleted at `762e87c` — it imported the
 pruned optimiser package. Recover it from history if wanted, but rewire it onto `objectives.py`
