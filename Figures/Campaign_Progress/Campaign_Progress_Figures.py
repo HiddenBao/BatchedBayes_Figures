@@ -57,16 +57,17 @@ def _(mo):
     on a slide.
 
     So the value axis is **spliced**. There is one panel and one continuous plot area: everything
-    at or below `BREAK_AT = 1.5` is drawn exactly where it falls, and the separated cluster is
+    at or below `BREAK_AT = 1.25` is drawn exactly where it falls, and the separated cluster is
     drawn `BREAK_GAP` above that and ticked with its true 31. The axis therefore reads
-    0 · 0.25 · … · 1.5 · 31, skipping the empty decade and a half in between.
+    0 · 0.25 · … · 1.25 · 31, skipping the empty stretch in between.
 
-    The skip is announced with a pair of parallel strokes drawn across each upright of the axis
-    box, and **nowhere else**. They sit *over* the line rather than instead of it, which is how an
-    axis break is drawn on paper — there is no masking patch, so nothing has to match the ground
+    The skip is announced on each upright of the axis box, and **nowhere else**: the upright runs
+    up to the lower stroke, stops, and resumes at the upper one, so the break is an actual absence
+    of line rather than a patch painted over one. That is why the uprights are shapes here and not
+    the y axis's own line — an axis line is drawn whole or not at all. The strokes sit *over* what
+    line there is, the way an axis break is drawn on paper, so nothing has to match the ground
     colour and the mark survives being dropped on a coloured slide. Their geometry is in pixels,
-    converted against the plot area, so the mark keeps its shape whatever the data does to the
-    axis range.
+    converted against the plot area, so it keeps its shape whatever the data does to the range.
 
     That is the point of doing the break this way rather than as two stacked panels: no band, no
     section rule, no marker and no error bar is cut by it, so the panel is one field a reader can
@@ -260,7 +261,7 @@ def _(np):
     # drawn where they fall, and the phase-separated cluster is drawn BREAK_GAP above that,
     # ticked with its true value. The skip is announced on the axis uprights and nowhere else,
     # so no band, rule, marker or error bar is ever cut by it.
-    BREAK_AT = 1.5
+    BREAK_AT = 1.25
     BREAK_GAP = 0.45
 
     # The break mark: a pair of parallel strokes drawn *across* each upright of the axis box.
@@ -273,6 +274,7 @@ def _(np):
     BREAK_MARK_RISE_PX = 9    # stroke rise -- roughly 45 degrees at that half-width
     BREAK_MARK_PITCH_PX = 8   # gap between the two strokes
     BREAK_MARK_WIDTH = 1.6
+    FRAME_WIDTH = 2
 
 
     def fade(hex_color, alpha):
@@ -292,10 +294,12 @@ def _(np):
         return float(10 * magnitude)
 
 
+    # No `showline` / `mirror` here: the two axes want different answers. The x axis draws the
+    # box's horizontals itself, but the verticals are shapes, because the y axis is spliced and
+    # its line has to stop at the break rather than run through it.
     AXIS_COMMON = dict(
-        linecolor=INK, tickcolor=INK, color=INK,
-        ticks='outside', showline=True, showgrid=False, mirror=True, linewidth=2,
-        zeroline=False,
+        tickcolor=INK, color=INK,
+        ticks='outside', showgrid=False, zeroline=False,
         tickfont=dict(size=TICK_SIZE), title_font=dict(size=AXIS_TITLE_SIZE),
     )
     return (
@@ -314,6 +318,7 @@ def _(np):
         ERROR_WIDTH,
         FAIL_MARKER_SIZE,
         FONT_FAMILY,
+        FRAME_WIDTH,
         INK,
         INK_SOFT,
         LEFT_MARGIN,
@@ -517,6 +522,7 @@ def _(
     FIG_HEIGHT,
     FIG_WIDTH,
     FONT_FAMILY,
+    FRAME_WIDTH,
     INK,
     INK_SOFT,
     LEFT_MARGIN,
@@ -669,7 +675,17 @@ def _(
         pitch = BREAK_MARK_PITCH_PX * per_px
         mark_y = BREAK_AT + BREAK_GAP / 2
 
+        # The uprights of the axis box are drawn here rather than by the y axis, in two segments
+        # each: the line runs up to the lower stroke, stops, and resumes at the upper one. The
+        # break is therefore an actual absence of line between the strokes -- nothing is painted
+        # over to hide it.
         for upright_x in (0.0, 1.0):
+            for y0, y1 in ((y_range[0], mark_y - pitch / 2),
+                           (mark_y + pitch / 2, y_range[1])):
+                shapes.append(dict(
+                    type='line', xref='paper', yref='y',
+                    x0=upright_x, y0=y0, x1=upright_x, y1=y1,
+                    line=dict(color=INK, width=FRAME_WIDTH), layer='above'))
             for stroke in (-pitch / 2, pitch / 2):
                 shapes.append(dict(
                     type='line', xref='paper', yref='y',
@@ -685,9 +701,12 @@ def _(
                      'lower is better</span>'.format(ANNOTATION_SIZE, INK_SOFT),
                 font=dict(size=TITLE_SIZE, color=INK), x=0.5, y=0.975,
                 xanchor='center', yanchor='top'),
+            # The x axis carries the box's horizontals; the verticals are the shapes above.
             xaxis=dict(title='Experiment Number', range=x_range,
+                       showline=True, mirror=True, linecolor=INK, linewidth=FRAME_WIDTH,
                        tickmode='linear', tick0=0, dtick=5, **AXIS_COMMON),
             yaxis=dict(title='Objective Function', range=y_range,
+                       showline=False, mirror=False,
                        tickmode='array', tickvals=tickvals, ticktext=ticktext, **AXIS_COMMON),
             shapes=shapes,
             annotations=annotations,
