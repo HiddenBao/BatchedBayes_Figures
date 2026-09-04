@@ -56,13 +56,19 @@ def _(mo):
     to a line; on a log axis a *failure* acquires the visual weight of a *value*. Neither is honest
     on a slide.
 
-    So the y axis is broken. The tall panel carries the stable runs on a linear scale; the short
-    panel above it carries the separated cluster at its true 31, drawn as **squares** so a failed
-    formulation is not a value on the same scale wearing the same mark. The two panels share one
-    2 px frame with a `//` cut through each upright, which is what makes the break a break in a
-    single axis rather than a gap between two charts. They also share one x axis, so a column
-    reads straight down and the count at 31 — the paper's "13 formulations grouped at an objective
-    score of 31" — is still there to be read.
+    So the value axis is **spliced**. There is one panel and one continuous plot area: everything
+    at or below `BREAK_AT = 1.5` is drawn exactly where it falls, and the separated cluster is
+    drawn `BREAK_GAP` above that and ticked with its true 31. The axis therefore reads
+    0 · 0.25 · … · 1.5 · 31, skipping the empty decade and a half in between.
+
+    The skip is announced with a `//` on each upright of the axis box and **nowhere else**. That
+    is the point of doing it this way rather than as two stacked panels: no band, no section rule,
+    no marker and no error bar is cut by the break, so the panel is one field a reader can scan
+    without reassembling it.
+
+    The separated runs are **squares**, so a failed formulation does not wear the mark of a value
+    on the same scale — and the count at 31 is still there to be read, which is the paper's
+    "13 formulations grouped at an objective score of 31".
 
     ## Triangles are the specification
 
@@ -195,9 +201,15 @@ def _(mo):
     separated instead by the thing that actually separates them — a dotted rule and a name, drawn
     where the optimiser stopped and re-fit.
 
-    The screen wears `SCREEN_BAND` — `rgba(0, 0, 0, 0.055)`, the shaded region the
-    `Breaking-the-Boundaries` campaign plots draw screening as. Here it can be a band, which is
-    what it wanted to be on the leaderboard and could not.
+    The whole initial dataset — DoE through the random screen — wears `PRIOR_BAND`,
+    `rgba(0, 0, 0, 0.055)`: the shaded region the `Breaking-the-Boundaries` campaign plots draw a
+    screening phase as, a ground the optimisation runs *across* rather than a series competing
+    with it. On the leaderboard that band could only be carried as a bar fill; here it can be an
+    actual region, and the thing it shades is everything the campaign inherited.
+
+    Which is why `SCREEN_COLOR` is darker here than the `#C4C4C4` on the Campaign 1 board — a
+    `TRIAL_COLOR` grey mark on a grey ground is not a mark. It is the same role, one step down in
+    value so it still reads.
     """)
     return
 
@@ -207,14 +219,15 @@ def _(np):
     DOE_COLOR = '#E69F00'      # orange  -- the previous DoE screen
     BEST_COLOR = '#D55E00'     # red     -- DoE-OPT, the baseline; shared with both leaderboards
     MISC_COLOR = '#CC79A7'     # magenta -- miscellaneous prior formulations
-    SCREEN_COLOR = '#C4C4C4'   # grey    -- quasi-random screen; BtB's TRIAL_COLOR
+    SCREEN_COLOR = '#8A8A8A'   # grey    -- quasi-random screen; BtB's TRIAL_COLOR, darkened
+                               #            to hold its own against the prior-art band
     BO_COLOR = '#2067F4'       # blue    -- optimiser batches A-E; the deck primary
 
     INK = 'black'
     INK_SOFT = 'rgba(0, 0, 0, 0.55)'
     RULE = 'rgba(0, 0, 0, 0.22)'
     ERA_RULE = 'rgba(0, 0, 0, 0.45)'
-    SCREEN_BAND = 'rgba(0, 0, 0, 0.055)'
+    PRIOR_BAND = 'rgba(0, 0, 0, 0.055)'
 
     TITLE_SIZE = 20
     AXIS_TITLE_SIZE = 18
@@ -231,17 +244,18 @@ def _(np):
     ERROR_WIDTH = 1.4
     SECTION_RULE_WIDTH = 1.2
     SECTION_RULE_DASH = 'dot'
-    FRAME_WIDTH = 2
 
     LEFT_MARGIN = 105
     RIGHT_MARGIN = 40
     TOP_MARGIN = 118     # title and a row of section names
     LEGEND_MARGIN = 105  # bottom gutter the horizontal legend sits in
 
-    # The broken axis: the stable campaign gets the tall panel, the separated cluster the short
-    # one, and the gap between them carries the break marks.
-    MAIN_DOMAIN = (0.0, 0.80)
-    FAIL_DOMAIN = (0.90, 1.0)
+    # The spliced value axis. One panel, one continuous plot area: values up to BREAK_AT are
+    # drawn where they fall, and the phase-separated cluster is drawn BREAK_GAP above that,
+    # ticked with its true value. The skip is announced on the axis uprights and nowhere else,
+    # so no band, rule, marker or error bar is ever cut by it.
+    BREAK_AT = 1.5
+    BREAK_GAP = 0.45
 
 
     def fade(hex_color, alpha):
@@ -261,12 +275,9 @@ def _(np):
         return float(10 * magnitude)
 
 
-    # The house 2 px box is drawn *once*, as a paper-referenced rect around both panels, so the
-    # broken axis reads as one frame with a break rather than as two stacked charts. The axes
-    # themselves therefore carry ticks only -- no lines of their own to double it up.
     AXIS_COMMON = dict(
-        tickcolor=INK, color=INK,
-        ticks='outside', showline=False, showgrid=False, mirror=False,
+        linecolor=INK, tickcolor=INK, color=INK,
+        ticks='outside', showline=True, showgrid=False, mirror=True, linewidth=2,
         zeroline=False,
         tickfont=dict(size=TICK_SIZE), title_font=dict(size=AXIS_TITLE_SIZE),
     )
@@ -275,25 +286,24 @@ def _(np):
         AXIS_COMMON,
         BEST_COLOR,
         BO_COLOR,
+        BREAK_AT,
+        BREAK_GAP,
         DOE_COLOR,
         ERA_RULE,
         ERROR_WIDTH,
-        FAIL_DOMAIN,
         FAIL_MARKER_SIZE,
         FONT_FAMILY,
-        FRAME_WIDTH,
         INK,
         INK_SOFT,
         LEFT_MARGIN,
         LEGEND_MARGIN,
         LEGEND_SIZE,
-        MAIN_DOMAIN,
         MARKER_RING,
         MARKER_SIZE,
         MISC_COLOR,
+        PRIOR_BAND,
         RIGHT_MARGIN,
         RULE,
-        SCREEN_BAND,
         SCREEN_COLOR,
         SECTION_RULE_DASH,
         SECTION_RULE_WIDTH,
@@ -454,7 +464,7 @@ def _(mo):
 
     * a **section name** per block, with a dotted rule at each boundary and a solid one where the
       campaign starts;
-    * **squares** in the upper panel for the phase-separated runs, and the count beside them;
+    * **squares** on the top row for the phase-separated runs, above the splice;
     * **triangles** for the three in-specification formulations, unlabelled — which one is which
       is the x axis's job, and the slide is about how many there are and where they fall.
 
@@ -472,29 +482,28 @@ def _(
     AXIS_COMMON,
     BEST_COLOR,
     BO_COLOR,
+    BREAK_AT,
+    BREAK_GAP,
     CAMPAIGN,
     CAMPAIGN_START_SECTION,
     DOE_COLOR,
     ERA_RULE,
     ERROR_WIDTH,
-    FAIL_DOMAIN,
     FAIL_MARKER_SIZE,
     FIG_HEIGHT,
     FIG_WIDTH,
     FONT_FAMILY,
-    FRAME_WIDTH,
     INK,
     INK_SOFT,
     LEFT_MARGIN,
     LEGEND_MARGIN,
     LEGEND_SIZE,
-    MAIN_DOMAIN,
     MARKER_RING,
     MARKER_SIZE,
     MISC_COLOR,
+    PRIOR_BAND,
     RIGHT_MARGIN,
     RULE,
-    SCREEN_BAND,
     SCREEN_COLOR,
     SECTION_ORDER,
     SECTION_RULE_DASH,
@@ -507,6 +516,7 @@ def _(
     fade,
     go,
     nice_dtick,
+    np,
 ):
     # One legend entry per hue, in reading order. 'Batches A-E' is one entry for five sections.
     SERIES = [
@@ -527,24 +537,37 @@ def _(
     def build_progress():
         stable = CAMPAIGN[~CAMPAIGN['separated']]
         failed = CAMPAIGN[CAMPAIGN['separated']]
-        fail_y = float(failed['obj'].max())
+        fail_value = float(failed['obj'].max())
+
+        # Everything stable must fit under the splice, or a run would be drawn inside the skip.
+        assert float(stable['obj'].max()) < BREAK_AT, \
+            'a stable run scores {:.3f}, above BREAK_AT={}'.format(
+                float(stable['obj'].max()), BREAK_AT)
+
+        # The separated cluster is *drawn* here and *ticked* with its true value. Nothing else
+        # is displaced, so every mark below the splice sits at its own coordinate.
+        fail_drawn_at = BREAK_AT + BREAK_GAP
 
         x_range = [0.4, len(CAMPAIGN) + 0.6]
-        y_top = float(stable['obj'].max()) * 1.10
-        y_dtick = nice_dtick(y_top, 6)
-        y_range = [-0.04, y_top]
-        # The strip only has to hold one value; a little air either side keeps it off its box.
-        fail_range = [fail_y - 0.9, fail_y + 0.9]
+        y_range = [-0.05, fail_drawn_at + 0.20]
+        y_dtick = nice_dtick(BREAK_AT, 6)
+
+        lower_ticks = np.arange(0.0, BREAK_AT + y_dtick / 2, y_dtick)
+        tickvals = list(lower_ticks) + [fail_drawn_at]
+        ticktext = ['{:g}'.format(v) for v in lower_ticks] + ['{:g}'.format(fail_value)]
 
         traces, shapes, annotations = [], [], []
 
-        # --- Bands and section rules ----------------------------------------------------------
-        screen_lo, screen_hi = SECTION_SPAN['Random Screen']
-        for x_axis, y_axis in (('x', 'y'), ('x2', 'y2')):
-            shapes.append(dict(
-                type='rect', xref=x_axis, yref='{} domain'.format(y_axis),
-                x0=screen_lo - 0.5, x1=screen_hi + 0.5, y0=0, y1=1,
-                fillcolor=SCREEN_BAND, line=dict(width=0), layer='below'))
+        # --- The prior-art band and the section rules -----------------------------------------
+        # Everything the campaign inherited -- DoE through the random screen -- sits on the
+        # shaded ground the `Breaking-the-Boundaries` campaign plots give a screening phase: a
+        # region the optimisation runs across, rather than a series competing with it.
+        prior_lo = SECTION_SPAN['DoE'][0]
+        prior_hi = SECTION_SPAN['Random Screen'][1]
+        shapes.append(dict(
+            type='rect', xref='x', yref='y domain',
+            x0=prior_lo - 0.5, x1=prior_hi + 0.5, y0=0, y1=1,
+            fillcolor=PRIOR_BAND, line=dict(width=0), layer='below'))
 
         campaign_lo = SECTION_SPAN[CAMPAIGN_START_SECTION][0]
         for label in SECTION_ORDER:
@@ -552,30 +575,21 @@ def _(
             if lo <= 1:
                 continue
             is_era_break = lo == campaign_lo
-            for x_axis, y_axis in (('x', 'y'), ('x2', 'y2')):
-                shapes.append(dict(
-                    type='line', xref=x_axis, yref='{} domain'.format(y_axis),
-                    x0=lo - 0.5, x1=lo - 0.5, y0=0, y1=1,
-                    line=dict(color=ERA_RULE if is_era_break else RULE,
-                              width=2 if is_era_break else SECTION_RULE_WIDTH,
-                              dash=None if is_era_break else SECTION_RULE_DASH),
-                    layer='below'))
+            shapes.append(dict(
+                type='line', xref='x', yref='y domain',
+                x0=lo - 0.5, x1=lo - 0.5, y0=0, y1=1,
+                line=dict(color=ERA_RULE if is_era_break else RULE,
+                          width=2 if is_era_break else SECTION_RULE_WIDTH,
+                          dash=None if is_era_break else SECTION_RULE_DASH),
+                layer='below'))
 
-        # --- Section names, above the top panel -----------------------------------------------
+        # --- Section names, above the panel ----------------------------------------------------
         for label in SECTION_ORDER:
             lo, hi = SECTION_SPAN[label]
             annotations.append(dict(
-                x=(lo + hi) / 2, y=1, xref='x2', yref='y2 domain', yshift=10,
+                x=(lo + hi) / 2, y=1, xref='x', yref='y domain', yshift=10,
                 text=label, showarrow=False, xanchor='center', yanchor='bottom',
                 font=dict(size=ANNOTATION_SIZE, color=INK_SOFT, family=FONT_FAMILY)))
-
-        # --- The frame -------------------------------------------------------------------------
-        # One 2 px box around both panels, in paper units, so the break is a break in a single
-        # axis rather than a gap between two charts. The axes draw no lines of their own.
-        shapes.append(dict(
-            type='rect', xref='paper', yref='paper', x0=0, x1=1, y0=0, y1=1,
-            line=dict(color=INK, width=FRAME_WIDTH), fillcolor='rgba(0, 0, 0, 0)',
-            layer='below'))
 
         # --- The runs, one legend entry per hue -------------------------------------------------
         for label, sections, color in SERIES:
@@ -585,7 +599,7 @@ def _(
 
             traces.append(go.Scatter(
                 x=block['n'], y=block['obj'], mode='markers', name=label,
-                xaxis='x', yaxis='y', legendgroup=label,
+                legendgroup=label,
                 marker=_marker(color, MARKER_SIZE),
                 error_y=dict(type='data', array=block['obj_sd'].fillna(0.0),
                              color=fade(color, 0.75), thickness=ERROR_WIDTH, width=4),
@@ -595,7 +609,7 @@ def _(
             if not spec_block.empty:
                 traces.append(go.Scatter(
                     x=spec_block['n'], y=spec_block['obj'], mode='markers', name=label,
-                    xaxis='x', yaxis='y', legendgroup=label, showlegend=False,
+                    legendgroup=label, showlegend=False,
                     marker=_marker(color, SPEC_MARKER_SIZE, symbol='triangle-up'),
                     error_y=dict(type='data', array=spec_block['obj_sd'].fillna(0.0),
                                  color=fade(color, 0.75), thickness=ERROR_WIDTH, width=4),
@@ -606,32 +620,28 @@ def _(
             fail_block = failed[failed['section'].isin(sections)]
             if not fail_block.empty:
                 traces.append(go.Scatter(
-                    x=fail_block['n'], y=fail_block['obj'], mode='markers', name=label,
-                    xaxis='x2', yaxis='y2', legendgroup=label, showlegend=False,
+                    x=fail_block['n'], y=[fail_drawn_at] * len(fail_block), mode='markers',
+                    name=label, legendgroup=label, showlegend=False,
                     marker=_marker(color, FAIL_MARKER_SIZE, symbol='square'),
                     customdata=fail_block['Exp'],
-                    hovertemplate='%{customdata}<br>Exp %{x}<br>phase separated<extra></extra>'))
+                    hovertemplate='%{customdata}<br>Exp %{x}<br>phase separated, objective '
+                                  + '{:g}<extra></extra>'.format(fail_value)))
 
         # --- A legend entry for the mark shape, which is a variable of its own --------------------
         traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', xaxis='x', yaxis='y',
-            name='In Specification',
+            x=[None], y=[None], mode='markers', name='In Specification',
             marker=_marker(INK_SOFT, SPEC_MARKER_SIZE, symbol='triangle-up')))
 
-        # --- The break marks, and what the strip holds ---------------------------------------
-        # A '//' on each upright of the frame, on an opaque ground so it cuts the line it sits
-        # on. Annotations draw above shapes, so the white does the cutting.
-        for frame_x in (0, 1):
+        # --- The skip, announced on the uprights and nowhere else ---------------------------------
+        # A '//' on each side of the axis box, on an opaque ground so it cuts the line it sits on.
+        # Annotations draw above shapes, so the white does the cutting. Because the panel itself
+        # is continuous, nothing inside it is interrupted.
+        for frame_x, shift in ((0, 0), (1, 0)):
             annotations.append(dict(
-                x=frame_x, y=(MAIN_DOMAIN[1] + FAIL_DOMAIN[0]) / 2,
-                xref='paper', yref='paper', text='//', showarrow=False,
+                x=frame_x, y=BREAK_AT + BREAK_GAP / 2, xref='paper', yref='y',
+                text='//', showarrow=False, xshift=shift,
                 xanchor='center', yanchor='middle', bgcolor='white', borderpad=1,
                 font=dict(size=TICK_SIZE, color=INK, family=FONT_FAMILY)))
-        annotations.append(dict(
-            x=0.5, y=fail_y, xref='x2', yref='y2',
-            xanchor='left', yanchor='middle', xshift=10,
-            text='{} phase separated'.format(len(failed)), showarrow=False,
-            font=dict(size=ANNOTATION_SIZE, color=INK_SOFT, family=FONT_FAMILY)))
 
         layout = go.Layout(
             title=dict(
@@ -641,16 +651,10 @@ def _(
                      'lower is better</span>'.format(ANNOTATION_SIZE, INK_SOFT),
                 font=dict(size=TITLE_SIZE, color=INK), x=0.5, y=0.975,
                 xanchor='center', yanchor='top'),
-            xaxis=dict(title='Experiment Number', range=x_range, domain=[0.0, 1.0],
-                       anchor='y', tickmode='linear', tick0=0, dtick=5, **AXIS_COMMON),
-            xaxis2=dict(range=x_range, domain=[0.0, 1.0], anchor='y2', matches='x',
-                        showticklabels=False, ticks='', showline=False,
-                        showgrid=False, mirror=False, zeroline=False),
-            yaxis=dict(title='Objective Function', range=y_range, domain=list(MAIN_DOMAIN),
-                       anchor='x', tick0=0, dtick=y_dtick, **AXIS_COMMON),
-            yaxis2=dict(range=fail_range, domain=list(FAIL_DOMAIN), anchor='x2',
-                        tickmode='array', tickvals=[fail_y],
-                        ticktext=['{:.0f}'.format(fail_y)], **AXIS_COMMON),
+            xaxis=dict(title='Experiment Number', range=x_range,
+                       tickmode='linear', tick0=0, dtick=5, **AXIS_COMMON),
+            yaxis=dict(title='Objective Function', range=y_range,
+                       tickmode='array', tickvals=tickvals, ticktext=ticktext, **AXIS_COMMON),
             shapes=shapes,
             annotations=annotations,
             plot_bgcolor='white', paper_bgcolor='white',

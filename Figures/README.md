@@ -117,16 +117,19 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 
 The two leaderboards and `Campaign_Progress/` are built; the rest are not. `Design_Space/` is next.
 
-`Campaign_Progress/` is the only suite with a **broken value axis**. Thirteen Campaign 1
+`Campaign_Progress/` is the only suite with a **spliced value axis**. Thirteen Campaign 1
 formulations phase-separated, and the objective's ×10 term parks every one of them at 31 while
-the stable campaign lives below 1.1. It draws the stable runs in a tall panel and the separated
-cluster in a short one above as **squares**, sharing one x axis via `matches='x'` — so the
-paper's "13 formulations grouped at an objective score of 31" is still countable without
-flattening the campaign. The two panels wear **one** 2 px frame, drawn as a paper-referenced rect
-with a `//` cut through each upright, so the axes themselves draw ticks only; a box per panel
-would read as two charts rather than one broken axis. It adds two hues to the shared palette, both prior art: `#E69F00` the previous DoE
-screen and `#CC79A7` the `Misc*` formulations. `#D55E00` is still DoE-OPT and `#2067F4` still the
-optimiser batches, as on both leaderboards.
+the stable campaign lives below 1.1. It keeps **one** panel: everything at or below
+`BREAK_AT = 1.5` is drawn where it falls, the separated cluster is drawn `BREAK_GAP` above that
+as **squares** and ticked with its true 31, and the skip is announced by a `//` on each upright
+of the axis box and nowhere else. Nothing inside the panel is cut by the break — no band, no
+section rule, no marker, no error bar — which is what a two-panel break costs and this does not.
+
+It adds two hues to the shared palette, both prior art: `#E69F00` the previous DoE screen and
+`#CC79A7` the `Misc*` formulations. `#D55E00` is still DoE-OPT and `#2067F4` still the optimiser
+batches, as on both leaderboards. Its screen grey is `#8A8A8A` rather than the board's `#C4C4C4`:
+the whole initial dataset — DoE through the random screen — sits on the `rgba(0, 0, 0, 0.055)`
+band, and `TRIAL_COLOR` on that ground stops being a mark.
 
 A `Blank_Campaign/` suite existed at `20600d7` and was deleted at `762e87c` — it imported the
 pruned optimiser package. Recover it from history if wanted, but rewire it onto `objectives.py`
