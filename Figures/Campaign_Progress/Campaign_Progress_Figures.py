@@ -61,10 +61,16 @@ def _(mo):
     drawn `BREAK_GAP` above that and ticked with its true 31. The axis therefore reads
     0 · 0.25 · … · 1.5 · 31, skipping the empty decade and a half in between.
 
-    The skip is announced with a `//` on each upright of the axis box and **nowhere else**. That
-    is the point of doing it this way rather than as two stacked panels: no band, no section rule,
-    no marker and no error bar is cut by the break, so the panel is one field a reader can scan
-    without reassembling it.
+    The skip is announced with a pair of parallel strokes drawn across each upright of the axis
+    box, and **nowhere else**. They sit *over* the line rather than instead of it, which is how an
+    axis break is drawn on paper — there is no masking patch, so nothing has to match the ground
+    colour and the mark survives being dropped on a coloured slide. Their geometry is in pixels,
+    converted against the plot area, so the mark keeps its shape whatever the data does to the
+    axis range.
+
+    That is the point of doing the break this way rather than as two stacked panels: no band, no
+    section rule, no marker and no error bar is cut by it, so the panel is one field a reader can
+    scan without reassembling it.
 
     The separated runs are **squares**, so a failed formulation does not wear the mark of a value
     on the same scale — and the count at 31 is still there to be read, which is the paper's
@@ -257,6 +263,17 @@ def _(np):
     BREAK_AT = 1.5
     BREAK_GAP = 0.45
 
+    # The break mark: a pair of parallel strokes drawn *across* each upright of the axis box.
+    # It cuts the line by crossing it, the way an axis break is drawn on paper -- there is no
+    # masking patch, so nothing has to match the ground colour.
+    #
+    # All three are in **pixels**, because the mark is chrome and must keep its shape whatever
+    # the data does to the axis range. The figure converts them against the plot area's own size.
+    BREAK_MARK_HALF_PX = 7    # how far either side of the upright a stroke reaches
+    BREAK_MARK_RISE_PX = 9    # stroke rise -- roughly 45 degrees at that half-width
+    BREAK_MARK_PITCH_PX = 8   # gap between the two strokes
+    BREAK_MARK_WIDTH = 1.6
+
 
     def fade(hex_color, alpha):
         """Convert '#RRGGBB' to an rgba() string at the given alpha."""
@@ -288,6 +305,10 @@ def _(np):
         BO_COLOR,
         BREAK_AT,
         BREAK_GAP,
+        BREAK_MARK_HALF_PX,
+        BREAK_MARK_PITCH_PX,
+        BREAK_MARK_RISE_PX,
+        BREAK_MARK_WIDTH,
         DOE_COLOR,
         ERA_RULE,
         ERROR_WIDTH,
@@ -308,7 +329,6 @@ def _(np):
         SECTION_RULE_DASH,
         SECTION_RULE_WIDTH,
         SPEC_MARKER_SIZE,
-        TICK_SIZE,
         TITLE_SIZE,
         TOP_MARGIN,
         fade,
@@ -484,6 +504,10 @@ def _(
     BO_COLOR,
     BREAK_AT,
     BREAK_GAP,
+    BREAK_MARK_HALF_PX,
+    BREAK_MARK_PITCH_PX,
+    BREAK_MARK_RISE_PX,
+    BREAK_MARK_WIDTH,
     CAMPAIGN,
     CAMPAIGN_START_SECTION,
     DOE_COLOR,
@@ -510,7 +534,6 @@ def _(
     SECTION_RULE_WIDTH,
     SECTION_SPAN,
     SPEC_MARKER_SIZE,
-    TICK_SIZE,
     TITLE_SIZE,
     TOP_MARGIN,
     fade,
@@ -633,15 +656,26 @@ def _(
             marker=_marker(INK_SOFT, SPEC_MARKER_SIZE, symbol='triangle-up')))
 
         # --- The skip, announced on the uprights and nowhere else ---------------------------------
-        # A '//' on each side of the axis box, on an opaque ground so it cuts the line it sits on.
-        # Annotations draw above shapes, so the white does the cutting. Because the panel itself
-        # is continuous, nothing inside it is interrupted.
-        for frame_x, shift in ((0, 0), (1, 0)):
-            annotations.append(dict(
-                x=frame_x, y=BREAK_AT + BREAK_GAP / 2, xref='paper', yref='y',
-                text='//', showarrow=False, xshift=shift,
-                xanchor='center', yanchor='middle', bgcolor='white', borderpad=1,
-                font=dict(size=TICK_SIZE, color=INK, family=FONT_FAMILY)))
+        # Two parallel strokes drawn across each upright of the axis box, over the line rather
+        # than instead of it -- so there is no patch to match to the ground, and nothing inside
+        # the panel is touched. Shapes take no pixel offsets, so the mark's pixel geometry is
+        # converted against the plot area: x into paper units, y into data units.
+        plot_width_px = FIG_WIDTH - LEFT_MARGIN - RIGHT_MARGIN
+        plot_height_px = FIG_HEIGHT - TOP_MARGIN - LEGEND_MARGIN
+        per_px = (y_range[1] - y_range[0]) / plot_height_px
+
+        half_w = BREAK_MARK_HALF_PX / plot_width_px
+        rise = BREAK_MARK_RISE_PX * per_px
+        pitch = BREAK_MARK_PITCH_PX * per_px
+        mark_y = BREAK_AT + BREAK_GAP / 2
+
+        for upright_x in (0.0, 1.0):
+            for stroke in (-pitch / 2, pitch / 2):
+                shapes.append(dict(
+                    type='line', xref='paper', yref='y',
+                    x0=upright_x - half_w, y0=mark_y + stroke - rise / 2,
+                    x1=upright_x + half_w, y1=mark_y + stroke + rise / 2,
+                    line=dict(color=INK, width=BREAK_MARK_WIDTH), layer='above'))
 
         layout = go.Layout(
             title=dict(

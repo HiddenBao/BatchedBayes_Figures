@@ -121,8 +121,9 @@ The two leaderboards and `Campaign_Progress/` are built; the rest are not. `Desi
 formulations phase-separated, and the objective's ×10 term parks every one of them at 31 while
 the stable campaign lives below 1.1. It keeps **one** panel: everything at or below
 `BREAK_AT = 1.5` is drawn where it falls, the separated cluster is drawn `BREAK_GAP` above that
-as **squares** and ticked with its true 31, and the skip is announced by a `//` on each upright
-of the axis box and nowhere else. Nothing inside the panel is cut by the break — no band, no
+as **squares** and ticked with its true 31, and the skip is announced by a pair of parallel
+strokes drawn across each upright of the axis box and nowhere else — over the line rather than
+instead of it, so there is no masking patch to match to the ground. Nothing inside the panel is cut by the break — no band, no
 section rule, no marker, no error bar — which is what a two-panel break costs and this does not.
 
 It adds two hues to the shared palette, both prior art: `#E69F00` the previous DoE screen and
