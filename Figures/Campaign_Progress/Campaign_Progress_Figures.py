@@ -199,14 +199,18 @@ def _(mo):
     | --- | --- | --- |
     | `DOE_COLOR` | `#E69F00` | the previous DoE screen — prior art, one level below its own optimum |
     | `BEST_COLOR` | `#D55E00` | DoE-OPT, the baseline the campaign had to beat — the comparator hue, as on both leaderboards |
-    | `MISC_COLOR` | `#CC79A7` | miscellaneous prior formulations |
-    | `SCREEN_COLOR` | `#C4C4C4` | the quasi-random screen — `TRIAL_COLOR`, as on the Campaign 1 board |
-    | `BO_COLOR` | `#2067F4` | every optimiser-chosen batch, A–E — the deck primary |
+    | `MISC_COLOR` | `#8C6E54` | miscellaneous prior formulations |
+    | `SCREEN_COLOR` | `#8A8A8A` | the quasi-random screen — `TRIAL_COLOR`, darkened for the band |
+    | `BATCH_RAMP` | `#B4D2FC` → `#0A2455` | the five optimiser batches, A palest to E darkest |
 
-    Five BO batches are **one** colour on purpose. They are one campaign under one policy; giving
-    each batch its own hue would claim a distinction the method does not make. The batches are
-    separated instead by the thing that actually separates them — a dotted rule and a name, drawn
-    where the optimiser stopped and re-fit.
+    **The batches are a ramp, not five hues.** One blue in five steps of lightness, deepening from
+    A to E. That is a *sequential* encoding and it claims exactly one thing — order — which is the
+    one distinction the method does make: each batch was chosen by a surrogate refit on everything
+    before it. Five unrelated hues would claim five kinds of experiment, which would be false.
+    `#2067F4`, the deck primary, is the ramp's midpoint and so belongs to batch C here.
+
+    The ramp is keyed off the section names above the panel rather than repeated in the legend
+    body — a reader who wants to know which blue is batch D reads up, not down.
 
     The whole initial dataset — DoE through the random screen — wears `PRIOR_BAND`,
     `rgba(0, 0, 0, 0.055)`: the shaded region the `Breaking-the-Boundaries` campaign plots draw a
@@ -225,10 +229,20 @@ def _(mo):
 def _(np):
     DOE_COLOR = '#E69F00'      # orange  -- the previous DoE screen
     BEST_COLOR = '#D55E00'     # red     -- DoE-OPT, the baseline; shared with both leaderboards
-    MISC_COLOR = '#CC79A7'     # magenta -- miscellaneous prior formulations
+    MISC_COLOR = '#8C6E54'     # brown   -- miscellaneous prior formulations
     SCREEN_COLOR = '#8A8A8A'   # grey    -- quasi-random screen; BtB's TRIAL_COLOR, darkened
                                #            to hold its own against the prior-art band
-    BO_COLOR = '#2067F4'       # blue    -- optimiser batches A-E; the deck primary
+
+    # The optimiser's five batches: one blue, five steps of lightness, A palest to E darkest.
+    # Sequential on purpose -- it encodes order, not kind. #2067F4, the deck primary, is the
+    # midpoint, so it is batch C's step. Shared with the Campaign 1 leaderboard.
+    BATCH_RAMP = {
+        'A': '#B4D2FC',
+        'B': '#6D9CF7',
+        'C': '#2067F4',
+        'D': '#1543A5',
+        'E': '#0A2455',
+    }
 
     INK = 'black'
     INK_SOFT = 'rgba(0, 0, 0, 0.55)'
@@ -305,8 +319,8 @@ def _(np):
     return (
         ANNOTATION_SIZE,
         AXIS_COMMON,
+        BATCH_RAMP,
         BEST_COLOR,
-        BO_COLOR,
         BREAK_AT,
         BREAK_GAP,
         BREAK_MARK_HALF_PX,
@@ -505,8 +519,8 @@ def _(mo):
 def _(
     ANNOTATION_SIZE,
     AXIS_COMMON,
+    BATCH_RAMP,
     BEST_COLOR,
-    BO_COLOR,
     BREAK_AT,
     BREAK_GAP,
     BREAK_MARK_HALF_PX,
@@ -547,14 +561,18 @@ def _(
     nice_dtick,
     np,
 ):
-    # One legend entry per hue, in reading order. 'Batches A-E' is one entry for five sections.
+    # One entry per hue, in reading order. The five batches are five steps of one ramp, so they
+    # are five entries -- collapsing them would hide the progression the ramp exists to show.
     SERIES = [
         ('DoE', ['DoE'], DOE_COLOR),
         ('DoE-OPT', ['DoE-OPT'], BEST_COLOR),
         ('Misc', ['Misc'], MISC_COLOR),
         ('Random Screen', ['Random Screen'], SCREEN_COLOR),
-        ('Optimiser Batches A–E', [s for s in SECTION_ORDER if s.startswith('Batch')], BO_COLOR),
-    ]
+    ] + [(section, [section], BATCH_RAMP[section[-1]])
+         for section in SECTION_ORDER if section.startswith('Batch')]
+
+    assert set(BATCH_RAMP) == {s[-1] for s in SECTION_ORDER if s.startswith('Batch')}, \
+        'BATCH_RAMP does not cover the batches in the data'
 
 
     def _marker(color, size, symbol='circle'):

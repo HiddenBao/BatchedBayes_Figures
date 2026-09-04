@@ -137,9 +137,12 @@ directory guide; the rules are here.
   `legend_below`) so they read beside `analysis/figures/*_leaderboard.svg`: hairline axes with
   value-axis gridlines, left title, 16/12/11 type — but on a **white** ground, not upstream's
   `#fcfcfb`. The palette is **not** upstream's `COL`: it is `Breaking-the-Boundaries`
-  tokens, and a hue means the same thing on both boards — `#2067F4` is Campaign 1 optimiser output
-  (an A–E batch, or a revalidated champion), `#C4C4C4` (BtB's `TRIAL_COLOR`) the quasi-random screen,
-  `#6FB7E8` Campaign 2, `#D55E00` DoE-OPT. Markers use BtB's `MARKER_RING = 2`.
+  tokens, and a hue means the same thing on both boards. **Batch order is lightness, campaign is
+  family:** Campaign 1's batches are a blue ramp `#B4D2FC` (A) → `#0A2455` (E), shared step for step
+  with `Campaign_Progress`; Campaign 2's are a purple ramp `#D3B8E8` (A) → `#5A2E8C` (C). `#C4C4C4`
+  (BtB's `TRIAL_COLOR`) is the quasi-random screen, `#D55E00` DoE-OPT, and `#2067F4` — the blue
+  ramp's midpoint — the revalidated Campaign 1 champions on the Campaign 2 board. Markers use BtB's
+  `MARKER_RING = 2`.
   The screen is grey because BtB draws screening as a shaded `SCREEN_BAND` rather than a competing
   series; a bar chart wears that band as a fill. `Misc*` (prior-optimum repeats) is **off** the
   Campaign 1 board — inherited prior art, not campaign output.

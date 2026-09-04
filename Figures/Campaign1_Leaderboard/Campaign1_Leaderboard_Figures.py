@@ -139,14 +139,18 @@ def _(mo):
     the bars, a hairline axis with no mirror, flat unoutlined bars, a left title. The *palette* and
     the marker are `Breaking-the-Boundaries`'. The ground is white, to sit on a white slide.
 
-    Three bars, three hues, each one a `Breaking-the-Boundaries` token so a deck mixing these
-    slides with those reads as one system:
+    Seven bars in three groups, and the group a bar belongs to is its hue:
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#2067F4` | an optimiser-chosen batch, A–E — the deck primary, and `Summit_Digital_Twin`'s `MEAN_LABEL` |
+    | `BATCH_RAMP` | `#B4D2FC` → `#0A2455` | the five optimiser batches, A palest to E darkest — the same ramp as `Campaign_Progress` |
     | `SCREEN_COLOR` | `#C4C4C4` | the quasi-random screen — `TRIAL_COLOR` |
     | `BEST_COLOR` | `#D55E00` | DoE-OPT, the baseline the campaign had to beat — the comparator hue |
+
+    The batch ramp is shared with `Campaign_Progress` value for value, and that is the point of it
+    here. On the progression slide a reader watches the blues deepen from A to E across the x axis;
+    on this board the same five blues are re-sorted by score. A bar's hue therefore says *which
+    batch found this*, and the eye can ask whether the dark end of the ramp collected at the top.
 
     The screen is **grey on purpose**. In the `Breaking-the-Boundaries` campaign plots the screening
     phase is a `SCREEN_BAND` — `rgba(0, 0, 0, 0.055)`, a shaded region the optimisation runs across
@@ -154,19 +158,29 @@ def _(mo):
     that band as a fill instead: present, positioned, and visibly not the campaign.
 
     `BEST_COLOR` is the one warm mark on the slide, and it means DoE-OPT on the Campaign 2 board
-    too. `BO_COLOR` likewise carries across — it is the revalidated champions there. A reader who
-    learns a hue on one slide keeps it on the next.
+    too. `#2067F4` — the ramp's midpoint, batch C here — is the revalidated-champion hue on that
+    board. A reader who learns a hue on one slide keeps it on the next.
 
-    Five BO rounds are **one** colour on purpose. They are one campaign under one policy, and
-    giving each round its own hue would claim a distinction the method does not make.
+    The five batches are a **ramp**, not five hues: one blue in five steps of lightness. A
+    sequential scale claims order and nothing else, which is the one distinction the method does
+    make — each batch was chosen by a surrogate refit on everything before it. Five unrelated hues
+    would claim five kinds of experiment, which would be false.
     """)
     return
 
 
 @app.cell
 def _():
-    # BO_COLOR and BEST_COLOR are shared with the Campaign 2 slide on purpose.
-    BO_COLOR = '#2067F4'       # blue  -- optimiser batches A-E; the deck primary
+    # The batch ramp is shared with Campaign_Progress; BEST_COLOR with the Campaign 2 slide.
+    # One blue in five steps of lightness, A palest to E darkest: sequential, so it encodes the
+    # order the batches ran in and nothing else. #2067F4, the deck primary, is its midpoint.
+    BATCH_RAMP = {
+        'A': '#B4D2FC',
+        'B': '#6D9CF7',
+        'C': '#2067F4',
+        'D': '#1543A5',
+        'E': '#0A2455',
+    }
     SCREEN_COLOR = '#C4C4C4'   # grey  -- quasi-random screen; BtB's TRIAL_COLOR
     BEST_COLOR = '#D55E00'     # red   -- DoE-OPT; BtB's comparator hue
 
@@ -216,8 +230,8 @@ def _():
         AXIS_STANDOFF,
         AXIS_TITLE_SIZE,
         BAR_WIDTH,
+        BATCH_RAMP,
         BEST_COLOR,
-        BO_COLOR,
         FONT_FAMILY,
         INK,
         LEFT_MARGIN,
@@ -271,18 +285,24 @@ def _(mo):
 def _(DATA_CSV, campaign1, pd):
     SEP_CUT = 10.0
 
-    STAGE_LABEL = {
-        'bo': 'Optimiser Batches A–E',
-        'screen': 'Quasi-Random Screen',
-        'doe': 'DoE-OPT (Screening Baseline)',
-    }
+    BATCHES = ('A', 'B', 'C', 'D', 'E')
+
+    STAGE_LABEL = dict(
+        [(letter, 'Batch {}'.format(letter)) for letter in BATCHES]
+        + [('screen', 'Quasi-Random Screen'), ('doe', 'DoE-OPT (Screening Baseline)')])
 
 
     def stage_of(exp: str) -> str:
-        """Return the campaign stage that produced `exp`; hue carries this."""
+        """Return the campaign stage that produced `exp`; hue carries this.
+
+        An optimiser row resolves to its own batch letter rather than a single 'bo', so the
+        bar can wear that batch's step of the ramp.
+        """
         if exp == 'DoEOPT':
             return 'doe'
-        return 'screen' if exp.startswith('Ran') else 'bo'
+        if exp.startswith('Ran'):
+            return 'screen'
+        return exp[0]
 
 
     _raw = pd.read_csv(DATA_CSV)
@@ -337,8 +357,8 @@ def _(
     AXIS_STANDOFF,
     AXIS_TITLE_SIZE,
     BAR_WIDTH,
+    BATCH_RAMP,
     BEST_COLOR,
-    BO_COLOR,
     FIG_HEIGHT,
     FIG_WIDTH,
     FONT_FAMILY,
@@ -367,8 +387,8 @@ def _(
     ranked,
     separated,
 ):
-    STAGE_COLOR = {'bo': BO_COLOR, 'screen': SCREEN_COLOR, 'doe': BEST_COLOR}
-    STAGE_ORDER = ('bo', 'screen', 'doe')
+    STAGE_COLOR = dict(BATCH_RAMP, screen=SCREEN_COLOR, doe=BEST_COLOR)
+    STAGE_ORDER = tuple(BATCH_RAMP) + ('screen', 'doe')
     STAGE_RANK = {stage: i for i, stage in enumerate(STAGE_ORDER)}
 
     AXIS_TITLE = 'Mean Objective Score'

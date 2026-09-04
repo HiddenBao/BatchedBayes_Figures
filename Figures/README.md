@@ -71,7 +71,7 @@ Transcribed from that notebook's `plotly_layout` / `axis_style` / `legend_below`
 | Font | `sans-serif`, `template='none'` |
 | Ground | white paper and plot |
 | Axes | hairline `#c3c2b7`, no mirror, ticks outside, `#e1e0d9` gridlines on the value axis only |
-| Palette | `Breaking-the-Boundaries` tokens, shared across both slides: Campaign 1 optimiser / champion `#2067F4` · quasi-random screen `#C4C4C4` (`TRIAL_COLOR`) · Campaign 2 `#6FB7E8` · DoE-OPT `#D55E00` |
+| Palette | Campaign 1 batches: blue ramp `#B4D2FC`→`#0A2455` · Campaign 2 batches: purple ramp `#D3B8E8`→`#5A2E8C` · revalidated Campaign 1 champion `#2067F4` · quasi-random screen `#C4C4C4` (`TRIAL_COLOR`) · DoE-OPT `#D55E00` |
 | Marks | flat unoutlined bars at `width=0.62`; repeat dots size 9.5, ink at 70 %, ringed in the ground at `MARKER_RING = 2` |
 | Title | left, `x=0.01`, grey subtitle carrying the phase-separated names |
 | Legend | horizontal, centred, 60 px below the plot area |
@@ -87,16 +87,26 @@ Two of those borrowings carry meaning, not just a hex:
   is a `SCREEN_BAND` — `rgba(0, 0, 0, 0.055)`, a shaded region the optimisation runs across rather
   than a series competing with it. A bar chart cannot shade a region, so the screen wears that band
   as a fill: present, positioned, visibly not the campaign.
-- **The two campaigns are two depths of one blue.** Campaign 2 transfers the method to a loaded
-  formulation rather than replacing it, so a second hue would claim a break the method does not make.
+- **Batch order is lightness; campaign is family.** Campaign 1's five batches are one blue in
+  five steps, `#B4D2FC` (A) → `#0A2455` (E); Campaign 2's three are one purple in three,
+  `#D3B8E8` (A) → `#5A2E8C` (C). A *sequential* scale claims order and nothing else, which is the
+  one distinction the method makes — each batch was chosen by a surrogate refit on everything
+  before it. Five unrelated hues would claim five kinds of experiment, which would be false.
+  The two campaigns differ in family rather than in device: same encoding, run twice.
 
 `Misc*` (prior-optimum repeats) is **not on the Campaign 1 board** — it is prior art the campaign
 inherited, not campaign output. It is still in `data/` and still scored.
 
-**A hue means the same thing on both leaderboards.** `#0072B2` is a formulation the optimiser
-chose — an A–E batch on the Campaign 1 board, a revalidated champion on the Campaign 2 one — and
-`#D55E00` is DoE-OPT on both. That is what lets a reader carry a formulation from one slide to the
-next.
+**A hue means the same thing wherever it appears.** The blue ramp is Campaign 1's batches on
+both the progression slide and the Campaign 1 board, step for step, so `B4` is batch-B blue in
+either place. `#D55E00` is DoE-OPT on all three. `#2067F4` — the blue ramp's midpoint, batch C —
+is also the revalidated-champion hue on the Campaign 2 board, where the three champions are one
+category rather than three batches; that is the one hex carrying two readings, and the two slides
+never show it in both senses at once.
+
+Note that one of those three, `F5`, is `Ran5` — the same formulation, renamed in the paper. It is
+a quasi-random screen row, not optimiser output, and it still wears the champion hue because the
+Campaign 2 board groups by *what the row is doing there*, not by where it came from.
 
 Row labels are the formulation id, no rank number: `Ran*` renders as `S*` (screen) and `Misc*` as
 `M*` (prior-optimum repeat). Rank is the row order, so it is not spelled out twice.
@@ -128,8 +138,8 @@ is painted over to hide it. Nothing inside the panel is cut by the break — no 
 section rule, no marker, no error bar — which is what a two-panel break costs and this does not.
 
 It adds two hues to the shared palette, both prior art: `#E69F00` the previous DoE screen and
-`#CC79A7` the `Misc*` formulations. `#D55E00` is still DoE-OPT and `#2067F4` still the optimiser
-batches, as on both leaderboards. Its screen grey is `#8A8A8A` rather than the board's `#C4C4C4`:
+`#8C6E54` the `Misc*` formulations. `#D55E00` is still DoE-OPT, and the blue ramp is the Campaign
+1 board's, step for step. Its screen grey is `#8A8A8A` rather than the board's `#C4C4C4`:
 the whole initial dataset — DoE through the random screen — sits on the `rgba(0, 0, 0, 0.055)`
 band, and `TRIAL_COLOR` on that ground stops being a mark.
 

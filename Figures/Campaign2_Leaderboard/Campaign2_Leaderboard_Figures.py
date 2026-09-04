@@ -140,7 +140,7 @@ def _(mo):
 
     | token | hex | what it means |
     | --- | --- | --- |
-    | `BO_COLOR` | `#6FB7E8` | sky blue — a Campaign 2 formulation |
+    | `C2_RAMP` | `#D3B8E8` → `#5A2E8C` | purple, three steps — Campaign 2's batches, A palest to C darkest |
     | `C1_COLOR` | `#2067F4` | blue — a revalidated Campaign 1 champion |
     | `BEST_COLOR` | `#D55E00` | red — DoE-OPT, the screening baseline |
 
@@ -160,8 +160,14 @@ def _(mo):
 
 @app.cell
 def _():
-    # C1_COLOR and BEST_COLOR match the Campaign 1 slide's BO_COLOR and BEST_COLOR.
-    BO_COLOR = '#6FB7E8'    # sky blue  -- Campaign 2
+    # Campaign 2's batches, in purple: one hue in three steps of lightness, A palest to C
+    # darkest. It is the same *device* as the Campaign 1 slide's blue ramp -- lightness is batch
+    # order -- in a different family, because the family is what says which campaign this is.
+    C2_RAMP = {
+        'A': '#D3B8E8',
+        'B': '#9B6BC8',
+        'C': '#5A2E8C',
+    }
     C1_COLOR = '#2067F4'    # blue      -- revalidated Campaign 1 champion; the deck primary
     BEST_COLOR = '#D55E00'  # red       -- DoE-OPT; BtB's comparator hue
 
@@ -209,8 +215,8 @@ def _():
         AXIS_TITLE_SIZE,
         BAR_WIDTH,
         BEST_COLOR,
-        BO_COLOR,
         C1_COLOR,
+        C2_RAMP,
         FONT_FAMILY,
         INK,
         LEFT_MARGIN,
@@ -261,21 +267,28 @@ def _(DATA_CSV, campaign2, pd):
     CHAMPIONS = {'A190': ('E2_A', 'F5_A', 'B4_A'), 'Feno': ('E2_F', 'F5_F', 'B4_F')}
     DOE = 'DoEOPT'
 
-    SERIES_LABEL = {
-        'c2': 'Campaign 2',
-        'c1': 'Campaign 1 Champion (Revalidated)',
-        'doe': 'DoE-OPT (Screening Baseline)',
-    }
+    C2_BATCHES = ('A', 'B', 'C')
+
+    SERIES_LABEL = dict(
+        [(letter, 'Batch {}'.format(letter)) for letter in C2_BATCHES]
+        + [('c1', 'Campaign 1 Champion (Revalidated)'),
+           ('doe', 'DoE-OPT (Screening Baseline)')])
 
     _raw = pd.read_csv(DATA_CSV)
     _raw['objective'] = campaign2(_raw)['objective']
 
 
     def series_of(api: str, exp: str) -> str:
-        """Return the campaign that produced `exp` on `api`'s board; hue carries this."""
+        """Return the series that produced `exp` on `api`'s board; hue carries this.
+
+        A Campaign 2 row resolves to its own batch letter -- `A-B3` is batch B -- so the bar can
+        wear that batch's step of the ramp. Campaign 2 ids are `<api>-<batch><n>`.
+        """
         if exp == DOE:
             return 'doe'
-        return 'c1' if exp in CHAMPIONS[api] else 'c2'
+        if exp in CHAMPIONS[api]:
+            return 'c1'
+        return exp[2]
 
 
     def build_board(api: str):
@@ -320,8 +333,8 @@ def _(
     BAR_WIDTH,
     BEST_COLOR,
     BOARDS,
-    BO_COLOR,
     C1_COLOR,
+    C2_RAMP,
     FIG_HEIGHT,
     FIG_WIDTH,
     FONT_FAMILY,
@@ -348,8 +361,8 @@ def _(
     go,
     series_of,
 ):
-    SERIES_COLOR = {'c2': BO_COLOR, 'c1': C1_COLOR, 'doe': BEST_COLOR}
-    SERIES_ORDER = ('c2', 'c1', 'doe')
+    SERIES_COLOR = dict(C2_RAMP, c1=C1_COLOR, doe=BEST_COLOR)
+    SERIES_ORDER = tuple(C2_RAMP) + ('c1', 'doe')
     SERIES_RANK = {series: i for i, series in enumerate(SERIES_ORDER)}
 
     AXIS_TITLE = 'Mean Objective Score'
