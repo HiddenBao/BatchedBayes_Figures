@@ -120,9 +120,11 @@ The two leaderboards and `Campaign_Progress/` are built; the rest are not. `Desi
 `Campaign_Progress/` is the only suite with a **broken value axis**. Thirteen Campaign 1
 formulations phase-separated, and the objective's ×10 term parks every one of them at 31 while
 the stable campaign lives below 1.1. It draws the stable runs in a tall panel and the separated
-cluster in a short one above, sharing one x axis via `matches='x'` — so the paper's "13
-formulations grouped at an objective score of 31" is still countable without flattening the
-campaign. It adds two hues to the shared palette, both prior art: `#E69F00` the previous DoE
+cluster in a short one above as **squares**, sharing one x axis via `matches='x'` — so the
+paper's "13 formulations grouped at an objective score of 31" is still countable without
+flattening the campaign. The two panels wear **one** 2 px frame, drawn as a paper-referenced rect
+with a `//` cut through each upright, so the axes themselves draw ticks only; a box per panel
+would read as two charts rather than one broken axis. It adds two hues to the shared palette, both prior art: `#E69F00` the previous DoE
 screen and `#CC79A7` the `Misc*` formulations. `#D55E00` is still DoE-OPT and `#2067F4` still the
 optimiser batches, as on both leaderboards.
 

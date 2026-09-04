@@ -33,8 +33,8 @@ def _(mo):
     | Random Screen | `Ran1` … `Ran10` | the quasi-random, constraint-respecting screen that seeded the surrogate |
     | Batches A–E | `A1` … `E5` | five iterations of five, chosen by the optimiser |
 
-    The first four are the **initial dataset**; the last is the **campaign**. The bracket above the
-    panel is that split, and it is the comparison the slide exists to make.
+    The first four are the **initial dataset**; the last is the **campaign**, and the solid rule at
+    `Batch A` is that split. The comparison the slide exists to make is across it.
 
     ## Scoring
 
@@ -57,9 +57,12 @@ def _(mo):
     on a slide.
 
     So the y axis is broken. The tall panel carries the stable runs on a linear scale; the short
-    panel above it carries the separated cluster at its true 31, with a break mark between them.
-    Both panels sit on the same x axis, so a column reads straight down and the count at 31 — the
-    paper's "13 formulations grouped at an objective score of 31" — is still there to be read.
+    panel above it carries the separated cluster at its true 31, drawn as **squares** so a failed
+    formulation is not a value on the same scale wearing the same mark. The two panels share one
+    2 px frame with a `//` cut through each upright, which is what makes the break a break in a
+    single axis rather than a gap between two charts. They also share one x axis, so a column
+    reads straight down and the count at 31 — the paper's "13 formulations grouped at an objective
+    score of 31" — is still there to be read.
 
     ## Triangles are the specification
 
@@ -209,7 +212,6 @@ def _(np):
 
     INK = 'black'
     INK_SOFT = 'rgba(0, 0, 0, 0.55)'
-    INK_FAINT = 'rgba(0, 0, 0, 0.38)'
     RULE = 'rgba(0, 0, 0, 0.22)'
     ERA_RULE = 'rgba(0, 0, 0, 0.45)'
     SCREEN_BAND = 'rgba(0, 0, 0, 0.055)'
@@ -224,19 +226,20 @@ def _(np):
 
     MARKER_SIZE = 10
     SPEC_MARKER_SIZE = 14
+    FAIL_MARKER_SIZE = 9
     MARKER_RING = 2
-    LINE_WIDTH = 2.5
     ERROR_WIDTH = 1.4
     SECTION_RULE_WIDTH = 1.2
     SECTION_RULE_DASH = 'dot'
+    FRAME_WIDTH = 2
 
     LEFT_MARGIN = 105
     RIGHT_MARGIN = 40
-    TOP_MARGIN = 150     # title, the era bracket, and a row of section names
+    TOP_MARGIN = 118     # title and a row of section names
     LEGEND_MARGIN = 105  # bottom gutter the horizontal legend sits in
 
     # The broken axis: the stable campaign gets the tall panel, the separated cluster the short
-    # one, and the gap between them is where the break mark goes.
+    # one, and the gap between them carries the break marks.
     MAIN_DOMAIN = (0.0, 0.80)
     FAIL_DOMAIN = (0.90, 1.0)
 
@@ -258,30 +261,32 @@ def _(np):
         return float(10 * magnitude)
 
 
+    # The house 2 px box is drawn *once*, as a paper-referenced rect around both panels, so the
+    # broken axis reads as one frame with a break rather than as two stacked charts. The axes
+    # themselves therefore carry ticks only -- no lines of their own to double it up.
     AXIS_COMMON = dict(
-        linecolor=INK, tickcolor=INK, color=INK,
-        ticks='outside', showline=True, showgrid=False, mirror=True, linewidth=2,
+        tickcolor=INK, color=INK,
+        ticks='outside', showline=False, showgrid=False, mirror=False,
         zeroline=False,
         tickfont=dict(size=TICK_SIZE), title_font=dict(size=AXIS_TITLE_SIZE),
     )
     return (
         ANNOTATION_SIZE,
         AXIS_COMMON,
-        AXIS_TITLE_SIZE,
         BEST_COLOR,
         BO_COLOR,
         DOE_COLOR,
         ERA_RULE,
         ERROR_WIDTH,
         FAIL_DOMAIN,
+        FAIL_MARKER_SIZE,
         FONT_FAMILY,
+        FRAME_WIDTH,
         INK,
-        INK_FAINT,
         INK_SOFT,
         LEFT_MARGIN,
         LEGEND_MARGIN,
         LEGEND_SIZE,
-        LINE_WIDTH,
         MAIN_DOMAIN,
         MARKER_RING,
         MARKER_SIZE,
@@ -432,18 +437,7 @@ def _(DATA_CSV, campaign1, pd):
         CHAMPION['Exp'], CHAMPION['obj'], CHAMPION['size_nm']))
     print('beat DoE-OPT     {} of {} stable optimiser runs'.format(
         len(BEAT_DOE_OPT), len(OPTIMISER)))
-    return (
-        BEAT_DOE_OPT,
-        CAMPAIGN,
-        CAMPAIGN_START_SECTION,
-        CHAMPION,
-        DOE_OPT,
-        ERA_LABEL,
-        IN_SPEC,
-        OPTIMISER,
-        SECTION_ORDER,
-        SECTION_SPAN,
-    )
+    return CAMPAIGN, CAMPAIGN_START_SECTION, SECTION_ORDER, SECTION_SPAN
 
 
 @app.cell(hide_code=True)
@@ -456,17 +450,18 @@ def _(mo):
     `x`'s range and hides its tick labels, so the two panels are one column of experiment numbers
     with a break in the value axis.
 
-    Annotation, in the order a reader meets it:
+    Annotation is deliberately thin — the sections and the marks carry the reading:
 
-    * the **era bracket** above everything — initial dataset, then campaign;
     * a **section name** per block, with a dotted rule at each boundary and a solid one where the
       campaign starts;
-    * the **DoE-OPT baseline** as a dashed horizontal reference, so *better than the previous
-      optimum* is a position on the page rather than a claim in the caption;
-    * the **running best**, stepping down behind the points;
-    * **triangles** for the three in-specification formulations, each named.
+    * **squares** in the upper panel for the phase-separated runs, and the count beside them;
+    * **triangles** for the three in-specification formulations, unlabelled — which one is which
+      is the x axis's job, and the slide is about how many there are and where they fall.
 
-    Everything else stays in the legend, which sits in the bottom gutter — never inside the panel.
+    The five section hues stay in the legend, which sits in the bottom gutter — never inside the
+    panel. `CHAMPION`, `BEAT_DOE_OPT` and `IN_SPEC` are computed and asserted in the data cell but
+    are not drawn; they are the numbers to quote over the slide, and they fail loudly if `data/`
+    moves under them.
     """)
     return
 
@@ -475,35 +470,28 @@ def _(mo):
 def _(
     ANNOTATION_SIZE,
     AXIS_COMMON,
-    AXIS_TITLE_SIZE,
-    BEAT_DOE_OPT,
     BEST_COLOR,
     BO_COLOR,
     CAMPAIGN,
     CAMPAIGN_START_SECTION,
-    CHAMPION,
     DOE_COLOR,
-    DOE_OPT,
-    ERA_LABEL,
     ERA_RULE,
     ERROR_WIDTH,
     FAIL_DOMAIN,
+    FAIL_MARKER_SIZE,
     FIG_HEIGHT,
     FIG_WIDTH,
     FONT_FAMILY,
+    FRAME_WIDTH,
     INK,
-    INK_FAINT,
     INK_SOFT,
-    IN_SPEC,
     LEFT_MARGIN,
     LEGEND_MARGIN,
     LEGEND_SIZE,
-    LINE_WIDTH,
     MAIN_DOMAIN,
     MARKER_RING,
     MARKER_SIZE,
     MISC_COLOR,
-    OPTIMISER,
     RIGHT_MARGIN,
     RULE,
     SCREEN_BAND,
@@ -513,6 +501,7 @@ def _(
     SECTION_RULE_WIDTH,
     SECTION_SPAN,
     SPEC_MARKER_SIZE,
+    TICK_SIZE,
     TITLE_SIZE,
     TOP_MARGIN,
     fade,
@@ -580,47 +569,13 @@ def _(
                 text=label, showarrow=False, xanchor='center', yanchor='bottom',
                 font=dict(size=ANNOTATION_SIZE, color=INK_SOFT, family=FONT_FAMILY)))
 
-        # --- The era bracket, above the section names -----------------------------------------
-        # yref='paper' is the plot area, so y > 1 is above the top panel. The section names take
-        # the first band above it; the bracket sits clear of them.
-        bracket_y = 1.115
-        for key, lo, hi in (('initial', 1, campaign_lo - 1),
-                            ('campaign', campaign_lo, len(CAMPAIGN))):
-            shapes.append(dict(
-                type='line', xref='x2', yref='paper',
-                x0=lo - 0.5, x1=hi + 0.5, y0=bracket_y, y1=bracket_y,
-                line=dict(color=INK_FAINT, width=1.2)))
-            for tick_x in (lo - 0.5, hi + 0.5):
-                shapes.append(dict(
-                    type='line', xref='x2', yref='paper',
-                    x0=tick_x, x1=tick_x, y0=bracket_y, y1=bracket_y - 0.022,
-                    line=dict(color=INK_FAINT, width=1.2)))
-            annotations.append(dict(
-                x=(lo + hi) / 2, y=bracket_y, xref='x2', yref='paper', yshift=6,
-                text=ERA_LABEL[key], showarrow=False, xanchor='center', yanchor='bottom',
-                font=dict(size=ANNOTATION_SIZE, color=INK, family=FONT_FAMILY)))
-
-        # --- DoE-OPT baseline, across the stable panel ----------------------------------------
+        # --- The frame -------------------------------------------------------------------------
+        # One 2 px box around both panels, in paper units, so the break is a break in a single
+        # axis rather than a gap between two charts. The axes draw no lines of their own.
         shapes.append(dict(
-            type='line', xref='x', yref='y',
-            x0=x_range[0], x1=x_range[1], y0=float(DOE_OPT['obj']), y1=float(DOE_OPT['obj']),
-            line=dict(color=BEST_COLOR, width=1.6, dash='dash'), layer='below'))
-        # The screen band is empty above the baseline; right-anchoring would put this on the
-        # batch-C points instead.
-        annotations.append(dict(
-            x=SECTION_SPAN['Random Screen'][0], y=float(DOE_OPT['obj']), xref='x', yref='y',
-            xanchor='left', yanchor='bottom', yshift=5,
-            text='DoE-OPT {:.3f}  ·  {} of {} stable optimiser runs beat it'.format(
-                DOE_OPT['obj'], len(BEAT_DOE_OPT), len(OPTIMISER)),
-            showarrow=False,
-            font=dict(size=ANNOTATION_SIZE, color=BEST_COLOR, family=FONT_FAMILY)))
-
-        # --- Running best ----------------------------------------------------------------------
-        traces.append(go.Scatter(
-            x=CAMPAIGN['n'], y=CAMPAIGN['running_best'], mode='lines', name='Running Best',
-            xaxis='x', yaxis='y',
-            line=dict(color=INK_SOFT, width=LINE_WIDTH, shape='hv'),
-            hovertemplate='running best<br>Exp %{x}<br>%{y:.3f}<extra></extra>'))
+            type='rect', xref='paper', yref='paper', x0=0, x1=1, y0=0, y1=1,
+            line=dict(color=INK, width=FRAME_WIDTH), fillcolor='rgba(0, 0, 0, 0)',
+            layer='below'))
 
         # --- The runs, one legend entry per hue -------------------------------------------------
         for label, sections, color in SERIES:
@@ -653,7 +608,7 @@ def _(
                 traces.append(go.Scatter(
                     x=fail_block['n'], y=fail_block['obj'], mode='markers', name=label,
                     xaxis='x2', yaxis='y2', legendgroup=label, showlegend=False,
-                    marker=_marker(color, MARKER_SIZE),
+                    marker=_marker(color, FAIL_MARKER_SIZE, symbol='square'),
                     customdata=fail_block['Exp'],
                     hovertemplate='%{customdata}<br>Exp %{x}<br>phase separated<extra></extra>'))
 
@@ -663,24 +618,15 @@ def _(
             name='In Specification',
             marker=_marker(INK_SOFT, SPEC_MARKER_SIZE, symbol='triangle-up')))
 
-        # --- The champion, and the in-spec names -------------------------------------------------
-        for _, row in IN_SPEC.iterrows():
-            is_champion = row['Exp'] == CHAMPION['Exp']
+        # --- The break marks, and what the strip holds ---------------------------------------
+        # A '//' on each upright of the frame, on an opaque ground so it cuts the line it sits
+        # on. Annotations draw above shapes, so the white does the cutting.
+        for frame_x in (0, 1):
             annotations.append(dict(
-                x=float(row['n']), y=float(row['obj']), xref='x', yref='y',
-                text='<b>{}</b>  {:.3f}<br>{:.1f} nm'.format(
-                    row['Exp'], row['obj'], row['size_nm'])
-                if is_champion else '<b>{}</b>'.format(row['Exp']),
-                showarrow=True, arrowhead=0, arrowwidth=1.1, arrowcolor=INK_SOFT,
-                ax=0, ay=-56 if is_champion else -36, xanchor='center',
-                font=dict(size=ANNOTATION_SIZE, color=INK, family=FONT_FAMILY)))
-
-        # --- The break mark, and what the strip holds ---------------------------------------------
-        annotations.append(dict(
-            x=0, y=(MAIN_DOMAIN[1] + FAIL_DOMAIN[0]) / 2, xref='paper', yref='paper',
-            xshift=-int(LEFT_MARGIN * 0.40), text='<b>≈</b>', showarrow=False,
-            xanchor='center', yanchor='middle',
-            font=dict(size=AXIS_TITLE_SIZE, color=INK, family=FONT_FAMILY)))
+                x=frame_x, y=(MAIN_DOMAIN[1] + FAIL_DOMAIN[0]) / 2,
+                xref='paper', yref='paper', text='//', showarrow=False,
+                xanchor='center', yanchor='middle', bgcolor='white', borderpad=1,
+                font=dict(size=TICK_SIZE, color=INK, family=FONT_FAMILY)))
         annotations.append(dict(
             x=0.5, y=fail_y, xref='x2', yref='y2',
             xanchor='left', yanchor='middle', xshift=10,
@@ -698,8 +644,8 @@ def _(
             xaxis=dict(title='Experiment Number', range=x_range, domain=[0.0, 1.0],
                        anchor='y', tickmode='linear', tick0=0, dtick=5, **AXIS_COMMON),
             xaxis2=dict(range=x_range, domain=[0.0, 1.0], anchor='y2', matches='x',
-                        showticklabels=False, ticks='', linecolor=INK, showline=True,
-                        showgrid=False, mirror=True, linewidth=2, zeroline=False),
+                        showticklabels=False, ticks='', showline=False,
+                        showgrid=False, mirror=False, zeroline=False),
             yaxis=dict(title='Objective Function', range=y_range, domain=list(MAIN_DOMAIN),
                        anchor='x', tick0=0, dtick=y_dtick, **AXIS_COMMON),
             yaxis2=dict(range=fail_range, domain=list(FAIL_DOMAIN), anchor='x2',
