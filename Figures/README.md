@@ -123,6 +123,24 @@ Campaign 2 board groups by *what the row is doing there*, not by where it came f
 Row labels are the formulation id, no rank number: `Ran*` renders as `S*` (screen) and `Misc*` as
 `M*` (prior-optimum repeat). Rank is the row order, so it is not spelled out twice.
 
+On the **Campaign 2** board the id's API tag comes off as well, because each panel is one API from
+top to bottom and the panel title already carries it: `A-B3` and `F-B3` are both `B3`, `B4_A` and
+`B4_F` are both `Campaign 1 · B4`. What the label carries instead is the campaign, which is the one
+thing the panel cannot say — a bare id is Campaign 2's own, `Campaign 1 · ` is a revalidated
+Campaign 1 formulation, and `DoE-OPT` is neither. `build_board` asserts the labels stay unique.
+
+The prefix is **spelled out, not abbreviated**. `C1` was the obvious short form and it is the one
+thing that board cannot use: `C1` is already a row on it — Campaign 2's batch C, proposal 1 — and a
+token that means two things on one figure is worth the 40 px of left margin it saves. Only three of
+seventeen rows carry the prefix, and those three are what the whole board is a comparison against.
+
+One formulation carries **four names**, and the boards resolve them to one. The dataset calls the
+blank `Ran5` and its loaded re-measurements `F5_A` / `F5_F`; the paper's Table 3 calls it `F5`. Both
+boards call it **`S5`** — `S5` on the Campaign 1 board as a screen row, `Campaign 1 · S5` on the Campaign 2
+board — because a reader has to be able to follow one row from slide to slide, so the deck name
+beats the id. `Campaign1_Leaderboard` asserts `Ran5` and `F5_A` are the same composition, so the
+naming fails loudly if the data ever moves under it.
+
 Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](../CLAUDE.md).
 
 ## Suites
@@ -130,6 +148,7 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | Folder | Slide | Paper figure |
 |---|---|---|
 | `Campaign1_Leaderboard/` | The optimiser batches and the quasi-random screen against DoE-OPT | — |
+| `Campaign1_Leaderboard/` (`_Top5`) | The same board, second animation state: the top five, split by whether it reached drug loading | — |
 | `Campaign2_Leaderboard/` | Both API tracks ranked, with the Campaign 1 champions and DoE-OPT | — |
 | `Design_Space/` | DoE → Batched Bayes: what the optimiser could search that the screening design could not | Table 1 |
 | `Campaign1_Progress/` | Objective per formulation in campaign order, running best | Fig. 2 |
@@ -140,6 +159,14 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 
 The two leaderboards, `Campaign1_Progress/` and `Campaign2_Progress/` are built; the rest are
 not. `Design_Space/` is next.
+
+### Animation states
+
+A suite may export more than one SVG of **one slide** when the slide is built up in PowerPoint.
+`Campaign1_Leaderboard` is the case to copy: both states come out of a single `build_leaderboard`
+that takes the row-to-series map as an argument, so rows, order, bar lengths, axis range and type
+are shared by construction and the exports lay over each other without a mark moving. A state that
+also re-ranks or re-labels is a different chart wearing the same title, not an animation step.
 
 The two progression suites are the ones with a **spliced value axis**.
 

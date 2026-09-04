@@ -184,6 +184,16 @@ def _():
     SCREEN_COLOR = '#C4C4C4'   # grey  -- quasi-random screen; BtB's TRIAL_COLOR
     BEST_COLOR = '#D55E00'     # red   -- DoE-OPT; BtB's comparator hue
 
+    # --- The emphasis iteration -------------------------------------------------------------
+    # The second animation state re-fills the same board to answer one question -- which of the
+    # top five went on to be drug-loaded -- so the stage ramp is off entirely and three fills
+    # take its place. Blue against red is the safe axis under every common colour deficiency,
+    # which matters here because the whole state is that one contrast.
+    DIM_COLOR = '#DDE0E4'      # everything outside the top five: present, placed, quiet
+    DIM_DOT = '#B9BEC7'        # AXIS_LINE -- a dimmed repeat, still visibly a dot
+    CARRIED_COLOR = '#1543A5'  # dark blue, the ramp's D step -- carried into drug loading
+    FAIL_COLOR = '#B2182B'     # deep red -- top five, but did not survive drug loading
+
     # White ground to sit on a white slide, not upstream's warm #fcfcfb.
     INK = '#0b0b0b'
     SECOND = '#3F4652'
@@ -232,6 +242,10 @@ def _():
         BAR_WIDTH,
         BATCH_RAMP,
         BEST_COLOR,
+        CARRIED_COLOR,
+        DIM_COLOR,
+        DIM_DOT,
+        FAIL_COLOR,
         FONT_FAMILY,
         INK,
         LEFT_MARGIN,
@@ -334,12 +348,50 @@ def _(DATA_CSV, campaign1, pd):
     board['row_label'] = board['Exp'].map(ROW_LABEL)
     STAGE = {exp: stage_of(exp) for exp in ranked.index}
 
+    # --- What happened to the top five ---------------------------------------------------------
+    # The paper's Table 3 is these same five, in this same order, to four decimals. Three of them
+    # were reformulated drug-loaded and carried through the 30-day study; two were not.
+    #
+    # `Ran5` is the paper's `F5`: same composition, and the only row in the dataset carrying it.
+    # That id map is the trap on this slide -- the Campaign 2 board plots the loaded counterpart
+    # as `C1 - F5` while this board calls the blank `S5` -- so it is asserted, not assumed.
+    CARRIED = ('B4', 'Ran5', 'E2')
+    FAILED = ('D3', 'D5')
+
+    TOP5 = tuple(ranked.index[:5])
+    assert set(CARRIED) | set(FAILED) == set(TOP5),         'top five moved: {} vs {}'.format(sorted(TOP5), sorted(CARRIED + FAILED))
+
+    _COMPOSITION = ['Oil', 'Surfactant', 'Cosurfactant',
+                    'Oil_V', 'Surfactant_V', 'Cosurfactant_V', 'Sonication']
+
+
+    def _one_composition(exp):
+        rows = _raw.loc[_raw['Exp'].eq(exp), _COMPOSITION].drop_duplicates()
+        assert len(rows) == 1, '{} has {} compositions'.format(exp, len(rows))
+        return rows.iloc[0].tolist()
+
+
+    assert _one_composition('Ran5') == _one_composition('F5_A'),         "Ran5 is no longer the paper's F5 -- the loaded rows have drifted from the blank"
+
     print('{} ranked, {} phase-separated: {}'.format(
         len(ranked), len(separated), ', '.join(separated)))
     print('best {:.4f} ({})   DoE-OPT rank {} of {}'.format(
         ranked.iloc[0], ranked.index[0],
         list(ranked.index).index('DoEOPT') + 1, len(ranked)))
-    return ROW_LABEL, STAGE, STAGE_LABEL, board, ranked, separated
+    print('top five {}   carried {}   failed on loading {}'.format(
+        [ROW_LABEL[e] for e in TOP5], [ROW_LABEL[e] for e in CARRIED],
+        [ROW_LABEL[e] for e in FAILED]))
+    return (
+        CARRIED,
+        FAILED,
+        ROW_LABEL,
+        STAGE,
+        STAGE_LABEL,
+        TOP5,
+        board,
+        ranked,
+        separated,
+    )
 
 
 @app.cell(hide_code=True)
@@ -389,13 +441,19 @@ def _(
 ):
     STAGE_COLOR = dict(BATCH_RAMP, screen=SCREEN_COLOR, doe=BEST_COLOR)
     STAGE_ORDER = tuple(BATCH_RAMP) + ('screen', 'doe')
-    STAGE_RANK = {stage: i for i, stage in enumerate(STAGE_ORDER)}
 
     AXIS_TITLE = 'Mean Objective Score'
 
 
-    def build_leaderboard():
-        """Two-panel horizontal leaderboard: bars are means, dots are the repeats behind them."""
+    def build_leaderboard(group_of, group_color, group_label, group_order,
+                          dot_color_of, subtitle):
+        """Two-panel horizontal leaderboard: bars are means, dots are the repeats behind them.
+
+        `group_of` maps a formulation to the series whose fill it wears, and is the *only*
+        thing the two animation states differ in. Rows, order, the split between panels, the
+        shared x range and every type size come from here, so the exported SVGs stack in
+        PowerPoint without a single mark moving under the highlight.
+        """
         order = list(ranked.index)
         half = (len(order) + 1) // 2
         columns = (('left', order[:half], 'x', 'y'),
@@ -404,30 +462,34 @@ def _(
         shown_reps = board[board['Exp'].isin(ranked.index)]
         x_range = [0.0, float(max(ranked.max(), shown_reps['objective'].max())) * 1.1]
 
+        group_rank = {group: i for i, group in enumerate(group_order)}
+
         traces = []
         legended = set()
         for _panel, column, x_axis, y_axis in columns:
-            for stage in STAGE_ORDER:
-                members = [exp for exp in column if STAGE[exp] == stage]
+            for group in group_order:
+                members = [exp for exp in column if group_of[exp] == group]
                 if not members:
                     continue
                 traces.append(go.Bar(
                     y=[ROW_LABEL[exp] for exp in members],
                     x=[float(ranked[exp]) for exp in members],
                     orientation='h', width=BAR_WIDTH,
-                    marker_color=STAGE_COLOR[stage],
-                    name=STAGE_LABEL[stage], legendgroup=stage,
-                    legendrank=1000 + STAGE_RANK[stage],
-                    showlegend=stage not in legended,
+                    marker_color=group_color[group],
+                    name=group_label[group], legendgroup=str(group),
+                    legendrank=1000 + group_rank[group],
+                    showlegend=group not in legended,
                     xaxis=x_axis, yaxis=y_axis,
                     hovertemplate='%{y}<br>mean per-rep objective %{x:.3f}<extra></extra>',
                 ))
-                legended.add(stage)
+                legended.add(group)
 
             repeats = board[board['Exp'].isin(column)]
             traces.append(go.Scatter(
                 x=repeats['objective'], y=repeats['row_label'], mode='markers',
-                marker=dict(size=MARKER_SIZE, color=INK, opacity=0.7,
+                marker=dict(size=MARKER_SIZE,
+                            color=[dot_color_of(exp) for exp in repeats['Exp']],
+                            opacity=0.7,
                             line=dict(color=SURFACE, width=MARKER_RING)),
                 name='Individual Rep', legendgroup='repeat_dot',
                 legendrank=1100,
@@ -464,10 +526,8 @@ def _(
             template='none',
             title=dict(
                 text='<b>Campaign 1 — Leaderboard</b>  (score-then-average)<br>'
-                     '<span style="font-size:{}px;color:{}">The Optimiser Batches And The '
-                     'Quasi-Random Screen Against The DoE-OPT Baseline, Ranked 1–{}'
-                     '  ·  Not Shown (Phase-Separated): {}</span>'.format(
-                         SUBTITLE_SIZE, MUTED, len(ranked), ', '.join(separated)),
+                     '<span style="font-size:{}px;color:{}">{}</span>'.format(
+                         SUBTITLE_SIZE, MUTED, subtitle),
                 font=dict(size=TITLE_SIZE, color=INK),
                 x=0.01, xanchor='left'),
             xaxis=x_axis_spec('left', 'y'), xaxis2=x_axis_spec('right', 'y2'),
@@ -490,9 +550,95 @@ def _(
         return go.Figure(data=traces, layout=layout)
 
 
-    leaderboard_figure = build_leaderboard()
+    leaderboard_figure = build_leaderboard(
+        group_of=STAGE, group_color=STAGE_COLOR, group_label=STAGE_LABEL,
+        group_order=STAGE_ORDER, dot_color_of=lambda _exp: INK,
+        subtitle='The Optimiser Batches And The Quasi-Random Screen Against The DoE-OPT '
+                 'Baseline, Ranked 1–{}  ·  Not Shown (Phase-Separated): {}'.format(
+                     len(ranked), ', '.join(separated)))
     leaderboard_figure
-    return (leaderboard_figure,)
+    return build_leaderboard, leaderboard_figure
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## The emphasis iteration — what happened to the top five
+
+    A second export of the **same board** for the PowerPoint build: identical rows in identical
+    order at identical lengths, so it lays over the first as an animation step and only the fills
+    change. Nothing is added and nothing is removed — a highlight that also re-ranks would be a
+    different chart wearing the same title.
+
+    Everything outside the top five drops to `DIM_COLOR`, and its repeat dots drop with it:
+    a black dot on a pale bar out-shouts the highlight it is supposed to sit behind.
+
+    Inside the top five the split is what happened next:
+
+    | | rows | why |
+    | --- | --- | --- |
+    | `CARRIED_COLOR` dark blue | `B4`, `S5`, `E2` | reformulated with A190 **and** fenofibrate, and followed for 30 days |
+    | `FAIL_COLOR` deep red | `D3`, `D5` | never reached the drug-loaded study |
+
+    **The red is honest about the gate, not the drug.** The paper's account is that all five were
+    reformulated at the 5 mL volume for the stability study and `D3` phase-separated within 24 h
+    *as a blank*, so it "was not evaluated further"; `D5` cleared the 30-day blank study but never
+    appears in loaded form, and the paper narrows from four blanks to three loaded compositions
+    without giving it a line. Neither failed *with* an API in it — they failed to get that far.
+    So the label says **Failed Before Drug Loading**, which is what the data supports.
+
+    `S5` is the paper's `F5` (Table 3), and its loaded counterpart is `C1 - F5` on the Campaign 2
+    board. The board cell asserts that identity by composition rather than trusting the id.
+
+    Blue against red is the one hue pair that survives every common colour deficiency, which
+    matters more here than anywhere else in the deck: this state *is* that single contrast.
+    """)
+    return
+
+
+@app.cell
+def _(
+    CARRIED,
+    CARRIED_COLOR,
+    DIM_COLOR,
+    DIM_DOT,
+    FAILED,
+    FAIL_COLOR,
+    INK,
+    ROW_LABEL,
+    TOP5,
+    build_leaderboard,
+):
+    EMPHASIS_COLOR = {'carried': CARRIED_COLOR, 'failed': FAIL_COLOR, 'rest': DIM_COLOR}
+    # Reading order in the legend is the story's order: what survived, what did not, everything
+    # else. `rest` last because it is the ground the other two are read against.
+    EMPHASIS_ORDER = ('carried', 'failed', 'rest')
+
+    EMPHASIS_GROUP = {
+        exp: 'carried' if exp in CARRIED else 'failed' if exp in FAILED else 'rest'
+        for exp in ROW_LABEL}
+
+
+    def _names(group):
+        """The rows in `group`, board order, wearing their row labels."""
+        return ', '.join(ROW_LABEL[exp] for exp in TOP5 if EMPHASIS_GROUP[exp] == group)
+
+
+    EMPHASIS_LABEL = {
+        'carried': 'Top Five · Carried Into Drug Loading ({})'.format(_names('carried')),
+        'failed': 'Top Five · Failed Before Drug Loading ({})'.format(_names('failed')),
+        'rest': 'Ranked 6 And Below',
+    }
+
+    emphasis_figure = build_leaderboard(
+        group_of=EMPHASIS_GROUP, group_color=EMPHASIS_COLOR, group_label=EMPHASIS_LABEL,
+        group_order=EMPHASIS_ORDER,
+        dot_color_of=lambda exp: INK if exp in TOP5 else DIM_DOT,
+        subtitle='The Top Five By Objective — {} Were Reformulated With Both APIs '
+                 'And Followed For 30 Days; {} Never Reached That Study'.format(
+                     _names('carried'), _names('failed')))
+    emphasis_figure
+    return (emphasis_figure,)
 
 
 @app.cell(hide_code=True)
@@ -513,10 +659,14 @@ def _(
     FIG_WIDTH,
     OUTPUT_DIR,
     PNG_SCALE,
+    emphasis_figure,
     leaderboard_figure,
 ):
+    # Two states of one slide. Same stem, `_Top5` suffix: they are meant to be laid over each
+    # other in the deck, not filed as unrelated figures.
     FIGURES = {
         'Campaign1_Leaderboard': (leaderboard_figure, FIG_WIDTH, FIG_HEIGHT),
+        'Campaign1_Leaderboard_Top5': (emphasis_figure, FIG_WIDTH, FIG_HEIGHT),
     }
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

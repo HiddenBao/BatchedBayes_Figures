@@ -210,7 +210,8 @@ def _():
     AXIS_STANDOFF = 12
     YLABEL_STANDOFF = 10
 
-    LEFT_MARGIN = 90
+    # Wide enough for `Campaign 1 · S5` plus YLABEL_STANDOFF; the Campaign 1 slide's 90 is not.
+    LEFT_MARGIN = 120
     RIGHT_MARGIN = 60
     TOP_MARGIN = 120      # room for the title, its subtitle and the two panel captions
     LEGEND_MARGIN = 130   # bottom gutter the horizontal legend sits in
@@ -267,6 +268,33 @@ def _(mo):
 
     `SEP_CUT` catches phase separation: dividing by the stability factor floored at 0.01 sends a
     fully separated formulation to roughly 100× its stable-side loss, well clear of anything real.
+
+    ### Row names
+
+    Every id in `data/` carries an API tag — `A-B3` / `F-B3` for a Campaign 2 proposal, `B4_A` /
+    `B4_F` for a revalidated champion. On a board that *is* one API from top to bottom that tag is
+    dead weight, so the rows drop it and the panel title carries the API alone.
+
+    What the label carries instead is **which campaign the formulation came from**, because that
+    is the one distinction a reader cannot recover from the panel:
+
+    | id in `data/` | row on the board |
+    | --- | --- |
+    | `A-B3`, `F-B3` | `B3` |
+    | `B4_A`, `B4_F` | `Campaign 1 · B4` |
+    | `F5_A`, `F5_F` | `Campaign 1 · S5` — the Campaign 1 board's name for it, not the id's |
+    | `DoEOPT` | `DoE-OPT` |
+
+    `DoE-OPT` is neither campaign — it is the DoE screening optimum both campaigns were measured
+    against — so it keeps its own name rather than being folded into the `Campaign 1 · ` family.
+
+    The prefix is **spelled out, not abbreviated to `C1`**: `C1` is already a Campaign 2 row on
+    this board — batch C, proposal 1, on the fenofibrate panel — and one token cannot mean two
+    things on one figure. It costs 40 px of left margin on three of seventeen rows, and those
+    three are what the board is a comparison against.
+
+    Dropping the tag can only collide if one panel ever held both tracks, which is exactly what
+    the two panels exist to prevent; `build_board` asserts it rather than trusting it.
     """)
     return
 
@@ -312,6 +340,45 @@ def _(DATA_CSV, campaign2, pd):
         return (api, exp[2])
 
 
+    # `F5_A` / `F5_F` are the loaded re-measurements of the formulation the Campaign 1 board
+    # ranks as `S5`. It reached this deck from the quasi-random screen as `Ran5`, and that board
+    # renders `Ran*` as `S*`; the paper's Table 3 and the loaded ids both call it `F5`. A row has
+    # to wear one name across the deck or a reader cannot follow it from slide to slide, so the
+    # deck name wins over the id -- see `Figures/README.md`.
+    CHAMPION_NAME = {'F5': 'S5'}
+
+    # Spelled out rather than abbreviated to `C1`, because `C1` is *also* a Campaign 2 row on
+    # this board -- batch C, proposal 1 -- and a token that means two things on one figure is
+    # worth 40 px of left margin. Only three of seventeen rows carry it, and they are the rows
+    # the whole board is a comparison against.
+    C1_PREFIX = 'Campaign 1'
+
+
+    def row_label_of(api: str, exp: str) -> str:
+        """Return the row name `exp` wears on `api`'s board.
+
+        A panel is one API throughout, so the API tag every id carries is redundant on it and
+        is dropped: `A-B3` and `F-B3` are both `B3`, `B4_A` and `B4_F` are both `B4`. What the
+        tag was doing -- separating the two tracks -- the panel title already does.
+
+        Provenance is what the label has to carry instead, because the panel mixes two
+        campaigns: a Campaign 1 formulation revalidated here is prefixed `Campaign 1 · `, and a
+        bare id is Campaign 2's own. DoE-OPT is neither campaign -- it is the DoE screening optimum the
+        whole project started from -- so it keeps its own name.
+
+        A champion is then named as the Campaign 1 board names it, not as its loaded id spells
+        it: `F5_A` is `C1 - S5`, because `S5` is what the reader just saw two slides ago.
+
+        Rank is already the row order, so it is not spelled out in the label.
+        """
+        if exp == DOE:
+            return 'DoE-OPT'
+        if exp in CHAMPIONS[api]:
+            stem = exp[:-2]                                          # B4_A -> B4
+            return '{} · {}'.format(C1_PREFIX, CHAMPION_NAME.get(stem, stem))
+        return exp[2:]                                               # A-B3 -> B3
+
+
     def build_board(api: str):
         """Return (ranked, separated, row_label, repeats) for one API's leaderboard."""
         rows = _raw[_raw['Exp'].str.startswith(PANEL_PREFIX[api])
@@ -320,8 +387,8 @@ def _(DATA_CSV, campaign2, pd):
         mean_objective = rows.groupby('Exp')['objective'].mean().sort_values()
         ranked = mean_objective[mean_objective < SEP_CUT]
         separated = sorted(mean_objective[mean_objective >= SEP_CUT].index)
-        # Rank is already the row order, so it is not spelled out in the label.
-        row_label = {exp: 'DoE-OPT' if exp == DOE else exp for exp in ranked.index}
+        row_label = {exp: row_label_of(api, exp) for exp in ranked.index}
+        assert len(set(row_label.values())) == len(row_label),             '{} row labels collide once the API tag is dropped'.format(api)
         repeats = rows[rows['Exp'].isin(ranked.index)].copy()
         repeats['row_label'] = repeats['Exp'].map(row_label)
         return ranked, separated, row_label, repeats
@@ -334,7 +401,7 @@ def _(DATA_CSV, campaign2, pd):
         print('{}: {} ranked, best {:.3f} ({}), {} phase-separated {}'.format(
             _api, len(_ranked), _ranked.iloc[0], _ranked.index[0],
             len(_separated), _separated))
-    return BOARDS, PANELS, PANEL_TITLE, SERIES_LABEL, series_of
+    return BOARDS, PANELS, PANEL_TITLE, SERIES_LABEL, row_label_of, series_of
 
 
 @app.cell(hide_code=True)
@@ -380,6 +447,7 @@ def _(
     TRACK_RAMP,
     YLABEL_STANDOFF,
     go,
+    row_label_of,
     series_of,
 ):
     SERIES_COLOR = dict(
@@ -460,8 +528,9 @@ def _(
                 text='<b>{}</b>'.format(PANEL_TITLE[api]),
                 font=dict(size=PANEL_TITLE_SIZE, color=INK)))
 
+        # The named-but-unplotted list wears the same names as the rows would have.
         separated_note = '  ·  '.join(
-            '{}: {}'.format(api, ', '.join(BOARDS[api][1]))
+            '{}: {}'.format(api, ', '.join(row_label_of(api, exp) for exp in BOARDS[api][1]))
             for api in PANELS if BOARDS[api][1])
 
         def x_axis_spec(api, anchor):
