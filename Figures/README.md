@@ -150,15 +150,65 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Campaign1_Leaderboard/` | The optimiser batches and the quasi-random screen against DoE-OPT | — |
 | `Campaign1_Leaderboard/` (`_Top5`) | The same board, second animation state: the top five, split by whether it reached drug loading | — |
 | `Campaign2_Leaderboard/` | Both API tracks ranked, with the Campaign 1 champions and DoE-OPT | — |
-| `Design_Space/` | DoE → Batched Bayes: what the optimiser could search that the screening design could not | Table 1 |
+| `Design_Space/` (`_DoE`) | What the Box-Behnken design produced, against the Table 2 targets | Tables 1–2 |
+| `Design_Space/` (`_Expansion`) | That design as one system of a hundred, and its three settings as ranges | Table 1 |
 | `Campaign1_Progress/` | Objective per formulation in campaign order, running best | Fig. 2 |
 | `Campaign2_Progress/` | The same, for Campaign 2's two API tracks side by side | — |
 | `Surrogate_Performance/` | Parity plots per target across the five batches | Fig. 1 |
 | `Stability/` | 30-day storage stability, blank and loaded | Figs. 3–4 |
 | `Permeability/` | Effective permeability, A190- and fenofibrate-loaded | Fig. 5 |
 
-The two leaderboards, `Campaign1_Progress/` and `Campaign2_Progress/` are built; the rest are
-not. `Design_Space/` is next.
+The two leaderboards, `Campaign1_Progress/`, `Campaign2_Progress/` and `Design_Space/` are
+built; the rest are not.
+
+### `Design_Space/` is two slides, one suite
+
+It owns **two slides** rather than one, because both rest on the same asserted design — the same
+coded positions, the same Table 1 ranges, the same five rows. Splitting them would duplicate that
+spec, and the spec is the part that must not drift.
+
+`BBD_POINTS` is generated from the design's own rule — exactly one coded zero, the other two
+coordinates at ±1 — never typed out. A three-factor Box-Behnken design *is* a cube sampled at its
+twelve edge midpoints plus its centre; `cube_traces()` projects it, and slide two draws it.
+
+**Slide one draws no cube.** That geometry is drawn by hand in the deck. Slide one is the
+measurements and nothing else: two panels, five rows, two targets, one footnote.
+
+#### Drawing the cube: trimetric, not isometric
+
+```
+VIEW = (-1.00, -0.62, 0.78)        # (oil, Smix, sonication), viewer toward low-low, above
+right = normalise(z_hat x VIEW);  up = normalise(VIEW x right)
+x =  (p · right) * S
+y = -(p · up)    * S               # y increases DOWNWARD
+```
+
+**Isometric is the wrong drawing here, not merely a plainer one.** Equal view components give
+equal foreshortening, a regular-hexagon silhouette, and two opposite corners on the same point —
+so front and back are formally indistinguishable, and `DoE-OPT` landed exactly on one of the
+design's own runs. Three *unequal* components separate every corner, foreshorten the three axes
+differently, and leave a well-defined hidden corner. The suite asserts a minimum separation of
+0.25 half-edges across every position drawn, so a future edit to `VIEW` cannot quietly collapse
+two points again. Current worst case is 0.331.
+
+Depth is then carried two ways: the three edges meeting the hidden corner are **dotted**, and
+sample points are drawn **back to front with a white halo**, so a near point occludes a far one.
+
+The origin corner `(−1, −1, −1)` is at the bottom front and every factor increases away from it:
+`+oil` up-right, `+Smix` up-left, `+sonication` straight up. Sonication is labelled on the
+right-hand silhouette edge `(+1, −1, −1)` → `(+1, −1, +1)`, where the oil axis ends — a vertical
+edge nearer the middle would carry its label across the drawing.
+
+**Smix runs 3:1 → 1:1 → 1:3**, low coded level to high, as Table 1 writes the range: the low end
+is surfactant-heavy. The sign is a labelling convention rather than a measurement, so the data
+cell resolves each run's coded level from its actual `Surfactant_V` / `Cosurfactant_V` and asserts
+it, rather than trusting a hand-written table.
+
+**`data/` holds 4 of the design's 12 edge runs, and that is experimental, not clerical.** The rest
+of the box phase-separated, and the ones that did not were made before a standardised protocol. The
+four here are the design's comparable survivors — the only runs that can go on one axis against the
+Table 2 targets at all. Slide one's footnote says so, because a reader will otherwise ask where the
+other rows went.
 
 ### Animation states
 
