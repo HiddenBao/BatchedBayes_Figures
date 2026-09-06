@@ -7,6 +7,19 @@
 #
 # This sits above `import marimo` on purpose: marimo pulls in the numeric stack itself, so a
 # guard inside a cell runs too late to save a plain `python <file>` launch.
+#
+# marimo's serialiser rewrites this module on every save and drops top-level statements that
+# are not cells, so this block has been stripped before. If a kernel dies with 0xC06D007F and
+# no traceback, check that the four lines below are still here before debugging anything else.
+import os as _os
+import sys as _sys
+
+if _os.name == 'nt':
+    _dll_dir = _os.path.join(_sys.prefix, 'Library', 'bin')
+    if _os.path.isdir(_dll_dir):
+        _os.add_dll_directory(_dll_dir)
+        _os.environ['PATH'] = _dll_dir + _os.pathsep + _os.environ.get('PATH', '')
+# --------------------------------------------------------------------------------------------
 
 import marimo
 
