@@ -7,6 +7,19 @@
 #
 # This sits above `import marimo` on purpose: marimo pulls in the numeric stack itself, so a
 # guard inside a cell runs too late to save a plain `python <file>` launch.
+#
+# marimo's serialiser rewrites this module on every save and drops top-level statements that
+# are not cells, so this block has been stripped before. If a kernel dies with 0xC06D007F and
+# no traceback, check that the four lines below are still here before debugging anything else.
+import os as _os
+import sys as _sys
+
+if _os.name == 'nt':
+    _dll_dir = _os.path.join(_sys.prefix, 'Library', 'bin')
+    if _os.path.isdir(_dll_dir):
+        _os.add_dll_directory(_dll_dir)
+        _os.environ['PATH'] = _dll_dir + _os.pathsep + _os.environ.get('PATH', '')
+# --------------------------------------------------------------------------------------------
 
 import marimo
 
@@ -163,10 +176,17 @@ def _(Path):
     FIG_HEIGHT = 720
     PNG_SCALE = 2
 
+    # Slide one is the house canvas less a third of its width. It is not a full-bleed figure:
+    # the deck sets it beside a hand-drawn cube, so the two results panels only ever needed
+    # two thirds of the slide, and at 1280 they were stretched to fill space they did not use.
+    # Slide two keeps FIG_WIDTH -- its 5 x 20 field genuinely spans the slide.
+    DOE_FIG_WIDTH = round(FIG_WIDTH * 2 / 3)
+
     print('repo root   {}'.format(REPO_ROOT))
     print('output dir  {}'.format(OUTPUT_DIR))
     return (
         DATA_CSV,
+        DOE_FIG_WIDTH,
         EXPORT_FORMATS,
         FIG_HEIGHT,
         FIG_WIDTH,
@@ -659,7 +679,112 @@ def _(
         'view direction {} collapses two positions ({:.4f} half-edges apart)'.format(VIEW, _sep)
     print('trimetric view {} -- hidden corner {}, minimum separation {:.3f} half-edges'.format(
         list(VIEW), HIDDEN_CORNER, _sep))
-    return (cube_traces,)
+    return BBD_CENTRE, BBD_POINTS, cube_traces, project
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## The rest of the box — a drawing reference for the deck's cube
+
+    Slide one's cube is drawn by hand in PowerPoint, so this cell is the **spec that drawing is
+    made from** rather than a figure. It prints all fourteen positions the cube carries: the
+    design's twelve edge midpoints, its centre, and `DoEOPT` on a face the design never sampled.
+
+    Each row gives three things the drawing needs:
+
+    - the **coded position**, and the real settings it stands for, resolved from Table 1 the same
+      way the data cell resolves them — so a hand-drawn label cannot drift from the design space;
+    - the **status**: `measured` for the four runs `data/` holds, `phase-separated` for the eight
+      it does not. That split is the reading — four of twelve edge points survived;
+    - **x, y on the unit cube**, in the notebook's own trimetric projection, origin at the cube's
+      centre with y increasing *downward* as PowerPoint's canvas does. Multiply by the half-edge
+      you draw at, add your centre, and every point lands where slide two puts it.
+
+    The eight cube corners come out the same way, so the box itself can be traced rather than
+    eyeballed. The corner marked `hidden` is the one facing away from the viewer: the three edges
+    meeting it are the ones to draw dashed.
+
+    **The eight have no run ids here, on purpose.** `data/` names only `DoE1`, `DoE4`, `DoE10`
+    and `DoE11`, and those four ids do not follow any standard Box-Behnken run order, so the
+    remaining ids cannot be assigned to positions without inventing them. Label the crossed
+    points by their settings, not by a number.
+    """)
+    return
+
+
+@app.cell
+def _(
+    BBD_CENTRE,
+    BBD_POINTS,
+    DOE_CODED,
+    DOE_OPT_ID,
+    OIL_V_RANGE,
+    SMIX_RATIO_LABELS,
+    SONICATION_RANGE,
+    pd,
+    project,
+):
+    # Coded level -> real setting, from Table 1. Same three dictionaries the data cell asserts
+    # the CSV against; restated nowhere, derived from the two ranges and the ratio labels.
+    _OIL = {-1: OIL_V_RANGE[0], 0: sum(OIL_V_RANGE) / 2, 1: OIL_V_RANGE[1]}
+    _SMIX = {-1: (30.0, 10.0), 0: (20.0, 20.0), 1: (10.0, 30.0)}
+    _SONIC = {-1: SONICATION_RANGE[0], 0: sum(SONICATION_RANGE) / 2, 1: SONICATION_RANGE[1]}
+
+    _MEASURED = {DOE_CODED[e] for e in DOE_CODED if e != DOE_OPT_ID}
+
+
+    def _reference_row(coded, kind):
+        _oil_c, _smix_c, _son_c = coded
+        _x, _y = project(coded, 0.0, 0.0, 1.0)
+        return dict(
+            position=kind,
+            coded='({:+d}, {:+d}, {:+d})'.format(*coded),
+            oil_pct=_OIL[_oil_c],
+            smix=SMIX_RATIO_LABELS[_smix_c + 1],
+            smix_parts='{:g}/{:g}'.format(*_SMIX[_smix_c]),
+            sonication_min=_SONIC[_son_c],
+            status='measured' if coded in _MEASURED else 'phase-separated',
+            x=round(_x, 4),
+            y=round(_y, 4),
+        )
+
+
+    # Edge midpoints first, measured before phase-separated so the four survivors read as a
+    # group; then the design centre, then the face centre the design pointed at.
+    _edges = sorted(BBD_POINTS, key=lambda c: (c not in _MEASURED, c))
+    DOE_CUBE_REFERENCE = pd.DataFrame(
+        [_reference_row(_c, 'edge midpoint') for _c in _edges]
+        + [_reference_row(BBD_CENTRE, 'design centre')]
+        + [_reference_row(DOE_CODED[DOE_OPT_ID], 'face centre')]
+    )
+
+    # The centre and the face centre are not edge midpoints, so the measured/phase-separated
+    # split does not apply to them. Name what they are instead of mislabelling them.
+    DOE_CUBE_REFERENCE.loc[
+        DOE_CUBE_REFERENCE['position'] == 'design centre', 'status'] = 'not in data/'
+    DOE_CUBE_REFERENCE.loc[
+        DOE_CUBE_REFERENCE['position'] == 'face centre', 'status'] = 'DoE-OPT, measured'
+
+    assert (DOE_CUBE_REFERENCE['position'] == 'edge midpoint').sum() == 12
+    assert (DOE_CUBE_REFERENCE['status'] == 'measured').sum() == 4, \
+        'four of the twelve edge midpoints are the runs data/ holds'
+    assert (DOE_CUBE_REFERENCE['status'] == 'phase-separated').sum() == 8
+
+    _CORNERS = [(x, y, z) for x in (-1, 1) for y in (-1, 1) for z in (-1, 1)]
+    DOE_CUBE_CORNER_REFERENCE = pd.DataFrame([
+        dict(corner='({:+d}, {:+d}, {:+d})'.format(*_c),
+             x=round(project(_c, 0.0, 0.0, 1.0)[0], 4),
+             y=round(project(_c, 0.0, 0.0, 1.0)[1], 4))
+        for _c in _CORNERS
+    ])
+
+    print('Cube positions -- x, y are half-edges from the cube centre, y downward.')
+    print(DOE_CUBE_REFERENCE.to_string(index=False))
+    print()
+    print('Cube corners, same coordinates:')
+    print(DOE_CUBE_CORNER_REFERENCE.to_string(index=False))
+    return DOE_CUBE_CORNER_REFERENCE, DOE_CUBE_REFERENCE
 
 
 @app.cell(hide_code=True)
@@ -667,15 +792,14 @@ def _(mo):
     mo.md(r"""
     ## Slide one — the design of experiments
 
-    Three panels on one canvas, sharing a row order:
+    Two panels on a canvas two thirds of the house width, sharing a row order:
 
-    - **left**, the cube on a pixel grid: the design space, its thirteen sampled positions, its
-      three labelled factor edges, and `DoEOPT` on a face it never sampled;
-    - **centre**, measured droplet size against the Table 2 target of 100 nm;
+    - **left**, measured droplet size against the Table 2 target of 100 nm;
     - **right**, measured PDI against the Table 2 target of 0.3.
 
-    The two results panels are real axes with the house 2 px mirrored box; the cube is a schematic
-    and gets no box at all, because a frame around a projection reads as a fourth face.
+    Both are real axes with the house 2 px mirrored box. **There is no cube panel here** — the
+    deck draws the cube by hand beside these panels, which is why the canvas is `DOE_FIG_WIDTH`
+    rather than `FIG_WIDTH`: the reference cell above is the spec that drawing works from.
 
     Rows run `DoE1` · `DoE4` · `DoE10` · `DoE11` · `DoEOPT` — file order, with `DoEOPT` last and set
     off by a rule, exactly the way `Campaign1_Progress` separates it as its own section. The four
@@ -695,12 +819,12 @@ def _(
     AXIS_COMMON,
     BEST_COLOR,
     DOE_COLOR,
+    DOE_FIG_WIDTH,
     DOE_OPT_ID,
     DOE_RUNS,
     DOE_SYSTEM,
     ERROR_WIDTH,
     FIG_HEIGHT,
-    FIG_WIDTH,
     FONT_FAMILY,
     INK,
     INK_SOFT,
@@ -758,6 +882,11 @@ def _(
         _pdi_max = 0.90
         _panel_top, _panel_bottom = 0.80, 0.19
 
+        # Panel domains are fractions, but the row labels are a fixed ~74 px at 18 pt. On the
+        # 1280 canvas a 0.08 left gutter was 102 px; at DOE_FIG_WIDTH it would be 68 and clip
+        # 'DoE-OPT'. These fractions hold the gutter at ~100 px on the narrower canvas.
+        _left, _split_a, _split_b, _right = 0.117, 0.575, 0.645, 0.982
+
         # The Table 2 target zone is shaded on the *pass* side. Nothing reached either target, so
         # the shaded band is the empty stretch of each panel -- which is the whole reading.
         _shapes = []
@@ -772,7 +901,7 @@ def _(
                 line=dict(color=INK, width=1.8, dash='dash')))
         # DoE-OPT sits below a rule, as its own section -- as on Campaign1_Progress.
         _shapes.append(dict(
-            type='line', xref='paper', yref='y', x0=0.08, x1=0.97, y0=1.5, y1=1.5,
+            type='line', xref='paper', yref='y', x0=_left, x1=_right, y0=1.5, y1=1.5,
             line=dict(color=RULE, width=1.2, dash='dot')))
 
         _annotations = [
@@ -783,10 +912,11 @@ def _(
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
                  text='{} &#8212; one system, fixed before the first experiment'.format(
                      '&#8195;·&#8195;'.join(DOE_SYSTEM))),
-            dict(xref='paper', yref='paper', x=0.08, y=0.855, xanchor='left', yanchor='bottom',
+            dict(xref='paper', yref='paper', x=_left, y=0.855, xanchor='left', yanchor='bottom',
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
                  text='<b>Droplet size</b>, nm'),
-            dict(xref='paper', yref='paper', x=0.62, y=0.855, xanchor='left', yanchor='bottom',
+            dict(xref='paper', yref='paper', x=_split_b, y=0.855, xanchor='left',
+                 yanchor='bottom',
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
                  text='<b>PDI</b>'),
             dict(xref='x', yref='paper', x=SPEC_SIZE_NM, y=0.82, xanchor='left',
@@ -797,26 +927,27 @@ def _(
                  yanchor='bottom', showarrow=False,
                  font=dict(size=ANNOTATION_SIZE - 2, color=INK),
                  text='&#8592; target &lt; {:g}'.format(SPEC_PDI)),
-            dict(xref='paper', yref='paper', x=0.08, y=0.095, xanchor='left', yanchor='top',
+            dict(xref='paper', yref='paper', x=_left, y=0.095, xanchor='left', yanchor='top',
                  showarrow=False, align='left',
                  font=dict(size=ANNOTATION_SIZE - 2, color=INK_SOFT),
                  text='Mean of three replicates; bars are their standard deviation. These are '
-                      'the runs the design left comparable &#8212; the rest of<br>the box '
-                      'phase-separated or predate a standardised protocol, and are not scored '
-                      'against these targets.'),
+                      'the four of the design&#8217;s twelve<br>edge points that stayed '
+                      'comparable &#8212; the other eight phase-separated, and a formulation '
+                      'that<br>separated into layers is not scored against a droplet-size '
+                      'target.'),
         ]
 
         _layout = go.Layout(
-            width=FIG_WIDTH, height=FIG_HEIGHT,
+            width=DOE_FIG_WIDTH, height=FIG_HEIGHT,
             paper_bgcolor='white', plot_bgcolor='white',
             font=dict(family=FONT_FAMILY, color=INK),
             margin=dict(l=10, r=10, t=104, b=LEGEND_MARGIN),
-            xaxis=dict(AXIS_COMMON, domain=[0.08, 0.56], anchor='y',
+            xaxis=dict(AXIS_COMMON, domain=[_left, _split_a], anchor='y',
                        range=[0, _size_max], dtick=100),
             yaxis=dict(AXIS_COMMON, domain=[_panel_bottom, _panel_top], anchor='x',
                        range=[0.4, len(_rows) + 0.6],
                        tickmode='array', tickvals=_y, ticktext=_labels, ticks=''),
-            xaxis2=dict(AXIS_COMMON, domain=[0.62, 0.97], anchor='y2',
+            xaxis2=dict(AXIS_COMMON, domain=[_split_b, _right], anchor='y2',
                         range=[0, _pdi_max], dtick=0.3),
             yaxis2=dict(AXIS_COMMON, domain=[_panel_bottom, _panel_top], anchor='x2',
                         range=[0.4, len(_rows) + 0.6],
@@ -1109,14 +1240,17 @@ def _(mo):
     mo.md(r"""
     ## Export
 
-    Each figure at its native 1280 × 720, one data unit to one exported pixel. `EXPORT_FORMATS`
-    writes a 2× raster alongside if `png` is added to it.
+    Each figure at its own native size, one data unit to one exported pixel — slide two at the
+    house 1280 × 720, slide one at `DOE_FIG_WIDTH` × 720, two thirds as wide because the deck
+    sets it beside a hand-drawn cube. `EXPORT_FORMATS` writes a 2× raster alongside if `png` is
+    added to it.
     """)
     return
 
 
 @app.cell
 def _(
+    DOE_FIG_WIDTH,
     EXPORT_FORMATS,
     FIG_HEIGHT,
     FIG_WIDTH,
@@ -1126,7 +1260,7 @@ def _(
     expansion_figure,
 ):
     FIGURES = {
-        'Design_Space_DoE': (doe_figure, FIG_WIDTH, FIG_HEIGHT),
+        'Design_Space_DoE': (doe_figure, DOE_FIG_WIDTH, FIG_HEIGHT),
         'Design_Space_Expansion': (expansion_figure, FIG_WIDTH, FIG_HEIGHT),
     }
 
