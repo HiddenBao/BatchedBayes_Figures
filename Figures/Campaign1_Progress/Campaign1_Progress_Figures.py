@@ -282,11 +282,18 @@ def _(go, np):
     BODY_FAMILY = 'Pretendard, ' + FONT_FAMILY
     HEADING_FAMILY = 'Gmarket Sans TTF Medium, Pretendard, ' + FONT_FAMILY
 
-    # suffix -> (body face, heading face). '' is the default export, and it must stay first:
-    # it is the one that survives being opened on a machine without the two faces.
+    # Gmarket ships Light / Medium / Bold as three families, so a weight is chosen by name.
+    # Medium is right for tick values and a slide title -- short, and wanting to hold against
+    # the panel -- but an axis title is a phrase, and set in Medium at 18 px it reads as bold.
+    # The Light cut says the same thing without shouting it.
+    HEADING_LIGHT_FAMILY = 'Gmarket Sans TTF Light, Pretendard, ' + FONT_FAMILY
+
+    # suffix -> (body face, heading face, axis-title face). '' is the default export, and it
+    # must stay first: it is the one that survives being opened on a machine without the two
+    # faces.
     FONT_SCHEMES = {
-        '': (FONT_FAMILY, FONT_FAMILY),
-        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY),
+        '': (FONT_FAMILY, FONT_FAMILY, FONT_FAMILY),
+        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY, HEADING_LIGHT_FAMILY),
     }
 
     MARKER_SIZE = 10
@@ -348,7 +355,7 @@ def _(go, np):
         tickfont=dict(size=TICK_SIZE), title_font=dict(size=AXIS_TITLE_SIZE),
     )
 
-    def with_font_scheme(fig, body, heading):
+    def with_font_scheme(fig, body, heading, axis_title):
         """A copy of `fig` re-fonted: `heading` on the title and axes, `body` on everything else.
 
         Applied after a figure is built rather than threaded through the builder, so the two
@@ -365,7 +372,9 @@ def _(go, np):
             _ann.font.family = heading if _ann.name == 'heading' else body
         for _axis in list(out.select_xaxes()) + list(out.select_yaxes()):
             _axis.tickfont.family = heading
-            _axis.title.font.family = heading
+            # Its own slot: the display face's weight that suits tick values does not
+            # necessarily suit a phrase. Usually the same face, and never a different family.
+            _axis.title.font.family = axis_title
         return out
 
     return (
@@ -817,7 +826,9 @@ def _(mo):
     | `<stem>_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
 
     Headings are the slide title, the axis titles and the tick labels; body is everything else —
-    legends and in-plot annotations. The split follows the deck: the reading face sets prose, the
+    legends and in-plot annotations. **Axis titles take the display face's Light cut**, not its
+    Medium: Medium suits a tick value and a slide title, but an axis title is a phrase, and set
+    in Medium at 18 px it reads as bold. That is why the scheme carries a third face slot. The split follows the deck: the reading face sets prose, the
     display face labels the frame. `with_font_scheme` re-fonts a finished figure rather than being
     threaded through the builder, so the two exports cannot drift — one figure, drawn once,
     wearing two type schemes.
@@ -851,8 +862,8 @@ def _(
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for _stem, (_fig, _w, _h) in FIGURES.items():
-        for _suffix, (_body, _heading) in FONT_SCHEMES.items():
-            _themed = with_font_scheme(_fig, _body, _heading)
+        for _suffix, (_body, _heading, _axis_title) in FONT_SCHEMES.items():
+            _themed = with_font_scheme(_fig, _body, _heading, _axis_title)
             for _fmt in EXPORT_FORMATS:
                 _path = OUTPUT_DIR / '{}{}.{}'.format(_stem, _suffix, _fmt)
                 _themed.write_image(

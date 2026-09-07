@@ -255,11 +255,14 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
     BODY_FAMILY = 'Pretendard, ' + FONT_FAMILY
     HEADING_FAMILY = 'Gmarket Sans TTF Medium, Pretendard, ' + FONT_FAMILY
 
-    # suffix -> (body face, heading face). '' is the default export, and it must stay first:
-    # it is the one that survives being opened on a machine without the two faces.
+    # suffix -> (body face, heading face, axis-title face). '' is the default export, and it
+    # must stay first: it is the one that survives being opened on a machine without the two
+    # faces. The axis-title slot is separate because the display face comes in weights and an
+    # axis title is the one place a slide sets whole words in it -- see the progress suites,
+    # which take the Light cut there. Here the two heading slots are the same face.
     FONT_SCHEMES = {
-        '': (FONT_FAMILY, FONT_FAMILY),
-        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY),
+        '': (FONT_FAMILY, FONT_FAMILY, FONT_FAMILY),
+        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY, HEADING_FAMILY),
     }
 
     # Sizes do NOT change between schemes. The house 20/18/18/14/14 is the same in both, so the
@@ -325,7 +328,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         return 'rgba({}, {}, {}, {})'.format(r, g, b, alpha)
 
 
-    def with_font_scheme(fig, body, heading):
+    def with_font_scheme(fig, body, heading, axis_title):
         """A copy of `fig` re-fonted: `heading` on the title and axes, `body` on everything else.
 
         Applied after a figure is built rather than threaded through the builders, so the two
@@ -342,7 +345,9 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
             _ann.font.family = heading if _ann.name == 'heading' else body
         for _axis in list(out.select_xaxes()) + list(out.select_yaxes()):
             _axis.tickfont.family = heading
-            _axis.title.font.family = heading
+            # Its own slot: the display face's weight that suits tick values does not
+            # necessarily suit a phrase. Usually the same face, and never a different family.
+            _axis.title.font.family = axis_title
         return out
 
 
@@ -1113,8 +1118,8 @@ def _(
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for _stem, (_fig, _w, _h) in FIGURES.items():
-        for _suffix, (_body, _heading) in FONT_SCHEMES.items():
-            _themed = with_font_scheme(_fig, _body, _heading)
+        for _suffix, (_body, _heading, _axis_title) in FONT_SCHEMES.items():
+            _themed = with_font_scheme(_fig, _body, _heading, _axis_title)
             for _fmt in EXPORT_FORMATS:
                 _path = OUTPUT_DIR / '{}{}.{}'.format(_stem, _suffix, _fmt)
                 _themed.write_image(
