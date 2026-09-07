@@ -344,6 +344,7 @@ def _(go, np):
 
     LEFT_MARGIN = 92
     RIGHT_MARGIN = 30
+    LEGEND_INSET_PX = 10  # gap between the era rule and the in-panel legend beside it
     TOP_MARGIN = 150     # title, a panel caption per track, and a row of section names
     LEGEND_MARGIN = 100  # bottom gutter the horizontal legend sits in
 
@@ -448,7 +449,9 @@ def _(go, np):
         INK,
         INK_SOFT,
         LEFT_MARGIN,
-        LEGEND_MARGIN,
+        LEGEND_INSET_PX,
+        LEGEND_INSET_PX,
+    LEGEND_MARGIN,
         LEGEND_SIZE,
         MARKER_RING,
         MARKER_SIZE,
@@ -926,26 +929,44 @@ def _(
                     x1=upright_x + half_w, y1=mark_y + stroke + rise / 2,
                     line=dict(color=INK, width=BREAK_MARK_WIDTH), layer='above'))
 
-        def _track_legend(track):
-            """A track's ramp, stacked in the top left corner of its own panel.
+        # No leading underscore on these helpers, unlike a normal local: marimo treats a
+        # leading underscore as cell-private and mangles the name, which breaks a reference made
+        # from inside another nested function.
+        def panel_paper_x(track, data_x):
+            """Where `data_x` on `track`'s panel falls, as a fraction of the plot area.
+
+            A legend is placed in paper units and a rule in data units, so anything that has to
+            line up with a rule has to be converted. Both read `panel_x_range`, so the two cannot
+            drift out of register when a track gains a run.
+            """
+            lo, hi = panel_x_range(track)
+            d0, d1 = PANEL_DOMAIN[track]
+            return d0 + (data_x - lo) / (hi - lo) * (d1 - d0)
+
+
+        def track_legend(track):
+            """A track's ramp, stacked at the top of its panel, just right of the era rule.
 
             Inside the panel because that is the shortest trip from a run to the entry naming
-            it, and top left because the panels are read left to right in campaign order: the
-            latest batches are at the right, so the left is where the space is.
+            it, and at the top left of the *campaign* rather than of the panel: the prior-optima
+            band is a labelled region of its own, and a legend standing on it looked like a
+            caption for it. So the block starts where the campaign starts, LEGEND_INSET_PX
+            clear of the rule that divides them.
 
-            Transparent, unlike the leaderboard's, which sits on a plain corner. Here the corner
-            is inside the prior band and crossed by a section rule, and an opaque ground cut a
-            rectangle out of both -- an erasure that read as a drawing error. The band is
-            `rgba(0, 0, 0, 0.055)` and the rule is a hairline dot, so black text at legend size
-            carries over them without help.
+            Transparent, unlike the leaderboard's, which sits on a plain corner. This corner is
+            crossed by the section rules, and an opaque ground cut a rectangle out of them -- an
+            erasure that read as a drawing error. The rules are hairline dots, so black text at
+            legend size carries over them without help.
             """
-            return dict(orientation='v', x=PANEL_DOMAIN[track][0], xanchor='left',
-                        y=1.0, yanchor='top', tracegroupgap=0,
+            inset = LEGEND_INSET_PX / float(FIG_WIDTH - LEFT_MARGIN - RIGHT_MARGIN)
+            era_x = SECTION_SPAN[track][CAMPAIGN_START_SECTION][0] - 0.5
+            return dict(orientation='v', x=panel_paper_x(track, era_x) + inset,
+                        xanchor='left', y=1.0, yanchor='top', tracegroupgap=0,
                         bgcolor='rgba(0, 0, 0, 0)', borderwidth=0, itemsizing='constant',
                         font=dict(size=LEGEND_SIZE, color=INK))
 
 
-        def _shared_legend():
+        def shared_legend():
             """The marks belonging to neither track, in a row in the bottom gutter.
 
             Horizontal, unlike the two ramps. Stacking is what makes a ramp read as a ramp, and
@@ -957,11 +978,17 @@ def _(
                         font=dict(size=LEGEND_SIZE, color=INK))
 
 
+        def panel_x_range(track):
+            """The panel's x range. Stated once: the axis takes it, and so does anything
+            placed in paper units that has to line up with something drawn in data units."""
+            return [0.4, len(CAMPAIGN[track]) + 0.6]
+
+
         def x_axis_spec(track, anchor):
             """The panel's x axis. It draws the box's horizontals; the verticals are shapes."""
             return dict(title='Experiment Number', anchor=anchor,
                         domain=list(PANEL_DOMAIN[track]),
-                        range=[0.4, len(CAMPAIGN[track]) + 0.6],
+                        range=panel_x_range(track),
                         showline=True, mirror=True, linecolor=INK, linewidth=FRAME_WIDTH,
                         tickmode='linear', tick0=0, dtick=5, **AXIS_COMMON)
 
@@ -988,9 +1015,9 @@ def _(
             width=FIG_WIDTH, height=FIG_HEIGHT,
             margin=dict(l=LEFT_MARGIN, r=RIGHT_MARGIN, t=TOP_MARGIN, b=LEGEND_MARGIN),
             showlegend=True,
-            legend=_track_legend('A190'),
-            legend2=_shared_legend(),
-            legend3=_track_legend('Feno'),
+            legend=track_legend('A190'),
+            legend2=shared_legend(),
+            legend3=track_legend('Feno'),
             hoverlabel=dict(font=dict(family=FONT_FAMILY, size=12)),
         )
         return go.Figure(data=traces, layout=layout)
