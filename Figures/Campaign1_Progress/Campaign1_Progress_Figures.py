@@ -746,11 +746,20 @@ def _(
         # hues, so a run's stage is read up, but whether a run met specification or separated is
         # read off the mark itself. Both proxies are drawn in INK_SOFT, not in any stage's hue --
         # the shapes apply across every stage, and colouring them would tie them to one.
+        #
+        # Each proxy names its own `legendgroup`, and that is load-bearing, not decoration. A
+        # horizontal plotly legend lays *groups* out along the row and the items inside a group
+        # down a column -- so two entries sharing a group stack, however the legend is oriented.
+        # Every run trace above sets `legendgroup=label`, which puts this legend in grouped mode,
+        # and both proxies left ungrouped landed in the same '' group and came out one above the
+        # other. Named apart, they are two groups of one and sit side by side.
         traces.append(go.Scatter(
             x=[None], y=[None], mode='markers', name='In Specification',
+            legendgroup='In Specification',
             marker=_marker(INK_SOFT, SPEC_MARKER_SIZE, symbol='triangle-up')))
         traces.append(go.Scatter(
             x=[None], y=[None], mode='markers', name='Phase Separated',
+            legendgroup='Phase Separated',
             marker=_marker(INK_SOFT, FAIL_MARKER_SIZE, symbol='square')))
 
         # --- The skip, announced on the uprights and nowhere else ---------------------------------
