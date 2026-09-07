@@ -786,9 +786,17 @@ def _(mo):
 
     **The column heads sit at −45°, not upright.** A diagonal head is read at a glance where a
     vertical one has to be tilted into, and it costs about a third less headroom, which the block
-    takes back. Each head is anchored by its *end*, so it runs up into the column it names — the
-    other anchoring starts the text at the column and drifts right, and across twenty 56 px
-    columns that is enough to attach a name to its neighbour.
+    takes back. Each head is anchored by its *first letter*, which sits centred on the column and
+    lets the name run up and away to the right. Anchoring the other end instead puts the label's
+    tail on the column and lays its body back over the neighbours to the left, which reads as a
+    head that has slipped off its column.
+
+    `HEAD_DX` and `HEAD_DY` are measured off the export rather than reasoned about. Plotly places
+    the text *box*, and the box carries padding before the first glyph that a −45° rotation lifts
+    up and to the right; the two constants absorb it. They are kept independent on purpose — a
+    single offset along the 45° line couples the axes, so correcting the horizontal would drag
+    every head down into the cells. If the head size ever moves off `ANNOTATION_SIZE - 5`,
+    re-measure them; they held across both font schemes but they are not a formula.
 
     **The cell edge is `SPACE_COLOR` at full strength**, `CELL_EDGE` wide. The grid is the
     reachable space, so its outline is the deck primary rather than a wash of it, heavy enough to
@@ -850,6 +858,13 @@ def _(
         # cosurfactant heads rising off the top of the cells. _top is where the cells begin.
         _left, _top = 112.0, 96.0
         _HEAD_RULE = 30.0
+        # Both measured off the export, not guessed, and deliberately independent: a single
+        # offset along the 45 line couples the two, so correcting the horizontal would drag the
+        # heads down into the cells. What is placed is the text *box*, and the box carries
+        # padding before the first glyph which -- rotated -45 -- lifts that glyph up and to the
+        # right of the anchor. Both constants absorb that.
+        HEAD_DX = 13.5   # px left of the column centre, so the FIRST letter centres on it
+        HEAD_DY = 5.0    # px below the cell top; the padding lifts the glyph back clear of it
 
         # Cells are SQUARE. One number for width and height, the smaller of what each direction
         # can spare, so a hundred equal slots read as a hundred equal slots rather than as a
@@ -903,10 +918,20 @@ def _(
                 # -45, not -90: a diagonal head is read at a glance where an upright one has to
                 # be tilted into. The bold-on-same-molecule emphasis went with the cell tint --
                 # half a marker for a distinction the slide no longer draws is worse than none.
+                #
+                # xanchor='left' anchors the text's START, and plotly rotates an annotation
+                # about its anchor, so the first letter sits over the column and the name runs
+                # up and away to the right. Anchoring the END instead puts the label's tail on
+                # the column and its body over the neighbours to the left, which is what made
+                # the heads look adrift. What is anchored is the text *box*, and the box carries
+                # padding before the first glyph; rotated -45 that padding pushes the glyph up
+                # and right, so HEAD_DX and HEAD_DY walk the anchor back by that much again
+                # plus half a glyph, leaving the letter itself centred on the column.
                 _annotations.append(dict(
                     xref='x', yref='y',
-                    x=_bx0 + (_ci + 0.5) * _cell, y=_y_off + _top - 6,
-                    xanchor='right', yanchor='bottom', showarrow=False, textangle=-45,
+                    x=_bx0 + (_ci + 0.5) * _cell - HEAD_DX,
+                    y=_y_off + _top + HEAD_DY,
+                    xanchor='left', yanchor='bottom', showarrow=False, textangle=-45,
                     font=dict(size=ANNOTATION_SIZE - 5, color=INK_SOFT),
                     text=COSURF_SHORT[_c]))
         for _r, _oil in enumerate(OILS):
