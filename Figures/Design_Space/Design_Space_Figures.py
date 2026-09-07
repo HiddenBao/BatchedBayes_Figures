@@ -225,7 +225,7 @@ def _(mo):
 
 
 @app.cell
-def _(FIG_HEIGHT, FIG_WIDTH):
+def _(FIG_HEIGHT, FIG_WIDTH, go):
     DOE_COLOR = '#E69F00'      # orange  -- the Box-Behnken design and its runs
     BEST_COLOR = '#D55E00'     # red     -- DoEOPT, the mark to beat
     SPACE_COLOR = '#2067F4'    # blue    -- Campaign 1's reachable space; the family, not a batch
@@ -242,6 +242,27 @@ def _(FIG_HEIGHT, FIG_WIDTH):
 
     FONT_FAMILY = 'Open Sans, verdana, arial, sans-serif'
 
+    # --- The deck's own faces ------------------------------------------------------------
+    # An SVG *references* a font, it does not embed one, so these render as themselves only
+    # where both faces are installed and fall back to the house stack everywhere else. That is
+    # why each figure is exported twice rather than switched over: the plain export stays the
+    # portable one. Family names are exactly as Windows reports them -- 'Gmarket' has a
+    # lowercase m, and the face is the Medium weight, so it is named, not asked for via
+    # font-weight.
+    BODY_FAMILY = 'Pretendard, ' + FONT_FAMILY
+    HEADING_FAMILY = 'Gmarket Sans TTF Medium, Pretendard, ' + FONT_FAMILY
+
+    # suffix -> (body face, heading face). '' is the default export, and it must stay first:
+    # it is the one that survives being opened on a machine without the two faces.
+    FONT_SCHEMES = {
+        '': (FONT_FAMILY, FONT_FAMILY),
+        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY),
+    }
+
+    # Sizes do NOT change between schemes. The house 20/18/18/14/14 is the same in both, so the
+    # two exports are drop-in swaps for each other and a slide can be re-fonted without
+    # re-checking that anything still fits.
+
     MARKER_SIZE = 13
     MARKER_RING = 2
     ERROR_WIDTH = 1.4
@@ -249,7 +270,7 @@ def _(FIG_HEIGHT, FIG_WIDTH):
     # The 5 x 20 field's cell edge. Full SPACE_COLOR rather than a faded one: the grid *is* the
     # reachable space, so its outline is the deck primary at full strength, and heavy enough to
     # hold the shape when the slide is projected.
-    CELL_EDGE = 1.6
+    CELL_EDGE = 2.4
 
     LEGEND_MARGIN = 96   # bottom gutter the horizontal legend sits in
 
@@ -301,6 +322,26 @@ def _(FIG_HEIGHT, FIG_WIDTH):
         return 'rgba({}, {}, {}, {})'.format(r, g, b, alpha)
 
 
+    def with_font_scheme(fig, body, heading):
+        """A copy of `fig` re-fonted: `heading` on titles and axes, `body` on everything else.
+
+        Applied after a figure is built rather than threaded through the builders, so the two
+        exports cannot drift: there is one figure, drawn once, wearing two type schemes. Heading
+        text is tagged where it is written with `name='heading'`; everything else is body by
+        definition, which is the safe default -- a new annotation joins the reading face rather
+        than silently claiming to be a title.
+        """
+        out = go.Figure(fig.to_dict())
+        out.layout.font.family = body
+        out.layout.legend.font.family = body
+        for _ann in out.layout.annotations:
+            _ann.font.family = heading if _ann.name == 'heading' else body
+        for _axis in list(out.select_xaxes()) + list(out.select_yaxes()):
+            _axis.tickfont.family = heading
+            _axis.title.font.family = heading
+        return out
+
+
     # An axis domain is a fraction of the *plot area*, not of the canvas, so pixel_axes() is
     # only truthful if it knows the margins. Slide two's layout and its pixel axes read this one
     # dict, so the two cannot disagree -- and a cell asked to be square really is square.
@@ -343,6 +384,7 @@ def _(FIG_HEIGHT, FIG_WIDTH):
         DOE_SYSTEM,
         ERROR_WIDTH,
         FONT_FAMILY,
+        FONT_SCHEMES,
         INK,
         INK_SOFT,
         LEGEND_MARGIN,
@@ -364,6 +406,7 @@ def _(FIG_HEIGHT, FIG_WIDTH):
         fade,
         pixel_axes,
         row_label,
+        with_font_scheme,
     )
 
 
@@ -676,7 +719,7 @@ def _(
 
         _annotations = [
             dict(xref='paper', yref='paper', x=0.5, y=1.0, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=TITLE_SIZE, color=INK),
+                 showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
                  text='<b>The design of experiments, and what it produced</b>'),
             dict(xref='paper', yref='paper', x=0.5, y=0.955, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
@@ -815,7 +858,7 @@ def _(
         _cell = min((_gw - _left - 4.0) / _n_col, (_gh - _top - 6.0) / _n_row)
         _x_off = (_gw - (_left + _n_col * _cell)) / 2.0
         _y_off = (_gh - (_top + _n_row * _cell)) / 2.0
-        _pad = 1.6
+        _pad = 4.5
 
         for _r, _oil in enumerate(OILS):
             for _c, (_s, _cs) in enumerate(_pairs):
@@ -931,7 +974,7 @@ def _(
             # top of its axis now, and a subtitle sitting at paper 0.955 would land on the
             # surfactant block rules.
             dict(xref='paper', yref='paper', x=0.5, y=1.100, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=TITLE_SIZE, color=INK),
+                 showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
                  text='<b>One system of a hundred &#8212; and three settings become ranges</b>'),
             dict(xref='paper', yref='paper', x=0.5, y=1.045, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
@@ -966,6 +1009,25 @@ def _(mo):
 
     Each figure at the house 1280 × 720, one data unit to one exported pixel. `EXPORT_FORMATS`
     writes a 2× raster alongside if `png` is added to it.
+
+    **Every figure is exported twice, once per entry in `FONT_SCHEMES`.**
+
+    | file | body | headings |
+    | --- | --- | --- |
+    | `<stem>.svg` | `Open Sans` | `Open Sans` |
+    | `<stem>_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
+
+    Headings are the slide title, the axis titles and the tick labels; body is everything else —
+    subtitles, legends, and the in-plot annotations that carry the row and column names. The
+    split follows the deck: the reading face sets prose, the display face labels the frame.
+
+    **Sizes are identical in both.** The house 20/18/18/14/14 does not move, so a `_Pretendard`
+    export is a drop-in replacement for its plain twin and nothing has to be re-checked for fit.
+
+    The plain export exists because **an SVG references a font rather than embedding one**. The
+    `_Pretendard` pair renders as itself only where both faces are installed; anywhere else it
+    falls back and the metrics shift. Use it on the machine that has them, and keep the plain
+    one for anything that leaves.
     """)
     return
 
@@ -975,10 +1037,12 @@ def _(
     EXPORT_FORMATS,
     FIG_HEIGHT,
     FIG_WIDTH,
+    FONT_SCHEMES,
     OUTPUT_DIR,
     PNG_SCALE,
     doe_figure,
     expansion_figure,
+    with_font_scheme,
 ):
     FIGURES = {
         'Design_Space_DoE': (doe_figure, FIG_WIDTH, FIG_HEIGHT),
@@ -988,13 +1052,15 @@ def _(
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for _stem, (_fig, _w, _h) in FIGURES.items():
-        for _fmt in EXPORT_FORMATS:
-            _path = OUTPUT_DIR / '{}.{}'.format(_stem, _fmt)
-            _fig.write_image(
-                _path, format=_fmt, width=_w, height=_h,
-                scale=PNG_SCALE if _fmt == 'png' else 1,
-            )
-            print('wrote {}'.format(_path))
+        for _suffix, (_body, _heading) in FONT_SCHEMES.items():
+            _themed = with_font_scheme(_fig, _body, _heading)
+            for _fmt in EXPORT_FORMATS:
+                _path = OUTPUT_DIR / '{}{}.{}'.format(_stem, _suffix, _fmt)
+                _themed.write_image(
+                    _path, format=_fmt, width=_w, height=_h,
+                    scale=PNG_SCALE if _fmt == 'png' else 1,
+                )
+                print('wrote {}'.format(_path))
     return
 
 
