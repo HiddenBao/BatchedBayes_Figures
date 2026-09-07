@@ -344,7 +344,7 @@ def _(go, np):
 
     LEFT_MARGIN = 92
     RIGHT_MARGIN = 30
-    LEGEND_INSET_PX = 10  # gap between the era rule and the in-panel legend beside it
+    LEGEND_INSET_PX = 4   # gap between the era rule and the in-panel legend beside it
     TOP_MARGIN = 150     # title, a panel caption per track, and a row of section names
     LEGEND_MARGIN = 100  # bottom gutter the horizontal legend sits in
 
