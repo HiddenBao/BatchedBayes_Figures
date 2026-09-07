@@ -741,10 +741,17 @@ def _(
                     hovertemplate='%{customdata}<br>Exp %{x}<br>phase separated, objective '
                                   + '{:g}<extra></extra>'.format(fail_value)))
 
-        # --- A legend entry for the mark shape, which is a variable of its own --------------------
+        # --- Legend entries for the two mark shapes, each a variable of its own -------------------
+        # Shape is the only channel the section names above the panel cannot carry: they name the
+        # hues, so a run's stage is read up, but whether a run met specification or separated is
+        # read off the mark itself. Both proxies are drawn in INK_SOFT, not in any stage's hue --
+        # the shapes apply across every stage, and colouring them would tie them to one.
         traces.append(go.Scatter(
             x=[None], y=[None], mode='markers', name='In Specification',
             marker=_marker(INK_SOFT, SPEC_MARKER_SIZE, symbol='triangle-up')))
+        traces.append(go.Scatter(
+            x=[None], y=[None], mode='markers', name='Phase Separated',
+            marker=_marker(INK_SOFT, FAIL_MARKER_SIZE, symbol='square')))
 
         # --- The skip, announced on the uprights and nowhere else ---------------------------------
         # Two parallel strokes drawn across each upright of the axis box, over the line rather
