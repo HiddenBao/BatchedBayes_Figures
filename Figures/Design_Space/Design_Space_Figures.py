@@ -989,7 +989,7 @@ def _(
         # it: equal steps left and down from that head's anchor walk back along the diagonal,
         # and anchoring the text's END there runs the tag away down-left, so the two read as
         # one line whose tail names what the rest of it lists.
-        _COS_TAG_OFF = 10.0
+        _COS_TAG_OFF = 3.0
         _annotations.append(dict(
             xref='x', yref='y',
             x=_x_off + _left + 0.5 * _cell - HEAD_DX - _COS_TAG_OFF,
