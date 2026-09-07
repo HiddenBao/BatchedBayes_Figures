@@ -204,7 +204,9 @@ def _():
     # which matters here because the whole state is that one contrast.
     DIM_COLOR = '#DDE0E4'      # everything outside the top five: present, placed, quiet
     DIM_DOT = '#B9BEC7'        # AXIS_LINE -- a dimmed repeat, still visibly a dot
-    CARRIED_COLOR = '#1543A5'  # dark blue, the ramp's D step -- carried into drug loading
+    # The ramp's C midpoint, and the Campaign 2 board's C1_COLOR: these three rows *are* the
+    # revalidated champions that reappear there, so they carry one hue across the two slides.
+    CARRIED_COLOR = '#2067F4'  # blue -- carried into drug loading; the deck primary
     FAIL_COLOR = '#B2182B'     # deep red -- top five, but did not survive drug loading
 
     # White ground to sit on a white slide, not upstream's warm #fcfcfb.
@@ -590,7 +592,7 @@ def _(mo):
 
     | | rows | why |
     | --- | --- | --- |
-    | `CARRIED_COLOR` dark blue | `B4`, `S5`, `E2` | reformulated with A190 **and** fenofibrate, and followed for 30 days |
+    | `CARRIED_COLOR` blue `#2067F4` | `B4`, `S5`, `E2` | reformulated with A190 **and** fenofibrate, and followed for 30 days |
     | `FAIL_COLOR` deep red | `D3`, `D5` | never reached the drug-loaded study |
 
     **The red is honest about the gate, not the drug.** The paper's account is that all five were
@@ -603,8 +605,11 @@ def _(mo):
     `S5` is the paper's `F5` (Table 3), and its loaded counterpart is `C1 - F5` on the Campaign 2
     board. The board cell asserts that identity by composition rather than trusting the id.
 
-    Blue against red is the one hue pair that survives every common colour deficiency, which
-    matters more here than anywhere else in the deck: this state *is* that single contrast.
+    The blue is `#2067F4`, and it is deliberately the same `#2067F4` these three rows wear as
+    `C1_COLOR` on the Campaign 2 board — they are the same three formulations, so a reader who
+    meets them here recognises them there. Blue against red is also the one hue pair that survives
+    every common colour deficiency, which matters more here than anywhere else in the deck: this
+    state *is* that single contrast.
     """)
     return
 
