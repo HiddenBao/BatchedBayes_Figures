@@ -176,17 +176,10 @@ def _(Path):
     FIG_HEIGHT = 720
     PNG_SCALE = 2
 
-    # Slide one is the house canvas less a third of its width. It is not a full-bleed figure:
-    # the deck sets it beside a hand-drawn cube, so the two results panels only ever needed
-    # two thirds of the slide, and at 1280 they were stretched to fill space they did not use.
-    # Slide two keeps FIG_WIDTH -- its 5 x 20 field genuinely spans the slide.
-    DOE_FIG_WIDTH = round(FIG_WIDTH * 2 / 3)
-
     print('repo root   {}'.format(REPO_ROOT))
     print('output dir  {}'.format(OUTPUT_DIR))
     return (
         DATA_CSV,
-        DOE_FIG_WIDTH,
         EXPORT_FORMATS,
         FIG_HEIGHT,
         FIG_WIDTH,
@@ -262,6 +255,10 @@ def _(FIG_HEIGHT, FIG_WIDTH):
     # Paper Table 2, response targets for formulation optimisation.
     SPEC_SIZE_NM = 100.0
     SPEC_PDI = 0.3
+    # NOT from Table 2. The paper sets no zeta target; this is the |zeta| = 10 mV boundary the
+    # deck asked for, so a reader can see every run sits inside it. Kept apart from the two above
+    # and named for what it is, so it is never mistaken for a published specification.
+    SPEC_ZETA_ABS = 10.0
 
     # Paper Table 1, the Campaign 1 design space. Imported meaning: stated here once, and used
     # for every tick label and every category list below -- never retyped inside a figure.
@@ -289,9 +286,11 @@ def _(FIG_HEIGHT, FIG_WIDTH):
     # The DoE's one system, as it appears in `data/`.
     DOE_SYSTEM = ('Oleic Acid', 'Tween 80', 'PEG 400')
 
-    # The CSV's `DoEOPT` is an id; the deck spells the row DoE-OPT, as Campaign1_Progress and
-    # both leaderboards already do.
-    ROW_LABEL = {'DoEOPT': 'DoE-OPT'}
+    # The CSV's `DoE1` / `DoEOPT` are ids; the deck spells the rows DoE-1 and DoE-OPT, hyphenated,
+    # as Campaign1_Progress and both leaderboards already spell DoE-OPT.
+    def row_label(exp):
+        """'DoE1' -> 'DoE-1', 'DoEOPT' -> 'DoE-OPT'. Anything else is passed through."""
+        return 'DoE-' + exp[3:] if exp.startswith('DoE') and len(exp) > 3 else exp
 
 
     def fade(hex_color, alpha):
@@ -326,6 +325,7 @@ def _(FIG_HEIGHT, FIG_WIDTH):
     return (
         ANNOTATION_SIZE,
         AXIS_COMMON,
+        AXIS_TITLE_SIZE,
         BEST_COLOR,
         COSURFACTANTS,
         COSURF_SHORT,
@@ -341,18 +341,19 @@ def _(FIG_HEIGHT, FIG_WIDTH):
         MARKER_SIZE,
         OILS,
         OIL_V_RANGE,
-        ROW_LABEL,
         RULE,
         SMIX_RATIO_LABELS,
         SONICATION_RANGE,
         SPACE_COLOR,
         SPEC_PDI,
         SPEC_SIZE_NM,
+        SPEC_ZETA_ABS,
         SURFACTANTS,
         TITLE_SIZE,
         WIRE,
         fade,
         pixel_axes,
+        row_label,
     )
 
 
@@ -410,6 +411,11 @@ def _(DATA_CSV, OIL_V_RANGE, SONICATION_RANGE, pd):
         pdi=('PDI', 'mean'),
         pdi_sd=('PDI', 'std'),
         zeta=('Zeta_P', 'mean'),
+        zeta_sd=('Zeta_P', 'std'),
+        loading=('Drug_Loading', 'mean'),
+        loading_sd=('Drug_Loading', 'std'),
+        perm=('Permeability', 'mean'),
+        perm_sd=('Permeability', 'std'),
         sep=('Phase_Sep', 'max'),
         reps=('Droplet_Size', 'size'),
     ).reset_index()
@@ -436,6 +442,23 @@ def _(DATA_CSV, OIL_V_RANGE, SONICATION_RANGE, pd):
             '{} is not an edge midpoint'.format(_exp)
     assert sum(1 for _v in DOE_CODED[DOE_OPT_ID] if _v == 0) == 2, \
         '{} is not a face centre'.format(DOE_OPT_ID)
+
+    # Drug loading and permeability exist for DoEOPT and nothing else: the four design runs were
+    # never loaded with an API, because loading came after the design closed. The two panels that
+    # plot them are therefore one marker and four blank rows, and that is the measurement record,
+    # not a read error. Assert it, so a later file that *does* carry them fails here instead of
+    # quietly filling panels the slide's caption says are empty.
+    _loaded = set(DOE_RUNS.loc[DOE_RUNS['loading'].notna(), 'Exp'])
+    assert _loaded == {DOE_OPT_ID}, \
+        'drug loading is measured for {}, expected {} alone'.format(sorted(_loaded), DOE_OPT_ID)
+    assert set(DOE_RUNS.loc[DOE_RUNS['perm'].notna(), 'Exp']) == {DOE_OPT_ID}
+
+    # The zeta panel plots |zeta| against a boundary on the magnitude, which is only a sign
+    # flip while every reading is negative. If a positive one ever lands here, abs() would fold
+    # it onto the wrong side of that boundary, so fail instead.
+    assert (DOE_RUNS['zeta'] < 0).all(), \
+        'zeta is positive for {} -- the |zeta| panel would fold it'.format(
+            sorted(DOE_RUNS.loc[DOE_RUNS['zeta'] >= 0, 'Exp']))
 
     # One fixed system, chosen before the campaign ran -- that is the slide's whole left half.
     assert DOE_RUNS['oil'].nunique() == 1
@@ -792,14 +815,44 @@ def _(mo):
     mo.md(r"""
     ## Slide one — the design of experiments
 
-    Two panels on a canvas two thirds of the house width, sharing a row order:
+    **Three panels across the house width**, one per measured output the design runs actually
+    carry, sharing a row order and a single row-label gutter so they read as one table rather than
+    three charts. `DOE_PANELS` is the whole layout: a panel is a row in that list, and adding or
+    dropping an output is an edit to it.
 
-    - **left**, measured droplet size against the Table 2 target of 100 nm;
-    - **right**, measured PDI against the Table 2 target of 0.3.
+    | panel | axis | boundary | shaded band |
+    | --- | --- | --- | --- |
+    | droplet size, nm | 0 – 540 | Table 2, 100 nm | empty |
+    | PDI | 0 – 0.9 | Table 2, 0.3 | empty |
+    | \|ζ\| , mV | 0 – 12 | 10 mV, **not** from Table 2 | holds every run |
 
-    Both are real axes with the house 2 px mirrored box. **There is no cube panel here** — the
-    deck draws the cube by hand beside these panels, which is why the canvas is `DOE_FIG_WIDTH`
-    rather than `FIG_WIDTH`: the reference cell above is the spec that drawing works from.
+    Each panel is named by its **x-axis title**, at the house axis-title size, rather than by a
+    header floating above the box — the label sits with the scale it describes.
+
+    Each boundary is a dashed ink vertical, and every panel shades the side that satisfies it. On
+    size and PDI that band is **empty** — nothing reached either target, which is the slide's
+    whole reading. On zeta it holds all five, because every run sits inside |ζ| < 10.
+
+    **No boundary is labelled.** Its value is an axis tick instead, so a reader takes it off the
+    same scale as the data rather than from a caption floating beside the line. That is why each
+    panel names its ticks explicitly and every list contains `spec`.
+
+    Zeta plots the **magnitude**. It is measured negative throughout and the deck's boundary is on
+    |ζ|, so the panel runs 0 → 12 rather than −12 → 0; the data cell asserts the sign, so that is
+    a flip and never a fold. The paper specifies no zeta target at all, so `SPEC_ZETA_ABS` is
+    named apart from the two Table 2 constants and commented as the deck's own — it must never be
+    read back as published.
+
+    ### No drug loading or permeability panel
+
+    `data/` measures both for `DoEOPT` and nothing else — the four Box-Behnken runs were never
+    loaded with an API, because loading came after the design closed. A panel for either would be
+    one marker and four blank rows, so neither is drawn. The data cell still asserts the gap, so a
+    later file that does carry them fails there rather than quietly filling a panel.
+
+    **There is no cube panel here** — the deck draws the cube by hand, from the reference cell
+    above. The canvas is the full `FIG_WIDTH`, so the deck sets the cube above or below these
+    panels rather than beside them.
 
     Rows run `DoE1` · `DoE4` · `DoE10` · `DoE11` · `DoEOPT` — file order, with `DoEOPT` last and set
     off by a rule, exactly the way `Campaign1_Progress` separates it as its own section. The four
@@ -817,14 +870,15 @@ def _(mo):
 def _(
     ANNOTATION_SIZE,
     AXIS_COMMON,
+    AXIS_TITLE_SIZE,
     BEST_COLOR,
     DOE_COLOR,
-    DOE_FIG_WIDTH,
     DOE_OPT_ID,
     DOE_RUNS,
     DOE_SYSTEM,
     ERROR_WIDTH,
     FIG_HEIGHT,
+    FIG_WIDTH,
     FONT_FAMILY,
     INK,
     INK_SOFT,
@@ -832,30 +886,82 @@ def _(
     LEGEND_SIZE,
     MARKER_RING,
     MARKER_SIZE,
-    ROW_LABEL,
     RULE,
     SPEC_PDI,
     SPEC_SIZE_NM,
+    SPEC_ZETA_ABS,
     TITLE_SIZE,
     go,
+    row_label,
 ):
+    # One entry per panel, left to right.
+    #
+    # Drug loading and permeability are not here. data/ measures both for DoEOPT alone -- the four
+    # Box-Behnken runs carried no API, because loading came after the design closed -- so a panel
+    # for either is one marker and four blank rows. The data cell still asserts that, so a later
+    # file that does carry them fails loudly instead of quietly filling a panel.
+    #
+    # `spec` is the boundary the panel draws, and every panel shades the side that satisfies it.
+    # On size and PDI that shaded band is *empty* -- nothing reached either target, which is the
+    # slide's whole reading. On zeta it is full, because every run sits inside |zeta| < 10.
+    #
+    # No panel labels its boundary. The boundary value is an axis tick instead, so it is read off
+    # the same scale as the data rather than from a caption floating beside the line -- which is
+    # why `ticks` is an explicit list per panel and always contains `spec`.
+    #
+    # `absolute` plots |value|. Zeta is measured negative throughout, and the boundary the deck
+    # wants is on the magnitude, so the panel runs 0 -> 12 on |zeta| rather than -12 -> 0. The
+    # data cell asserts the sign, so this is a flip and never a fold.
+    DOE_PANELS = [
+        dict(key='size_nm', err='size_sd', title='<b>Droplet size</b>, nm', absolute=False,
+             axis_range=(0, 540), ticks=(0, 100, 300, 500), spec=SPEC_SIZE_NM),
+        dict(key='pdi', err='pdi_sd', title='<b>PDI</b>', absolute=False,
+             axis_range=(0, 0.9), ticks=(0, 0.3, 0.6, 0.9), spec=SPEC_PDI),
+        dict(key='zeta', err='zeta_sd', title='<b>Zeta potential</b>, |&#950;| mV',
+             absolute=True,
+             axis_range=(0, 12), ticks=(0, 5, 10), spec=SPEC_ZETA_ABS),
+    ]
+
+
     def build_doe_slide():
         _rows = DOE_RUNS
         _y = list(range(len(_rows), 0, -1))          # first row at the top
-        _labels = [ROW_LABEL.get(e, e) for e in _rows['Exp']]
+        _labels = [row_label(e) for e in _rows['Exp']]
         _is_opt = [e == DOE_OPT_ID for e in _rows['Exp']]
 
-        def _results(axis_suffix, values, errors):
+        # The panels run across the house width, sharing one row-label gutter. The gutter is a
+        # fixed ~100 px -- 'DoE-OPT' at 18 pt -- and the panels split what is left evenly.
+        #
+        # The gap has to clear two tick labels, not one: every panel's last tick sits on its own
+        # right edge and its neighbour's first tick on the left edge, so a gap sized for one
+        # label runs them together. 0.034 is 44 px, which clears the widest such pair these
+        # ranges produce.
+        _gutter, _right, _gap = 0.078, 0.988, 0.034
+        _span = (_right - _gutter - _gap * (len(DOE_PANELS) - 1)) / len(DOE_PANELS)
+        for _i, _panel in enumerate(DOE_PANELS):
+            _x0 = _gutter + _i * (_span + _gap)
+            _panel['domain'] = [_x0, _x0 + _span]
+            _panel['suffix'] = '' if _i == 0 else str(_i + 1)
+
+        # No headers above the boxes any more -- each panel is named by its x-axis title -- so
+        # the panels take the space back at the top. The bottom leaves room for a tick row and a
+        # title beneath it, inside the legend's own gutter.
+        _panel_top, _panel_bottom = 0.865, 0.175
+
+        def _panel_traces(panel):
+            """Marker traces for one panel, split so DoE-OPT keeps its own colour and symbol."""
+            _values = [abs(v) if panel['absolute'] else v for v in _rows[panel['key']]]
+            _errors = [0.0 if _e != _e else _e for _e in _rows[panel['err']]]
             _t = []
             for _opt in (False, True):
                 _idx = [i for i, o in enumerate(_is_opt) if o == _opt]
                 if not _idx:
                     continue
                 _t.append(go.Scatter(
-                    x=[values[i] for i in _idx], y=[_y[i] for i in _idx],
-                    xaxis='x' + axis_suffix, yaxis='y' + axis_suffix,
+                    x=[_values[i] for i in _idx], y=[_y[i] for i in _idx],
+                    xaxis='x' + panel['suffix'], yaxis='y' + panel['suffix'],
                     mode='markers', hoverinfo='skip', showlegend=False,
-                    error_x=dict(type='data', array=[errors[i] for i in _idx],
+                    error_x=dict(type='data', array=[_errors[i] for i in _idx],
                                  color=BEST_COLOR if _opt else DOE_COLOR,
                                  thickness=ERROR_WIDTH, width=6),
                     marker=dict(
@@ -866,8 +972,9 @@ def _(
                 ))
             return _t
 
-        _traces = (_results('', list(_rows['size_nm']), list(_rows['size_sd']))
-                   + _results('2', list(_rows['pdi']), list(_rows['pdi_sd'])))
+        _traces = []
+        for _panel in DOE_PANELS:
+            _traces += _panel_traces(_panel)
 
         for _name, _colour, _symbol in (
             ('Box-Behnken run', DOE_COLOR, 'circle'),
@@ -878,30 +985,24 @@ def _(
                 marker=dict(size=MARKER_SIZE, color=_colour, symbol=_symbol,
                             line=dict(width=1.4, color=INK))))
 
-        _size_max = 540.0
-        _pdi_max = 0.90
-        _panel_top, _panel_bottom = 0.80, 0.19
-
-        # Panel domains are fractions, but the row labels are a fixed ~74 px at 18 pt. On the
-        # 1280 canvas a 0.08 left gutter was 102 px; at DOE_FIG_WIDTH it would be 68 and clip
-        # 'DoE-OPT'. These fractions hold the gutter at ~100 px on the narrower canvas.
-        _left, _split_a, _split_b, _right = 0.117, 0.575, 0.645, 0.982
-
         # The Table 2 target zone is shaded on the *pass* side. Nothing reached either target, so
         # the shaded band is the empty stretch of each panel -- which is the whole reading.
         _shapes = []
-        for _ref, _spec in (('x', SPEC_SIZE_NM), ('x2', SPEC_PDI)):
+        for _panel in DOE_PANELS:
+            if _panel['spec'] is None:
+                continue
+            _ref = 'x' + _panel['suffix']
             _shapes.append(dict(
-                type='rect', xref=_ref, yref='paper', x0=0, x1=_spec,
-                y0=_panel_bottom, y1=_panel_top,
+                type='rect', xref=_ref, yref='paper', x0=_panel['axis_range'][0],
+                x1=_panel['spec'], y0=_panel_bottom, y1=_panel_top,
                 fillcolor='rgba(0, 0, 0, 0.055)', line=dict(width=0), layer='below'))
             _shapes.append(dict(
-                type='line', xref=_ref, yref='paper', x0=_spec, x1=_spec,
+                type='line', xref=_ref, yref='paper', x0=_panel['spec'], x1=_panel['spec'],
                 y0=_panel_bottom, y1=_panel_top,
                 line=dict(color=INK, width=1.8, dash='dash')))
         # DoE-OPT sits below a rule, as its own section -- as on Campaign1_Progress.
         _shapes.append(dict(
-            type='line', xref='paper', yref='y', x0=_left, x1=_right, y0=1.5, y1=1.5,
+            type='line', xref='paper', yref='y', x0=_gutter, x1=_right, y0=1.5, y1=1.5,
             line=dict(color=RULE, width=1.2, dash='dot')))
 
         _annotations = [
@@ -912,52 +1013,31 @@ def _(
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
                  text='{} &#8212; one system, fixed before the first experiment'.format(
                      '&#8195;·&#8195;'.join(DOE_SYSTEM))),
-            dict(xref='paper', yref='paper', x=_left, y=0.855, xanchor='left', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
-                 text='<b>Droplet size</b>, nm'),
-            dict(xref='paper', yref='paper', x=_split_b, y=0.855, xanchor='left',
-                 yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
-                 text='<b>PDI</b>'),
-            dict(xref='x', yref='paper', x=SPEC_SIZE_NM, y=0.82, xanchor='left',
-                 yanchor='bottom', showarrow=False,
-                 font=dict(size=ANNOTATION_SIZE - 2, color=INK),
-                 text='&#8592; target &lt; {:g} nm'.format(SPEC_SIZE_NM)),
-            dict(xref='x2', yref='paper', x=SPEC_PDI, y=0.82, xanchor='left',
-                 yanchor='bottom', showarrow=False,
-                 font=dict(size=ANNOTATION_SIZE - 2, color=INK),
-                 text='&#8592; target &lt; {:g}'.format(SPEC_PDI)),
-            dict(xref='paper', yref='paper', x=_left, y=0.095, xanchor='left', yanchor='top',
-                 showarrow=False, align='left',
-                 font=dict(size=ANNOTATION_SIZE - 2, color=INK_SOFT),
-                 text='Mean of three replicates; bars are their standard deviation. These are '
-                      'the four of the design&#8217;s twelve<br>edge points that stayed '
-                      'comparable &#8212; the other eight phase-separated, and a formulation '
-                      'that<br>separated into layers is not scored against a droplet-size '
-                      'target.'),
         ]
 
         _layout = go.Layout(
-            width=DOE_FIG_WIDTH, height=FIG_HEIGHT,
+            width=FIG_WIDTH, height=FIG_HEIGHT,
             paper_bgcolor='white', plot_bgcolor='white',
             font=dict(family=FONT_FAMILY, color=INK),
             margin=dict(l=10, r=10, t=104, b=LEGEND_MARGIN),
-            xaxis=dict(AXIS_COMMON, domain=[_left, _split_a], anchor='y',
-                       range=[0, _size_max], dtick=100),
-            yaxis=dict(AXIS_COMMON, domain=[_panel_bottom, _panel_top], anchor='x',
-                       range=[0.4, len(_rows) + 0.6],
-                       tickmode='array', tickvals=_y, ticktext=_labels, ticks=''),
-            xaxis2=dict(AXIS_COMMON, domain=[_split_b, _right], anchor='y2',
-                        range=[0, _pdi_max], dtick=0.3),
-            yaxis2=dict(AXIS_COMMON, domain=[_panel_bottom, _panel_top], anchor='x2',
-                        range=[0.4, len(_rows) + 0.6],
-                        tickmode='array', tickvals=_y, ticktext=['' for _ in _labels],
-                        ticks=''),
             shapes=_shapes, annotations=_annotations,
             legend=dict(orientation='h', xanchor='center', x=0.5, yanchor='top', y=-0.04,
                         font=dict(size=LEGEND_SIZE), itemsizing='constant',
                         bgcolor='rgba(0,0,0,0)'),
         )
+        # Only the leftmost panel carries the row labels; the rest share its scale with blank
+        # ticks, so the panels read as one table rather than as separate charts.
+        for _i, _panel in enumerate(DOE_PANELS):
+            _s = _panel['suffix']
+            _layout['xaxis' + _s] = dict(
+                AXIS_COMMON, domain=_panel['domain'], anchor='y' + _s,
+                title=dict(text=_panel['title'], font=dict(size=AXIS_TITLE_SIZE)),
+                range=list(_panel['axis_range']),
+                tickmode='array', tickvals=list(_panel['ticks']))
+            _layout['yaxis' + _s] = dict(
+                AXIS_COMMON, domain=[_panel_bottom, _panel_top], anchor='x' + _s,
+                range=[0.4, len(_rows) + 0.6], tickmode='array', tickvals=_y,
+                ticktext=_labels if _i == 0 else ['' for _ in _labels], ticks='')
         return go.Figure(data=_traces, layout=_layout)
 
 
@@ -1240,17 +1320,14 @@ def _(mo):
     mo.md(r"""
     ## Export
 
-    Each figure at its own native size, one data unit to one exported pixel — slide two at the
-    house 1280 × 720, slide one at `DOE_FIG_WIDTH` × 720, two thirds as wide because the deck
-    sets it beside a hand-drawn cube. `EXPORT_FORMATS` writes a 2× raster alongside if `png` is
-    added to it.
+    Each figure at the house 1280 × 720, one data unit to one exported pixel. `EXPORT_FORMATS`
+    writes a 2× raster alongside if `png` is added to it.
     """)
     return
 
 
 @app.cell
 def _(
-    DOE_FIG_WIDTH,
     EXPORT_FORMATS,
     FIG_HEIGHT,
     FIG_WIDTH,
@@ -1260,7 +1337,7 @@ def _(
     expansion_figure,
 ):
     FIGURES = {
-        'Design_Space_DoE': (doe_figure, DOE_FIG_WIDTH, FIG_HEIGHT),
+        'Design_Space_DoE': (doe_figure, FIG_WIDTH, FIG_HEIGHT),
         'Design_Space_Expansion': (expansion_figure, FIG_WIDTH, FIG_HEIGHT),
     }
 
