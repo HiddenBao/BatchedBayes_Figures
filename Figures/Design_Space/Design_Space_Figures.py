@@ -231,6 +231,10 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
     SPACE_COLOR = '#2067F4'    # blue    -- Campaign 1's reachable space; the family, not a batch
 
     INK = 'black'
+    # Subtitles only. Everything that labels the geometry -- heads, row names, tick values --
+    # is full black, because on a projector a grey label reads as washed out rather than as
+    # quieter. A subtitle is prose under a title, and there the step down still does its job.
+    INK_SOFT = 'rgba(0, 0, 0, 0.55)'
     RULE = 'rgba(0, 0, 0, 0.22)'
 
     TITLE_SIZE = 20
@@ -385,6 +389,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         FONT_FAMILY,
         FONT_SCHEMES,
         INK,
+        INK_SOFT,
         LEGEND_MARGIN,
         LEGEND_SIZE,
         MARKER_RING,
@@ -591,6 +596,7 @@ def _(
     FIG_WIDTH,
     FONT_FAMILY,
     INK,
+    INK_SOFT,
     LEGEND_MARGIN,
     LEGEND_SIZE,
     MARKER_RING,
@@ -719,7 +725,7 @@ def _(
                  showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
                  text='<b>The design of experiments, and what it produced</b>'),
             dict(xref='paper', yref='paper', x=0.5, y=0.955, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
+                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
                  text='{} &#8212; one system, fixed before the first experiment'.format(
                      '&#8195;·&#8195;'.join(DOE_SYSTEM))),
         ]
@@ -795,10 +801,17 @@ def _(mo):
     every head down into the cells. They are calibrated for `HEAD_SIZE`, so re-measure them if it
     moves; they held across both font schemes at that size, but they are not a formula.
 
-    **The heads are set at the row labels' size, and everything on the slide is black.** Both
-    label a grid edge, so both are `HEAD_SIZE`; and the grey that used to separate secondary text
-    from primary is gone, because on a projected slide it read as washed out rather than as
-    quieter.
+    **The heads are set at the row labels' size, and everything that labels the geometry is
+    black.** Both label a grid edge, so both are `HEAD_SIZE`; and the grey that used to separate
+    secondary text from primary is off every head, row name and tick value, because on a
+    projected slide it read as washed out rather than as quieter. `INK_SOFT` survives on the
+    subtitles alone — prose under a title, where the step down still reads as a step down.
+
+    **`_HEAD_RULE` is measured too.** It places the surfactant rule so that the gap above the
+    rotated heads equals the gap below them, and the head band reads as one block between the
+    surfactant names and the cells. Measured in the default scheme, where both gaps come out at
+    13.5 px; Pretendard's shorter glyphs leave the upper gap a little airier, which is the
+    cheaper error of the two.
 
     **The cell edge is `SPACE_COLOR` at full strength**, `CELL_EDGE` wide. The grid is the
     reachable space, so its outline is the deck primary rather than a wash of it, heavy enough to
@@ -807,6 +820,11 @@ def _(mo):
     **Three settings become ranges.** The strip along the bottom draws each factor twice: the
     design's three stops, and Campaign 1's continuous range beneath. The ranges are the same
     intervals — Table 1 did not widen the dials, it removed the stops between them.
+
+    The strip is **measured off the grid above it**, not off its own axis: the two share a paper
+    domain, so equal data values land on equal exported pixels. Oil Volume opens on the leftmost
+    cell's left edge and Sonication closes on the rightmost cell's right edge, so the strip is
+    visibly as wide as the space it describes. Only the two gaps between tracks are free.
 
     **Labels only.** The slide carries its title, the grid's row and column names, and the dials'
     names and end values — nothing else. Every callout, caption and summary line was cut: the
@@ -830,6 +848,7 @@ def _(
     FIG_WIDTH,
     FONT_FAMILY,
     INK,
+    INK_SOFT,
     LEGEND_SIZE,
     MARKER_SIZE,
     OILS,
@@ -858,7 +877,10 @@ def _(
         # Header zone, top to bottom: the block rule and its surfactant name, then the rotated
         # cosurfactant heads rising off the top of the cells. _top is where the cells begin.
         _left, _top = 112.0, 96.0
-        _HEAD_RULE = 30.0
+        # Measured, like HEAD_DX/HEAD_DY: it sets the gap above the rotated cosurfactant
+        # heads equal to the gap below them, so the head band reads as one block between the
+        # surfactant names and the cells rather than as prose crowded onto the rule.
+        _HEAD_RULE = 13.0
         # Both measured off the export, not guessed, and deliberately independent: a single
         # offset along the 45 line couples the two, so correcting the horizontal would drag the
         # heads down into the cells. What is placed is the text *box*, and the box carries
@@ -946,20 +968,28 @@ def _(
         # ---- bottom: three settings become ranges ---------------------------------------
         _dial_x, _dial_y, _dw, _dh = pixel_axes((0.015, 0.985), (0.000, 0.215))
         _dials = [
-            ('Oil volume', ['{:g} %'.format(OIL_V_RANGE[0]),
+            ('Oil Volume', ['{:g} %'.format(OIL_V_RANGE[0]),
                             '{:g} %'.format(sum(OIL_V_RANGE) / 2),
                             '{:g} %'.format(OIL_V_RANGE[1])]),
-            ('Smix ratio', list(SMIX_RATIO_LABELS)),
+            ('Smix Ratio', list(SMIX_RATIO_LABELS)),
             ('Sonication', ['{:g} min'.format(SONICATION_RANGE[0]),
                             '{:g}'.format(sum(SONICATION_RANGE) / 2),
                             '{:g} min'.format(SONICATION_RANGE[1])]),
         ]
         # The side labels that named the two rows are gone with the rest of the prose, so the
         # tracks take the width back and the legend carries which mark is which.
-        _dial_edge, _dial_gap = 60.0, 56.0
-        _track_w = (_dw - 2 * _dial_edge - 2 * _dial_gap) / 3.0
+        #
+        # The strip is measured off the grid above it, not off its own axis: the two axes share
+        # a paper domain, so a cell edge and a track end at the same data value land on the same
+        # exported pixel. Oil Volume starts on the leftmost cell's left edge and Sonication ends
+        # on the rightmost cell's right edge, which makes the strip read as the same width as
+        # the space it describes. Only the two gaps between tracks are free.
+        _dial_x0 = _x_off + _left + _pad
+        _dial_x1 = _x_off + _left + _n_col * _cell - _pad
+        _dial_gap = 56.0
+        _track_w = (_dial_x1 - _dial_x0 - 2 * _dial_gap) / 3.0
         for _di, (_name, _ticks) in enumerate(_dials):
-            _x0 = _dial_edge + _di * (_track_w + _dial_gap)
+            _x0 = _dial_x0 + _di * (_track_w + _dial_gap)
             _y_stop, _y_range = 44.0, 78.0
             _annotations.append(dict(
                 xref='x2', yref='y2', x=_x0 + _track_w / 2.0, y=_y_stop - 20,
@@ -1002,9 +1032,9 @@ def _(
             # surfactant block rules.
             dict(xref='paper', yref='paper', x=0.5, y=1.100, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
-                 text='<b>One system of a hundred &#8212; and three settings become ranges</b>'),
+                 text='<b>How far did the design space open? One system to a hundred</b>'),
             dict(xref='paper', yref='paper', x=0.5, y=1.045, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
+                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
                  text='Everything the Box-Behnken design could reach, against everything '
                       'Campaign 1 could propose'),
         ]
