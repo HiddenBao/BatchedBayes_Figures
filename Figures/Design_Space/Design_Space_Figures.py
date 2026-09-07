@@ -985,15 +985,16 @@ def _(
             xref='x', yref='y', x=_x_off + _left + _pad, y=_y_off + _HEAD_RULE - 6,
             xanchor='left', yanchor='bottom', showarrow=False,
             font=dict(size=_TAG_SIZE, color=INK_SOFT), text='Surfactant'))
-        # Cosurfactant is set at the heads' own -45 and offset perpendicular to their line --
-        # equal steps left and up from the first head's anchor -- so it sits just off Tween 80
-        # and parallel to it rather than square to a band of diagonals.
-        _COS_TAG_OFF = 17.0
+        # Cosurfactant is set at the heads' own -45 and placed ON Tween 80's line, not beside
+        # it: equal steps left and down from that head's anchor walk back along the diagonal,
+        # and anchoring the text's END there runs the tag away down-left, so the two read as
+        # one line whose tail names what the rest of it lists.
+        _COS_TAG_OFF = 10.0
         _annotations.append(dict(
             xref='x', yref='y',
             x=_x_off + _left + 0.5 * _cell - HEAD_DX - _COS_TAG_OFF,
-            y=_y_off + _top + HEAD_DY - _COS_TAG_OFF,
-            xanchor='left', yanchor='bottom', showarrow=False, textangle=-45,
+            y=_y_off + _top + HEAD_DY + _COS_TAG_OFF,
+            xanchor='right', yanchor='bottom', showarrow=False, textangle=-45,
             font=dict(size=_TAG_SIZE, color=INK_SOFT), text='Cosurfactant'))
         _annotations.append(dict(
             xref='x', yref='y', x=_x_off + 10,
