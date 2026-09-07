@@ -989,10 +989,14 @@ def _(
         # it: equal steps left and down from that head's anchor walk back along the diagonal,
         # and anchoring the text's END there runs the tag away down-left, so the two read as
         # one line whose tail names what the rest of it lists.
+        # A rotated box does not hang off its anchor the way an upright one does, so the two
+        # constants are measured, not derived: _COS_TAG_OFF walks back along the diagonal and
+        # _COS_TAG_DX closes a quarter of what is left between the tag and Tween 80.
         _COS_TAG_OFF = 3.0
+        _COS_TAG_DX = 17.0
         _annotations.append(dict(
             xref='x', yref='y',
-            x=_x_off + _left + 0.5 * _cell - HEAD_DX - _COS_TAG_OFF,
+            x=_x_off + _left + 0.5 * _cell - HEAD_DX - _COS_TAG_OFF + _COS_TAG_DX,
             y=_y_off + _top + HEAD_DY + _COS_TAG_OFF,
             xanchor='right', yanchor='bottom', showarrow=False, textangle=-45,
             font=dict(size=_TAG_SIZE, color=INK_SOFT), text='Cosurfactant'))
