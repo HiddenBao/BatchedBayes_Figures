@@ -973,13 +973,33 @@ def _(
                 xanchor='right', yanchor='middle', showarrow=False,
                 font=dict(size=ANNOTATION_SIZE - 1, color=INK), text=_oil))
 
+        # Which list is which. The three name bands read as three kinds of name and nothing
+        # says an oil from a surfactant, so each band is tagged in the left gutter in soft ink
+        # a size down -- a descriptor of the band, not a sixth entry in it. All three sit clear
+        # of the names they head: the two column tags in the header zone above _top, the rows'
+        # tag rotated up the far left edge, inboard of the longest oil name.
+        _TAG_SIZE = ANNOTATION_SIZE - 2
+        _annotations.append(dict(
+            xref='x', yref='y', x=_x_off + _left - 10, y=_y_off + _HEAD_RULE - 6,
+            xanchor='right', yanchor='bottom', showarrow=False,
+            font=dict(size=_TAG_SIZE, color=INK_SOFT), text='Surfactant'))
+        _annotations.append(dict(
+            xref='x', yref='y', x=_x_off + _left - 10, y=_y_off + _top + HEAD_DY,
+            xanchor='right', yanchor='bottom', showarrow=False,
+            font=dict(size=_TAG_SIZE, color=INK_SOFT), text='Cosurfactant'))
+        _annotations.append(dict(
+            xref='x', yref='y', x=_x_off + 10,
+            y=_y_off + _top + _n_row * _cell / 2.0,
+            xanchor='center', yanchor='middle', showarrow=False, textangle=-90,
+            font=dict(size=_TAG_SIZE, color=INK_SOFT), text='Oil'))
+
         # ---- bottom: three settings become ranges ---------------------------------------
         _dial_x, _dial_y, _dw, _dh = pixel_axes((0.015, 0.985), (0.000, 0.215))
         _dials = [
             ('Oil Volume', ['{:g} %'.format(OIL_V_RANGE[0]),
                             '{:g} %'.format(sum(OIL_V_RANGE) / 2),
                             '{:g} %'.format(OIL_V_RANGE[1])]),
-            ('Smix Ratio', list(SMIX_RATIO_LABELS)),
+            ('S<sub>mix</sub> Ratio', list(SMIX_RATIO_LABELS)),
             ('Sonication', ['{:g} min'.format(SONICATION_RANGE[0]),
                             '{:g}'.format(sum(SONICATION_RANGE) / 2),
                             '{:g} min'.format(SONICATION_RANGE[1])]),
@@ -996,8 +1016,16 @@ def _(
         _dial_x1 = _x_off + _left + _n_col * _cell - _pad
         _dial_gap = 56.0
         _track_w = (_dial_x1 - _dial_x0 - 2 * _dial_gap) / 3.0
+        _legend_x = None
         for _di, (_name, _ticks) in enumerate(_dials):
             _x0 = _dial_x0 + _di * (_track_w + _dial_gap)
+            if _name.startswith('S<sub>mix</sub>'):
+                # Paper x of this track's centre, so the legend hangs under the middle dial
+                # rather than under the canvas. The strip's axis spans _dial_x[0] to
+                # _dial_x[1] of paper across _dw data units, and legend x is paper.
+                _legend_x = (_dial_x['domain'][0]
+                             + (_x0 + _track_w / 2.0) / _dw
+                             * (_dial_x['domain'][1] - _dial_x['domain'][0]))
             _y_stop, _y_range = 44.0, 78.0
             _annotations.append(dict(
                 xref='x2', yref='y2', x=_x0 + _track_w / 2.0, y=_y_stop - 20,
@@ -1055,7 +1083,7 @@ def _(
             xaxis=_grid_x, yaxis=_grid_y,
             xaxis2=_dial_x, yaxis2=_dial_y,
             shapes=_shapes, annotations=_annotations,
-            legend=dict(orientation='h', xanchor='center', x=0.5, yanchor='top', y=-0.02,
+            legend=dict(orientation='h', xanchor='center', x=_legend_x, yanchor='top', y=-0.02,
                         font=dict(size=LEGEND_SIZE), itemsizing='constant',
                         bgcolor='rgba(0,0,0,0)'),
         )
