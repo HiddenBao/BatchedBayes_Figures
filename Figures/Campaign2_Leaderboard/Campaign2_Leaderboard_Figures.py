@@ -378,8 +378,11 @@ def _(DATA_CSV, campaign2, pd):
     SERIES_LABEL = dict(
         [((api, letter), '{} Batch {}'.format(TRACK_NAME[api], letter))
          for api in PANELS for letter in C2_BATCHES]
-        + [('c1', 'Campaign 1 Champion (Revalidated)'),
-           ('doe', 'DoE-OPT (Screening Baseline)')])
+        # Bare names. The parenthesised gloss on each -- '(Revalidated)', '(Screening
+        # Baseline)' -- is already the subtitle's job, and set at legend size under two panels
+        # it was a caption pretending to be a label.
+        + [('c1', 'Campaign 1 Champion'),
+           ('doe', 'DoE-OPT')])
 
     _raw = pd.read_csv(DATA_CSV)
     _raw['objective'] = campaign2(_raw)['objective']
@@ -631,8 +634,12 @@ def _(
 
             These stay out of the panels: they are the board's comparators, common to both, and
             putting a copy in each corner would say there are two of each.
+
+            Horizontal, unlike the two track legends. Stacking is what makes a ramp read as a
+            ramp, and these three are not a ramp -- they are three unrelated marks, so a row
+            claims nothing about them and costs the gutter two thirds of its height.
             """
-            return dict(orientation='v', x=0.5, xanchor='center', yanchor='top',
+            return dict(orientation='h', x=0.5, xanchor='center', yanchor='top',
                         y=-(40 / max(FIG_HEIGHT - TOP_MARGIN - LEGEND_MARGIN, 120)),
                         bgcolor='rgba(0, 0, 0, 0)', tracegroupgap=0,
                         font=dict(size=LEGEND_SIZE, color=SECOND))

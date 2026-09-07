@@ -363,7 +363,9 @@ def _(DATA_CSV, campaign1, pd):
 
     STAGE_LABEL = dict(
         [(letter, 'Batch {}'.format(letter)) for letter in BATCHES]
-        + [('screen', 'Quasi-Random Screen'), ('doe', 'DoE-OPT (Screening Baseline)')])
+        # Bare name, as on the Campaign 2 board: the gloss belongs to the subtitle, not to a
+        # legend entry, and DoE-OPT wears one label across the deck.
+        + [('screen', 'Quasi-Random Screen'), ('doe', 'DoE-OPT')])
 
 
     def stage_of(exp: str) -> str:
