@@ -370,7 +370,9 @@ def _(DATA_CSV, campaign2, pd):
     C2_BATCHES = ('A', 'B', 'C')
 
     # A batch series belongs to one track, so its legend entry names the track: the two boards
-    # no longer share a hue that one 'Batch A' entry could stand for.
+    # no longer share a hue that one 'Batch A' entry could stand for. The track name is kept even
+    # though each ramp now sits in its own legend under its own panel -- position is a weaker
+    # claim than a name, and these entries survive being read out of place.
     TRACK_NAME = {'A190': 'A190', 'Feno': 'Fenofibrate'}
 
     SERIES_LABEL = dict(
@@ -520,6 +522,20 @@ def _(
     AXIS_TITLE = 'Mean Objective Score'
     PANEL_AXES = {'A190': ('x', 'y'), 'Feno': ('x2', 'y2')}
 
+    # Three legends, not one row of nine. A single horizontal legend put A190's batches,
+    # Fenofibrate's batches and the three shared comparators in one undifferentiated line, which
+    # is the one thing this board must not say: on it, hue means *which API*, and the two ramps
+    # are only readable as ramps when each is stacked against its own panel. So each track's
+    # ramp sits in the top right corner of its own panel, vertical, palest at the top -- the ramp
+    # drawn as a ramp, inside the thing it describes -- and the marks belonging to neither track
+    # stay in the bottom gutter, once, between them.
+    #
+    # Plotly's extra legends are addressed by name: a trace's `legend=` picks one, and the
+    # matching `layout.legend2` / `legend3` places it. `legend` is A190's because it is the
+    # default a trace gets when it names none.
+    PANEL_LEGEND = {'A190': 'legend', 'Feno': 'legend3'}
+    SHARED_LEGEND = 'legend2'
+
 
     def build_leaderboard():
         """Two API boards side by side: bars are means, dots are the repeats behind them."""
@@ -553,6 +569,9 @@ def _(
                     marker_color=SERIES_COLOR[series],
                     name=SERIES_LABEL[series], legendgroup=str(series),
                     legendrank=1000 + SERIES_RANK[series],
+                    # A batch belongs to its track's legend; a comparator is shared, and only
+                    # the panel that meets it first draws its entry.
+                    legend=SHARED_LEGEND if isinstance(series, str) else PANEL_LEGEND[api],
                     showlegend=series not in legended,
                     xaxis=x_axis, yaxis=y_axis,
                     hovertemplate='%{y}<br>mean per-rep objective %{x:.3f}<extra></extra>',
@@ -564,7 +583,7 @@ def _(
                 marker=dict(size=MARKER_SIZE, color=INK, opacity=0.7,
                             line=dict(color=SURFACE, width=MARKER_RING)),
                 name='Individual Rep', legendgroup='repeat_dot', legendrank=1100,
-                showlegend='repeat_dot' not in legended,
+                legend=SHARED_LEGEND, showlegend='repeat_dot' not in legended,
                 xaxis=x_axis, yaxis=y_axis,
                 customdata=repeats['Rep'].astype(str),
                 hovertemplate='%{y} — rep %{customdata}'
@@ -591,6 +610,33 @@ def _(
         separated_note = '  ·  '.join(
             '{}: {}'.format(api, ', '.join(row_label_of(api, exp) for exp in BOARDS[api][1]))
             for api in PANELS if BOARDS[api][1])
+
+        def _track_legend(api):
+            """A track's ramp, stacked in the top right corner of its own panel.
+
+            In the corner rather than the gutter because that is the shortest possible trip
+            between a bar and the entry naming it -- and because the bars are ranked, so the
+            long ones are at the top and the top right of the panel is the emptiest space on
+            the board. `bgcolor` is the page ground rather than transparent: the corner is
+            empty for this data, not empty by construction.
+            """
+            return dict(orientation='v', x=PANEL_DOMAIN[api][1], xanchor='right',
+                        y=1.0, yanchor='top', tracegroupgap=0,
+                        bgcolor=SURFACE, borderwidth=0,
+                        font=dict(size=LEGEND_SIZE, color=SECOND))
+
+
+        def _shared_legend():
+            """The marks belonging to neither track, centred in the bottom gutter.
+
+            These stay out of the panels: they are the board's comparators, common to both, and
+            putting a copy in each corner would say there are two of each.
+            """
+            return dict(orientation='v', x=0.5, xanchor='center', yanchor='top',
+                        y=-(40 / max(FIG_HEIGHT - TOP_MARGIN - LEGEND_MARGIN, 120)),
+                        bgcolor='rgba(0, 0, 0, 0)', tracegroupgap=0,
+                        font=dict(size=LEGEND_SIZE, color=SECOND))
+
 
         def x_axis_spec(api, anchor):
             return dict(title=AXIS_TITLE, range=x_range, domain=PANEL_DOMAIN[api],
@@ -627,11 +673,9 @@ def _(
             width=FIG_WIDTH, height=FIG_HEIGHT,
             margin=dict(l=LEFT_MARGIN, r=RIGHT_MARGIN, t=TOP_MARGIN, b=LEGEND_MARGIN),
             showlegend=True,
-            # Upstream `legend_below`: a fixed 60 px gap under the plot area, in paper units.
-            legend=dict(orientation='h', x=0.5, xanchor='center', yanchor='top',
-                        y=-(60 / max(FIG_HEIGHT - TOP_MARGIN - LEGEND_MARGIN, 120)),
-                        bgcolor='rgba(0, 0, 0, 0)',
-                        font=dict(size=LEGEND_SIZE, color=SECOND)),
+            legend=_track_legend('A190'),
+            legend2=_shared_legend(),
+            legend3=_track_legend('Feno'),
             hoverlabel=dict(font=dict(family=FONT_FAMILY, size=12)),
         )
         return go.Figure(data=traces, layout=layout)

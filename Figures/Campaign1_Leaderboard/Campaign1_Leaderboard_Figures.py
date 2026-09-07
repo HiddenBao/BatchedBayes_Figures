@@ -640,12 +640,17 @@ def _(mo):
     | `CARRIED_COLOR` blue `#2067F4` | `B4`, `S5`, `E2` | reformulated with A190 **and** fenofibrate, and followed for 30 days |
     | `FAIL_COLOR` deep red | `D3`, `D5` | never reached the drug-loaded study |
 
-    **The red is honest about the gate, not the drug.** The paper's account is that all five were
-    reformulated at the 5 mL volume for the stability study and `D3` phase-separated within 24 h
-    *as a blank*, so it "was not evaluated further"; `D5` cleared the 30-day blank study but never
-    appears in loaded form, and the paper narrows from four blanks to three loaded compositions
-    without giving it a line. Neither failed *with* an API in it — they failed to get that far.
-    So the label says **Failed Before Drug Loading**, which is what the data supports.
+    **The legend labels read `Top Five · 30 Day Stable` and `Top Five · 30 Day Unstable`**, set
+    that way for the deck on 2026-09-07 — short enough to read at the back of a room, and the two
+    halves of one contrast.
+
+    **What the paper actually records is narrower than "unstable", and the labels should be read
+    with that in mind.** All five were reformulated at the 5 mL volume for the stability study.
+    `D3` phase-separated within 24 h *as a blank*, so it "was not evaluated further" — it never
+    reached 30 days at all. `D5` **cleared** the 30-day blank study, but never appears in loaded
+    form: the paper narrows from four blanks to three loaded compositions without giving it a
+    line. Neither failed *with* an API in it. An earlier label said `Failed Before Drug Loading`
+    for exactly that reason; if the deck ever needs the strictly supported wording, that is it.
 
     `S5` is the paper's `F5` (Table 3), and its loaded counterpart is `C1 - F5` on the Campaign 2
     board. The board cell asserts that identity by composition rather than trusting the id.
@@ -688,8 +693,8 @@ def _(
 
 
     EMPHASIS_LABEL = {
-        'carried': 'Top Five · Carried Into Drug Loading ({})'.format(_names('carried')),
-        'failed': 'Top Five · Failed Before Drug Loading ({})'.format(_names('failed')),
+        'carried': 'Top Five · 30 Day Stable',
+        'failed': 'Top Five · 30 Day Unstable',
         'rest': 'Ranked 6 And Below',
     }
 
