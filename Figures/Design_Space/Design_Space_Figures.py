@@ -326,7 +326,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
 
 
     def with_font_scheme(fig, body, heading):
-        """A copy of `fig` re-fonted: `heading` on titles and axes, `body` on everything else.
+        """A copy of `fig` re-fonted: `heading` on the title and axes, `body` on everything else.
 
         Applied after a figure is built rather than threaded through the builders, so the two
         exports cannot drift: there is one figure, drawn once, wearing two type schemes. Heading
@@ -336,6 +336,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         """
         out = go.Figure(fig.to_dict())
         out.layout.font.family = body
+        out.layout.title.font.family = heading
         out.layout.legend.font.family = body
         for _ann in out.layout.annotations:
             _ann.font.family = heading if _ann.name == 'heading' else body
@@ -1020,12 +1021,12 @@ def _(
         # ---- legend proxies -------------------------------------------------------------
         _traces.append(go.Scatter(
             x=[None], y=[None], mode='markers',
-            name='Box-Behnken  ·  1 system, 3 settings per dial',
+            name='Box-Behnken',
             marker=dict(size=MARKER_SIZE, color=DOE_COLOR, symbol='circle',
                         line=dict(width=1.4, color=INK))))
         _traces.append(go.Scatter(
             x=[None], y=[None], mode='markers',
-            name='Campaign 1  ·  100 systems, continuous within each',
+            name='Campaign 1',
             marker=dict(size=MARKER_SIZE, color=fade(SPACE_COLOR, 0.35), symbol='square',
                         line=dict(width=1.4, color=SPACE_COLOR))))
 

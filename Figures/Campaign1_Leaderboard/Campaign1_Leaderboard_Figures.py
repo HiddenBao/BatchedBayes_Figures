@@ -183,7 +183,7 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(go):
     # The batch ramp is shared with Campaign1_Progress; BEST_COLOR with the Campaign 2 slide.
     # One blue in five steps of lightness, A palest to E darkest: sequential, so it encodes the
     # order the batches ran in and nothing else. #2067F4, the deck primary, is its midpoint.
@@ -227,6 +227,24 @@ def _():
 
     FONT_FAMILY = 'sans-serif'
 
+    # --- The deck's own faces ------------------------------------------------------------
+    # An SVG *references* a font, it does not embed one, so these render as themselves only
+    # where both faces are installed and fall back to the house stack everywhere else. That is
+    # why each figure is exported twice rather than switched over: the plain export stays the
+    # portable one. Family names are exactly as Windows reports them -- 'Gmarket' has a
+    # lowercase m, and the face is the Medium weight, so it is named, not asked for via
+    # font-weight. Sizes do NOT change between schemes, so the two exports of a slide are
+    # drop-in swaps for each other.
+    BODY_FAMILY = 'Pretendard, ' + FONT_FAMILY
+    HEADING_FAMILY = 'Gmarket Sans TTF Medium, Pretendard, ' + FONT_FAMILY
+
+    # suffix -> (body face, heading face). '' is the default export, and it must stay first:
+    # it is the one that survives being opened on a machine without the two faces.
+    FONT_SCHEMES = {
+        '': (FONT_FAMILY, FONT_FAMILY),
+        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY),
+    }
+
     MARKER_SIZE = 9.5
     MARKER_RING = 2   # BtB's value: a ringed marker still reads at print size
     BAR_WIDTH = 0.62
@@ -249,6 +267,27 @@ def _():
         gridcolor=GRID, gridwidth=0.8, zeroline=False, linecolor=AXIS_LINE,
         showline=True, mirror=False, ticks='outside', tickcolor=MUTED,
     )
+
+    def with_font_scheme(fig, body, heading):
+        """A copy of `fig` re-fonted: `heading` on the title and axes, `body` on everything else.
+
+        Applied after a figure is built rather than threaded through the builder, so the two
+        exports cannot drift: there is one figure, drawn once, wearing two type schemes. The
+        slide title and every axis are headings by construction; any other text is body unless
+        it is tagged `name='heading'` where it is written. Body is the safe default -- a new
+        annotation joins the reading face rather than silently claiming to be a title.
+        """
+        out = go.Figure(fig.to_dict())
+        out.layout.font.family = body
+        out.layout.title.font.family = heading
+        out.layout.legend.font.family = body
+        for _ann in out.layout.annotations:
+            _ann.font.family = heading if _ann.name == 'heading' else body
+        for _axis in list(out.select_xaxes()) + list(out.select_yaxes()):
+            _axis.tickfont.family = heading
+            _axis.title.font.family = heading
+        return out
+
     return (
         AXIS_COMMON,
         AXIS_LINE,
@@ -262,6 +301,7 @@ def _():
         DIM_DOT,
         FAIL_COLOR,
         FONT_FAMILY,
+        FONT_SCHEMES,
         INK,
         LEFT_MARGIN,
         LEGEND_MARGIN,
@@ -279,6 +319,7 @@ def _():
         TITLE_SIZE,
         TOP_MARGIN,
         YLABEL_STANDOFF,
+        with_font_scheme,
     )
 
 
@@ -666,6 +707,27 @@ def _(mo):
 
     SVG at the native 1280 × 720, one data unit to one exported pixel. Adding `'png'` to
     `EXPORT_FORMATS` writes a 2× raster alongside.
+
+    **Every figure is exported twice, once per entry in `FONT_SCHEMES`.**
+
+    | file | body | headings |
+    | --- | --- | --- |
+    | `<stem>.svg` | the house stack | the house stack |
+    | `<stem>_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
+
+    Headings are the slide title, the axis titles and the tick labels; body is everything else —
+    legends and in-plot annotations. The split follows the deck: the reading face sets prose, the
+    display face labels the frame. `with_font_scheme` re-fonts a finished figure rather than being
+    threaded through the builder, so the two exports cannot drift — one figure, drawn once,
+    wearing two type schemes.
+
+    **Sizes are identical in both**, so a `_Pretendard` export is a drop-in replacement for its
+    plain twin and nothing has to be re-checked for fit.
+
+    The plain export exists because **an SVG references a font rather than embedding one**. The
+    `_Pretendard` pair renders as itself only where both faces are installed; anywhere else it
+    falls back and the metrics shift. Use it on the machine that has them, and keep the plain one
+    for anything that leaves.
     """)
     return
 
@@ -675,10 +737,12 @@ def _(
     EXPORT_FORMATS,
     FIG_HEIGHT,
     FIG_WIDTH,
+    FONT_SCHEMES,
     OUTPUT_DIR,
     PNG_SCALE,
     emphasis_figure,
     leaderboard_figure,
+    with_font_scheme,
 ):
     # Two states of one slide. Same stem, `_Top5` suffix: they are meant to be laid over each
     # other in the deck, not filed as unrelated figures.
@@ -690,13 +754,15 @@ def _(
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for _stem, (_fig, _w, _h) in FIGURES.items():
-        for _fmt in EXPORT_FORMATS:
-            _path = OUTPUT_DIR / '{}.{}'.format(_stem, _fmt)
-            _fig.write_image(
-                _path, format=_fmt, width=_w, height=_h,
-                scale=PNG_SCALE if _fmt == 'png' else 1,
-            )
-            print('wrote {}'.format(_path))
+        for _suffix, (_body, _heading) in FONT_SCHEMES.items():
+            _themed = with_font_scheme(_fig, _body, _heading)
+            for _fmt in EXPORT_FORMATS:
+                _path = OUTPUT_DIR / '{}{}.{}'.format(_stem, _suffix, _fmt)
+                _themed.write_image(
+                    _path, format=_fmt, width=_w, height=_h,
+                    scale=PNG_SCALE if _fmt == 'png' else 1,
+                )
+                print('wrote {}'.format(_path))
     return
 
 
