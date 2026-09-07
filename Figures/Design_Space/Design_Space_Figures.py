@@ -934,10 +934,13 @@ def _(
                 x0=_bx0 + _pad, x1=_bx1 - _pad,
                 y0=_y_off + _HEAD_RULE, y1=_y_off + _HEAD_RULE,
                 line=dict(color=INK, width=1.4)))
+            # Set plain, at the same size as everything else that names a grid edge. The rule
+            # under it already says which columns it spans, so weight on top of that was a
+            # second marker for one distinction.
             _annotations.append(dict(
                 xref='x', yref='y', x=(_bx0 + _bx1) / 2.0, y=_y_off + _HEAD_RULE - 6,
                 xanchor='center', yanchor='bottom', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE - 1, color=INK), text='<b>{}</b>'.format(_s)))
+                font=dict(size=ANNOTATION_SIZE - 1, color=INK), text=_s))
             for _ci, _c in enumerate(COSURFACTANTS):
                 # -45, not -90: a diagonal head is read at a glance where an upright one has to
                 # be tilted into. The bold-on-same-molecule emphasis went with the cell tint --
@@ -1032,7 +1035,7 @@ def _(
             # surfactant block rules.
             dict(xref='paper', yref='paper', x=0.5, y=1.100, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
-                 text='<b>How far did the design space open? One system to a hundred</b>'),
+                 text='<b>How far did the design space open?</b>'),
             dict(xref='paper', yref='paper', x=0.5, y=1.045, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
                  text='Everything the Box-Behnken design could reach, against everything '
