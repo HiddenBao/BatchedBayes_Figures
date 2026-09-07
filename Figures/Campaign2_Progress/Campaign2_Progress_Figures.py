@@ -345,6 +345,9 @@ def _(go, np):
     LEFT_MARGIN = 92
     RIGHT_MARGIN = 30
     LEGEND_INSET_PX = 4   # gap between the era rule and the in-panel legend beside it
+    # Where the shared x title sits, measured down from the bottom of the plot area: the height
+    # plotly put a per-axis title at, so replacing the two with one moves nothing else.
+    X_TITLE_YSHIFT = -30
     TOP_MARGIN = 150     # title, a panel caption per track, and a row of section names
     LEGEND_MARGIN = 100  # bottom gutter the horizontal legend sits in
 
@@ -464,6 +467,8 @@ def _(go, np):
         SECTION_RULE_WIDTH,
         TITLE_SIZE,
         TOP_MARGIN,
+    X_TITLE_YSHIFT,
+        X_TITLE_YSHIFT,
         fade,
         nice_dtick,
         with_font_scheme,
@@ -889,6 +894,18 @@ def _(
                         hovertemplate='%{customdata}<br>Exp %{x}<br>phase separated, objective '
                                       + '{:.0f}<extra></extra>'.format(fail_value)))
 
+        # --- One x title under both panels -------------------------------------------------------
+        # Two panels, one quantity, one scale: printing 'Experiment Number' twice claimed the
+        # two axes might differ. Placed as an annotation rather than as either axis's title
+        # because it belongs to neither -- centred on the figure, at the height the axis titles
+        # sat at, so nothing else moves. `name='heading'` keeps it on the display face with the
+        # axis title it replaces.
+        annotations.append(dict(
+            xref='paper', x=0.5, xanchor='center',
+            yref='paper', y=0, yanchor='top', yshift=X_TITLE_YSHIFT,
+            text='Experiment Number', showarrow=False, name='heading',
+            font=dict(size=AXIS_TITLE_SIZE, color=INK)))
+
         # --- A legend entry for the mark shape, which is a variable of its own --------------------
         traces.append(go.Scatter(
             x=[None], y=[None], mode='markers', name='Phase Separated',
@@ -985,8 +1002,12 @@ def _(
 
 
         def x_axis_spec(track, anchor):
-            """The panel's x axis. It draws the box's horizontals; the verticals are shapes."""
-            return dict(title='Experiment Number', anchor=anchor,
+            """The panel's x axis. It draws the box's horizontals; the verticals are shapes.
+
+            No title of its own: both panels count the same thing on the same scale, so the
+            name is written once under the pair -- see X_TITLE_YSHIFT.
+            """
+            return dict(title='', anchor=anchor,
                         domain=list(PANEL_DOMAIN[track]),
                         range=panel_x_range(track),
                         showline=True, mirror=True, linecolor=INK, linewidth=FRAME_WIDTH,
