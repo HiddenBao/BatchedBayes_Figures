@@ -700,7 +700,12 @@ def _(
                 text=label, showarrow=False, xanchor='center', yanchor='bottom',
                 font=dict(size=ANNOTATION_SIZE, color=INK_SOFT, family=FONT_FAMILY)))
 
-        # --- The runs, one legend entry per hue -------------------------------------------------
+        # --- The runs. No legend entry per hue --------------------------------------------------
+        # Every series label -- DoE, DoE-OPT, Misc, Random Screen, Batch A..E -- is already
+        # written above the panel as a section name, over the runs it names. A legend repeating
+        # them made the reader match a swatch to a word already sitting over the points, and it
+        # cost a row of gutter to do it. The section names carry the hues; the legend is left
+        # with the one thing they cannot say, which is what the mark *shape* means.
         for label, sections, color in SERIES:
             in_series = stable['section'].isin(sections)
             block = stable[in_series & ~stable['in_spec']]
@@ -708,7 +713,7 @@ def _(
 
             traces.append(go.Scatter(
                 x=block['n'], y=block['obj'], mode='markers', name=label,
-                legendgroup=label,
+                legendgroup=label, showlegend=False,
                 marker=_marker(color, MARKER_SIZE),
                 error_y=dict(type='data', array=block['obj_sd'].fillna(0.0),
                              color=fade(color, 0.75), thickness=ERROR_WIDTH, width=4),

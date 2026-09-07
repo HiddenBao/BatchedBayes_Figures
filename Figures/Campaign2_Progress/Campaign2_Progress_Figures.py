@@ -344,7 +344,6 @@ def _(go, np):
 
     LEFT_MARGIN = 92
     RIGHT_MARGIN = 30
-    LEGEND_INSET_PX = 4   # gap between the era rule and the in-panel legend beside it
     # Where the shared x title sits, measured down from the bottom of the plot area: the height
     # plotly put a per-axis title at, so replacing the two with one moves nothing else.
     X_TITLE_YSHIFT = -30
@@ -452,8 +451,6 @@ def _(go, np):
         INK,
         INK_SOFT,
         LEFT_MARGIN,
-        LEGEND_INSET_PX,
-        LEGEND_INSET_PX,
     LEGEND_MARGIN,
         LEGEND_SIZE,
         MARKER_RING,
@@ -467,7 +464,6 @@ def _(go, np):
         SECTION_RULE_WIDTH,
         TITLE_SIZE,
         TOP_MARGIN,
-    X_TITLE_YSHIFT,
         X_TITLE_YSHIFT,
         fade,
         nice_dtick,
@@ -718,6 +714,7 @@ def _(
     TITLE_SIZE,
     TOP_MARGIN,
     TRACKS,
+    X_TITLE_YSHIFT,
     fade,
     go,
     nice_dtick,
@@ -737,16 +734,14 @@ def _(
     ]
     LEGEND_TRACK = 'A190'
 
-    # Three legends, as on the Campaign 2 leaderboard, and for the same reason: hue means *which
-    # API* here, so each track's ramp has to be stacked against its own panel to read as a ramp
-    # at all. The corner is the top LEFT -- these panels are read left to right in campaign
-    # order and end at the right, where the latest batches are, so the left is where the space
-    # is. What belongs to neither track stays in the gutter, once, between them.
+    # The batches carry NO legend entry, on either panel. 'Batch A', 'Batch B' and 'Batch C' are
+    # already written above each panel as section names, over the runs they name, and the panel
+    # caption above those says which API the column is -- so an entry reading 'A190 Batch A'
+    # repeated two labels the reader had already been given. The in-panel ramp legends this
+    # slide briefly carried are gone with them.
     #
-    # Plotly addresses extra legends by name: a trace's `legend=` picks one, and the matching
-    # `layout.legend2` / `legend3` places it. `legend` is A190's, being the default.
-    PANEL_LEGEND = {'A190': 'legend', 'Feno': 'legend3'}
-    SHARED_LEGEND = 'legend2'
+    # What stays in the gutter is what the panel does not spell out: the two comparators, and
+    # the mark *shape* that means a run phase-separated.
 
 
     def series_for(track):
@@ -865,15 +860,15 @@ def _(
             for label, section, color in series_for(track):
                 # A batch series belongs to this track, so it legends itself; the two comparators
                 # are shared, so only one panel legends them.
+                # Only the comparators legend themselves, and only on one panel: a batch's
+                # hue is named by the section caption above it.
                 shared = (label, section, color) in SHARED_SERIES
-                show_legend = track == LEGEND_TRACK or not shared
-                which_legend = SHARED_LEGEND if shared else PANEL_LEGEND[track]
+                show_legend = shared and track == LEGEND_TRACK
                 block = stable[stable['section'] == section]
                 if not block.empty:
                     traces.append(go.Scatter(
                         x=block['n'], y=block['obj'], mode='markers', name=label,
                         xaxis=x_axis, yaxis=y_axis,
-                        legend=which_legend,
                         legendgroup=label, showlegend=show_legend,
                         marker=_marker(color, MARKER_SIZE),
                         error_y=dict(type='data', array=block['obj_sd'].fillna(0.0),
@@ -887,7 +882,6 @@ def _(
                     traces.append(go.Scatter(
                         x=fail_block['n'], y=[fail_drawn_at] * len(fail_block), mode='markers',
                         name=label, xaxis=x_axis, yaxis=y_axis,
-                        legend=which_legend,
                         legendgroup=label, showlegend=False,
                         marker=_marker(color, FAIL_MARKER_SIZE, symbol='square'),
                         customdata=fail_block['Exp'],
@@ -909,7 +903,7 @@ def _(
         # --- A legend entry for the mark shape, which is a variable of its own --------------------
         traces.append(go.Scatter(
             x=[None], y=[None], mode='markers', name='Phase Separated',
-            xaxis='x', yaxis='y', legend=SHARED_LEGEND,
+            xaxis='x', yaxis='y',
             marker=_marker(INK_SOFT, FAIL_MARKER_SIZE, symbol='square')))
 
         # --- The skip, announced on the uprights and nowhere else ---------------------------------
@@ -946,61 +940,6 @@ def _(
                     x1=upright_x + half_w, y1=mark_y + stroke + rise / 2,
                     line=dict(color=INK, width=BREAK_MARK_WIDTH), layer='above'))
 
-        # No leading underscore on these helpers, unlike a normal local: marimo treats a
-        # leading underscore as cell-private and mangles the name, which breaks a reference made
-        # from inside another nested function.
-        def panel_paper_x(track, data_x):
-            """Where `data_x` on `track`'s panel falls, as a fraction of the plot area.
-
-            A legend is placed in paper units and a rule in data units, so anything that has to
-            line up with a rule has to be converted. Both read `panel_x_range`, so the two cannot
-            drift out of register when a track gains a run.
-            """
-            lo, hi = panel_x_range(track)
-            d0, d1 = PANEL_DOMAIN[track]
-            return d0 + (data_x - lo) / (hi - lo) * (d1 - d0)
-
-
-        def track_legend(track):
-            """A track's ramp, stacked at the top of its panel, just right of the era rule.
-
-            Inside the panel because that is the shortest trip from a run to the entry naming
-            it, and at the top left of the *campaign* rather than of the panel: the prior-optima
-            band is a labelled region of its own, and a legend standing on it looked like a
-            caption for it. So the block starts where the campaign starts, LEGEND_INSET_PX
-            clear of the rule that divides them.
-
-            Transparent, unlike the leaderboard's, which sits on a plain corner. This corner is
-            crossed by the section rules, and an opaque ground cut a rectangle out of them -- an
-            erasure that read as a drawing error. The rules are hairline dots, so black text at
-            legend size carries over them without help.
-            """
-            inset = LEGEND_INSET_PX / float(FIG_WIDTH - LEFT_MARGIN - RIGHT_MARGIN)
-            era_x = SECTION_SPAN[track][CAMPAIGN_START_SECTION][0] - 0.5
-            return dict(orientation='v', x=panel_paper_x(track, era_x) + inset,
-                        xanchor='left', y=1.0, yanchor='top', tracegroupgap=0,
-                        bgcolor='rgba(0, 0, 0, 0)', borderwidth=0, itemsizing='constant',
-                        font=dict(size=LEGEND_SIZE, color=INK))
-
-
-        def shared_legend():
-            """The marks belonging to neither track, in a row in the bottom gutter.
-
-            Horizontal, unlike the two ramps. Stacking is what makes a ramp read as a ramp, and
-            these are unrelated marks -- two comparators and a mark *shape* -- so a row claims
-            nothing about them and costs the gutter a third of its height.
-            """
-            return dict(orientation='h', x=0.5, y=-0.155, xanchor='center', yanchor='top',
-                        bgcolor='rgba(0, 0, 0, 0)', itemsizing='constant',
-                        font=dict(size=LEGEND_SIZE, color=INK))
-
-
-        def panel_x_range(track):
-            """The panel's x range. Stated once: the axis takes it, and so does anything
-            placed in paper units that has to line up with something drawn in data units."""
-            return [0.4, len(CAMPAIGN[track]) + 0.6]
-
-
         def x_axis_spec(track, anchor):
             """The panel's x axis. It draws the box's horizontals; the verticals are shapes.
 
@@ -1009,7 +948,7 @@ def _(
             """
             return dict(title='', anchor=anchor,
                         domain=list(PANEL_DOMAIN[track]),
-                        range=panel_x_range(track),
+                        range=[0.4, len(CAMPAIGN[track]) + 0.6],
                         showline=True, mirror=True, linecolor=INK, linewidth=FRAME_WIDTH,
                         tickmode='linear', tick0=0, dtick=5, **AXIS_COMMON)
 
@@ -1036,9 +975,10 @@ def _(
             width=FIG_WIDTH, height=FIG_HEIGHT,
             margin=dict(l=LEFT_MARGIN, r=RIGHT_MARGIN, t=TOP_MARGIN, b=LEGEND_MARGIN),
             showlegend=True,
-            legend=track_legend('A190'),
-            legend2=shared_legend(),
-            legend3=track_legend('Feno'),
+            # The bottom gutter. y < 0 is below the plot area, so the legend is never inside it.
+            legend=dict(orientation='h', x=0.5, y=-0.155, xanchor='center', yanchor='top',
+                        bgcolor='rgba(0, 0, 0, 0)', itemsizing='constant',
+                        font=dict(size=LEGEND_SIZE, color=INK)),
             hoverlabel=dict(font=dict(family=FONT_FAMILY, size=12)),
         )
         return go.Figure(data=traces, layout=layout)
