@@ -321,18 +321,18 @@ def _(go, np):
     BODY_FAMILY = 'Pretendard, ' + FONT_FAMILY
     HEADING_FAMILY = 'Gmarket Sans TTF Medium, Pretendard, ' + FONT_FAMILY
 
-    # Gmarket ships Light / Medium / Bold as three families, so a weight is chosen by name.
-    # Medium is right for tick values and a slide title -- short, and wanting to hold against
-    # the panel -- but an axis title is a phrase, and set in Medium at 18 px it reads as bold.
-    # The Light cut says the same thing without shouting it.
-    HEADING_LIGHT_FAMILY = 'Gmarket Sans TTF Light, Pretendard, ' + FONT_FAMILY
-
-    # suffix -> (body face, heading face, axis-title face). '' is the default export, and it
-    # must stay first: it is the one that survives being opened on a machine without the two
-    # faces.
+    # suffix -> (body face, heading face, tick face). '' is the default export, and it must
+    # stay first: it is the one that survives being opened on a machine without the two faces.
+    #
+    # Ticks read in the *body* face here. These panels carry a long numbered axis and a column
+    # of objective values, so the ticks are the densest text on the slide, and the display face
+    # set that many times over stops marking anything -- it just makes the frame loud. The
+    # display face keeps the slide title and the two axis titles, which is where it names
+    # something. Both leaderboards keep ticks on display: theirs are a short column of
+    # formulation ids, not a field of numbers.
     FONT_SCHEMES = {
         '': (FONT_FAMILY, FONT_FAMILY, FONT_FAMILY),
-        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY, HEADING_LIGHT_FAMILY),
+        '_Pretendard': (BODY_FAMILY, HEADING_FAMILY, BODY_FAMILY),
     }
 
     MARKER_SIZE = 10
@@ -406,7 +406,7 @@ def _(go, np):
         tickfont=dict(size=TICK_SIZE), title_font=dict(size=AXIS_TITLE_SIZE),
     )
 
-    def with_font_scheme(fig, body, heading, axis_title):
+    def with_font_scheme(fig, body, heading, tick):
         """A copy of `fig` re-fonted: `heading` on the title and axes, `body` on everything else.
 
         Applied after a figure is built rather than threaded through the builder, so the two
@@ -422,10 +422,9 @@ def _(go, np):
         for _ann in out.layout.annotations:
             _ann.font.family = heading if _ann.name == 'heading' else body
         for _axis in list(out.select_xaxes()) + list(out.select_yaxes()):
-            _axis.tickfont.family = heading
-            # Its own slot: the display face's weight that suits tick values does not
-            # necessarily suit a phrase. Usually the same face, and never a different family.
-            _axis.title.font.family = axis_title
+            # Ticks have their own slot; an axis title is a heading with the slide title.
+            _axis.tickfont.family = tick
+            _axis.title.font.family = heading
         return out
 
     return (
@@ -972,9 +971,12 @@ def _(mo):
     | `<stem>_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
 
     Headings are the slide title, the axis titles and the tick labels; body is everything else —
-    legends and in-plot annotations. **Axis titles take the display face's Light cut**, not its
-    Medium: Medium suits a tick value and a slide title, but an axis title is a phrase, and set
-    in Medium at 18 px it reads as bold. That is why the scheme carries a third face slot. The split follows the deck: the reading face sets prose, the
+    legends and in-plot annotations. **Tick labels are the exception, and read in the body
+    face.** These panels carry a long numbered axis and a column of objective values, so the
+    ticks are the densest text on the slide; the display face set that many times stops marking
+    anything and just makes the frame loud. That is why the scheme carries a third face slot.
+    Both leaderboards keep their ticks on the display face — theirs are a short column of
+    formulation ids, not a field of numbers. The split follows the deck: the reading face sets prose, the
     display face labels the frame. `with_font_scheme` re-fonts a finished figure rather than being
     threaded through the builder, so the two exports cannot drift — one figure, drawn once,
     wearing two type schemes.
@@ -1008,8 +1010,8 @@ def _(
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for _stem, (_fig, _w, _h) in FIGURES.items():
-        for _suffix, (_body, _heading, _axis_title) in FONT_SCHEMES.items():
-            _themed = with_font_scheme(_fig, _body, _heading, _axis_title)
+        for _suffix, (_body, _heading, _tick) in FONT_SCHEMES.items():
+            _themed = with_font_scheme(_fig, _body, _heading, _tick)
             for _fmt in EXPORT_FORMATS:
                 _path = OUTPUT_DIR / '{}{}.{}'.format(_stem, _suffix, _fmt)
                 _themed.write_image(
