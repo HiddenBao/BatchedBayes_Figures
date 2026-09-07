@@ -231,7 +231,6 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
     SPACE_COLOR = '#2067F4'    # blue    -- Campaign 1's reachable space; the family, not a batch
 
     INK = 'black'
-    INK_SOFT = 'rgba(0, 0, 0, 0.55)'
     RULE = 'rgba(0, 0, 0, 0.22)'
 
     TITLE_SIZE = 20
@@ -270,7 +269,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
     # The 5 x 20 field's cell edge. Full SPACE_COLOR rather than a faded one: the grid *is* the
     # reachable space, so its outline is the deck primary at full strength, and heavy enough to
     # hold the shape when the slide is projected.
-    CELL_EDGE = 2.4
+    CELL_EDGE = 3.2
 
     LEGEND_MARGIN = 96   # bottom gutter the horizontal legend sits in
 
@@ -386,7 +385,6 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         FONT_FAMILY,
         FONT_SCHEMES,
         INK,
-        INK_SOFT,
         LEGEND_MARGIN,
         LEGEND_SIZE,
         MARKER_RING,
@@ -593,7 +591,6 @@ def _(
     FIG_WIDTH,
     FONT_FAMILY,
     INK,
-    INK_SOFT,
     LEGEND_MARGIN,
     LEGEND_SIZE,
     MARKER_RING,
@@ -722,7 +719,7 @@ def _(
                  showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
                  text='<b>The design of experiments, and what it produced</b>'),
             dict(xref='paper', yref='paper', x=0.5, y=0.955, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
+                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
                  text='{} &#8212; one system, fixed before the first experiment'.format(
                      '&#8195;·&#8195;'.join(DOE_SYSTEM))),
         ]
@@ -795,8 +792,13 @@ def _(mo):
     the text *box*, and the box carries padding before the first glyph that a −45° rotation lifts
     up and to the right; the two constants absorb it. They are kept independent on purpose — a
     single offset along the 45° line couples the axes, so correcting the horizontal would drag
-    every head down into the cells. If the head size ever moves off `ANNOTATION_SIZE - 5`,
-    re-measure them; they held across both font schemes but they are not a formula.
+    every head down into the cells. They are calibrated for `HEAD_SIZE`, so re-measure them if it
+    moves; they held across both font schemes at that size, but they are not a formula.
+
+    **The heads are set at the row labels' size, and everything on the slide is black.** Both
+    label a grid edge, so both are `HEAD_SIZE`; and the grey that used to separate secondary text
+    from primary is gone, because on a projected slide it read as washed out rather than as
+    quieter.
 
     **The cell edge is `SPACE_COLOR` at full strength**, `CELL_EDGE` wide. The grid is the
     reachable space, so its outline is the deck primary rather than a wash of it, heavy enough to
@@ -828,7 +830,6 @@ def _(
     FIG_WIDTH,
     FONT_FAMILY,
     INK,
-    INK_SOFT,
     LEGEND_SIZE,
     MARKER_SIZE,
     OILS,
@@ -863,8 +864,9 @@ def _(
         # heads down into the cells. What is placed is the text *box*, and the box carries
         # padding before the first glyph which -- rotated -45 -- lifts that glyph up and to the
         # right of the anchor. Both constants absorb that.
-        HEAD_DX = 13.5   # px left of the column centre, so the FIRST letter centres on it
-        HEAD_DY = 5.0    # px below the cell top; the padding lifts the glyph back clear of it
+        HEAD_SIZE = ANNOTATION_SIZE - 1   # the row labels' size: both name a grid edge
+        HEAD_DX = 15.5   # px left of the column centre, so the FIRST letter centres on it
+        HEAD_DY = -4.0   # px from the cell top; negative lifts the heads clear of the block
 
         # Cells are SQUARE. One number for width and height, the smaller of what each direction
         # can spare, so a hundred equal slots read as a hundred equal slots rather than as a
@@ -932,7 +934,7 @@ def _(
                     x=_bx0 + (_ci + 0.5) * _cell - HEAD_DX,
                     y=_y_off + _top + HEAD_DY,
                     xanchor='left', yanchor='bottom', showarrow=False, textangle=-45,
-                    font=dict(size=ANNOTATION_SIZE - 5, color=INK_SOFT),
+                    font=dict(size=HEAD_SIZE, color=INK),
                     text=COSURF_SHORT[_c]))
         for _r, _oil in enumerate(OILS):
             _annotations.append(dict(
@@ -980,7 +982,7 @@ def _(
                 _annotations.append(dict(
                     xref='x2', yref='y2', x=_x0 + (_ti / 2.0) * _track_w, y=_y_range + 18,
                     xanchor='center', yanchor='top', showarrow=False,
-                    font=dict(size=ANNOTATION_SIZE - 3, color=INK_SOFT), text=_t))
+                    font=dict(size=ANNOTATION_SIZE - 3, color=INK), text=_t))
 
         # ---- legend proxies -------------------------------------------------------------
         _traces.append(go.Scatter(
@@ -1002,7 +1004,7 @@ def _(
                  showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
                  text='<b>One system of a hundred &#8212; and three settings become ranges</b>'),
             dict(xref='paper', yref='paper', x=0.5, y=1.045, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
+                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK),
                  text='Everything the Box-Behnken design could reach, against everything '
                       'Campaign 1 could propose'),
         ]
