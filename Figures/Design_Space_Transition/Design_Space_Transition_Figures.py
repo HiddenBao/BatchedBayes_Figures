@@ -823,7 +823,14 @@ def _(
 
         # ---- legend proxies -------------------------------------------------------------
         # The same three entries in both states, in the same order, so the legend does not jump
-        # between exports. The two squares name the grid's marks; the circle names the strip's.
+        # between exports. Box-Behnken leads, as it does on Design_Space_Expansion's legend --
+        # the two slides sit next to each other in the deck and a reordered legend under the
+        # same strip reads as a different chart. The circle names the strip's mark, the two
+        # squares the grid's.
+        _traces.append(go.Scatter(
+            x=[None], y=[None], mode='markers', name='Box-Behnken',
+            marker=dict(size=MARKER_SIZE, color=DOE_COLOR, symbol='circle',
+                        line=dict(width=1.4, color=INK))))
         _traces.append(go.Scatter(
             x=[None], y=[None], mode='markers', name='Possible',
             marker=dict(size=MARKER_SIZE, color=fade(SPACE_COLOR, 0.11), symbol='square',
@@ -832,10 +839,6 @@ def _(
             x=[None], y=[None], mode='markers', name='Explored',
             marker=dict(size=MARKER_SIZE, color=fade(NEW_COLOR, 0.35), symbol='square',
                         line=dict(width=1.4, color=NEW_COLOR))))
-        _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Box-Behnken',
-            marker=dict(size=MARKER_SIZE, color=DOE_COLOR, symbol='circle',
-                        line=dict(width=1.4, color=INK))))
 
         _annotations += [
             # Both live in the top margin, not in the plot area: the grid runs to the very top
