@@ -32,17 +32,15 @@ def _(mo):
     mo.md(r"""
     # Design Space Transition Figure Suite
 
-    **One slide, built up in three states.** Campaign 1's hundred declared systems become the
-    forty-eight Campaign 2 can propose from, and then the settings and the score change under
-    them.
+    **One slide, built up in two states.** Campaign 1's hundred declared systems become the
+    forty-eight Campaign 2 can propose from.
 
     | export | state | the one move it makes |
     | --- | --- | --- |
     | `Design_Space_Transition_Explored.svg` | 1 | of the hundred, mark the twenty-four ever made |
     | `Design_Space_Transition_Narrowed.svg` | 2 | drop the row, the block and the column Campaign 2 cannot propose |
-    | `Design_Space_Transition_Boundaries.svg` | 3 | one volume range per ingredient, and two more scored properties |
 
-    States 1 and 2 are the **same figure with a different category list**: both come out of one
+    The two are the **same figure with a different category list**: both come out of one
     `build_grid_state()`, and the cell pitch, the origin and the dial strip are computed from
     Campaign 1's full 5 x 20 field in both. So state 2's cells sit exactly where state 1 left
     them and the two exports lay over each other in PowerPoint without a mark moving — the row,
@@ -87,30 +85,12 @@ def _(mo):
     that, because it is the state's whole reading: the cut lands on the vocabulary, not on the
     evidence.
 
-    ### State 3 — the dials and the score
-
-    Two panels, and both are transcriptions rather than restatements:
-
-    - **Volumes** come from upstream's `oil_v_ranges`, `surfactant_v_ranges` and
-      `cosurfactant_v_ranges`. Campaign 1 ran three dials over one shared oil range with
-      surfactant and cosurfactant *coupled* (`Surfactant_V + Cosurfactant_V = 40.0` in every
-      Campaign 1 row, which is why Table 1 writes an S<sub>mix</sub> **ratio**). Campaign 2 gives
-      each of the eleven mesh ingredients its own interval and lets the two volumes move
-      independently, so three continuous dials become four.
-    - **The score** comes from `Figures/objectives.py`. The weights are *parsed out of the
-      returned column names* (`'size_score (w=3)'`), never typed here, so a change to either
-      objective moves this panel rather than contradicting it.
-
-    The honest reading of the volume panel is not "wider". Campaign 2's oil floor drops from
-    7.5 % to 5 %, but its per-oil ceiling is **15 % or 10 %**, well under Table 1's 22.5 %. What
-    grew is the number of independent knobs and the specificity of each one, not the envelope.
-
     ## Colour
 
     | token | hex | what it means here |
     | --- | --- | --- |
     | `SPACE_COLOR` | `#2067F4` | Campaign 1 — the declared field, and its three dials |
-    | `NEW_COLOR` | `#5A2E8C` | Campaign 2 — the systems it inherits, the ranges and scores it adds |
+    | `NEW_COLOR` | `#5A2E8C` | Campaign 2 — the systems it inherits from Campaign 1 |
 
     Both hues are borrowed, and both borrowings need saying out loud.
 
@@ -122,10 +102,10 @@ def _(mo):
     `#5A2E8C` is the **A190 track's darkest step** on the Campaign 2 board. Here it means
     Campaign 2 as a whole, which on a slide that draws either track would be wrong. This slide
     draws neither: it is the space before the two tracks split, and no green appears anywhere on
-    it, so the hue cannot be read as "A190 rather than fenofibrate". `Design_Space_Growth/` took
-    the other way out of the same problem and drew Campaign 2 in ink; this suite takes the hue
-    because the deck asked for a colour that carries across three states, and ink already belongs
-    to the grid's labels.
+    it, so the hue cannot be read as "A190 rather than fenofibrate". The alternative was to draw
+    Campaign 2 as an ink boundary, the device `Design_Space/` uses for the Table 2 targets; the
+    hue won because the deck asked for a colour that carries across the states, and ink already
+    belongs to the grid's labels.
 
     ## Environment
 
@@ -484,7 +464,7 @@ def _(C1_CSV, pd, pretty):
     N_DECLARED = len(C1_OILS) * len(C1_SURFACTANTS) * len(C1_COSURFACTANTS)
     N_MESH = len(C2_LISTS['Oil']) * len(C2_LISTS['Surfactant']) * len(C2_LISTS['Cosurfactant'])
 
-    # --- assertions: every claim the three states make --------------------------------------
+    # --- assertions: every claim the two states make ----------------------------------------
     assert set(COSURF_SHORT) == set(C1_COSURFACTANTS), \
         'COSURF_SHORT does not cover Table 1 cosurfactants'
     assert N_DECLARED == 100, 'Table 1 declares 5 x 4 x 5 = 100 systems'
@@ -903,332 +883,6 @@ def _(C2_LISTS, DROPPED, EXPLORED, LOST, N_MESH, ROLES, build_grid_state):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## State 3 — the dials and the score
-
-    The categorical field has done its work by now, so state 3 drops it and spends the canvas on
-    the two changes that are not about *which* ingredients: what each one may be dosed at, and
-    what the optimiser is scoring.
-
-    **Left — one range per ingredient.** Campaign 1 ran a single oil range for all five oils, and
-    its surfactant and cosurfactant volumes were not free at all: they summed to
-    `C1_SMIX_TOTAL = 40` in every row, which is why Table 1 can write an S<sub>mix</sub> *ratio*
-    and why the campaign has three continuous dials rather than four. Campaign 2 gives each of the
-    eleven mesh ingredients its own interval and lets the two volumes move independently.
-
-    Campaign 1's range is drawn as a pale band running the width of each role group, and each
-    ingredient's own interval as a purple bar on top of it. The comparison the eye makes is
-    therefore the right one: not "which is longer" but "how many bars are there, and do they
-    agree". They do not — and Campaign 2's oil bars stop at 15 % and 10 % where Campaign 1's band
-    runs to 22.5 %, so the honest word for this panel is *specific*, not *wider*.
-
-    **Right — the score.** Six measured properties, and for each the weight the two objectives put
-    on it. Weights are **parsed out of the column names** `Figures/objectives.py` returns
-    (`'size_score (w=3)'`), so this panel is a view of the objective rather than a second copy of
-    it. Phase separation is the one row that is not a weight in the same sense — Campaign 1 adds
-    `10 x sep`, Campaign 2 divides by `1 - sep` — so it is set apart below a rule and written as
-    the operator rather than as a number.
-
-    Drug loading and permeability are the two rows Campaign 1 has no entry for at all: they are
-    scored for the first time in Campaign 2, and are marked in purple with the ranges panel.
-
-    Both panels sit on `pixel_axes()` with explicit anchors — see the chrome cell for why.
-    """)
-    return
-
-
-@app.cell
-def _(
-    ANNOTATION_SIZE,
-    C1_OIL_V_RANGE,
-    C1_ROWS,
-    C1_SMIX_TOTAL,
-    C2_LISTS,
-    C2_V_RANGES,
-    FIG_HEIGHT,
-    FIG_WIDTH,
-    FONT_FAMILY,
-    INK,
-    INK_SOFT,
-    LEGEND_SIZE,
-    MARKER_SIZE,
-    NEW_COLOR,
-    ROLES,
-    SCHEMATIC_MARGIN,
-    SPACE_COLOR,
-    TITLE_SIZE,
-    campaign1,
-    campaign2,
-    fade,
-    go,
-    pixel_axes,
-    pretty,
-):
-    def _weights(scores):
-        """{'size': 3, ...} from the '<stem>_score (w=N)' column names an objective returns.
-
-        Parsed rather than restated: objectives.py writes each weight into the name of the
-        column it produces, so reading it back is the closest this suite can get to importing
-        the number.
-        """
-        out = {}
-        for _col in scores.columns:
-            if '_score (w=' not in _col:
-                continue
-            _stem, _rest = _col.split('_score (w=')
-            out[_stem] = float(_rest.rstrip(')'))
-        return out
-
-
-    # Called on the real rows rather than an empty frame: an objective that starts depending on
-    # the data would otherwise be parsed from a shape it never sees in anger.
-    C1_W = _weights(campaign1(C1_ROWS))
-    C2_W = _weights(campaign2(C1_ROWS))
-
-    # stem -> display name, in the order the panel reads them. Physicochemical first, then the
-    # two Campaign 2 adds; phase separation is handled apart, below the rule.
-    SCORE_ROWS = [
-        ('size', 'Droplet size'),
-        ('pdi', 'PDI'),
-        ('zeta', 'Zeta potential'),
-        ('dl', 'Drug loading'),
-        ('perm', 'Permeability'),
-    ]
-    assert set(C1_W) | set(C2_W) == {_s for _s, _ in SCORE_ROWS} | {'sep'}, \
-        'objectives.py returns a component this panel does not name: {}'.format(
-            sorted((set(C1_W) | set(C2_W)) - ({_s for _s, _ in SCORE_ROWS} | {'sep'})))
-    NEW_STEMS = {_s for _s, _ in SCORE_ROWS if _s not in C1_W}
-    assert NEW_STEMS == {'dl', 'perm'}, \
-        'expected drug loading and permeability to be the Campaign 2 additions, got {}'.format(
-            sorted(NEW_STEMS))
-
-
-    def build_boundaries_state():
-        _traces, _annotations, _shapes = [], [], []
-
-        # ---- left: one volume range per ingredient --------------------------------------
-        _vx, _vy, _vw, _vh = pixel_axes((0.015, 0.575), (0.000, 1.000))
-
-        # A shared % scale for all three role groups, so a bar's length means the same thing
-        # wherever it sits. Rounded out from the widest bound either campaign declares.
-        _SCALE_MAX = 45.0
-        _LABEL_W = 132.0
-        _sx0, _sx1 = _LABEL_W, _vw - 14.0
-
-        def _at(value, x0=_sx0, x1=_sx1, top=_SCALE_MAX):
-            return x0 + (value / top) * (x1 - x0)
-
-        # Campaign 1's band per role. Oil is Table 1's one range for all five oils; the two Smix
-        # volumes are not free -- they run 10..30 *coupled*, which the note under the group says.
-        _c1_band = {
-            'Oil': C1_OIL_V_RANGE,
-            'Surfactant': (C1_SMIX_TOTAL / 4.0, 3.0 * C1_SMIX_TOTAL / 4.0),
-            'Cosurfactant': (C1_SMIX_TOTAL / 4.0, 3.0 * C1_SMIX_TOTAL / 4.0),
-        }
-        _c1_note = {
-            'Oil': 'one range, all five oils',
-            'Surfactant': 'coupled: S + C = {:g}'.format(C1_SMIX_TOTAL),
-            'Cosurfactant': 'coupled: S + C = {:g}'.format(C1_SMIX_TOTAL),
-        }
-
-        _ROW_H = 26.0
-        _HEAD_H = 26.0
-        _GROUP_GAP = 16.0
-        _BAR_H = 11.0
-        _y = 6.0
-        for _role in ROLES:
-            _names = C2_LISTS[_role]
-            _n = len(_names)
-            _group_h = _HEAD_H + (_n + 1) * _ROW_H
-
-            _annotations.append(dict(
-                xref='x', yref='y', x=0.0, y=_y + _HEAD_H - 8,
-                xanchor='left', yanchor='bottom', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE, color=INK), text='<b>{}</b>'.format(_role)))
-
-            # Campaign 1's band, its own row at the top of the group.
-            _by = _y + _HEAD_H + _ROW_H / 2.0
-            _lo, _hi = _c1_band[_role]
-            _shapes.append(dict(
-                type='rect', xref='x', yref='y',
-                x0=_at(_lo), x1=_at(_hi), y0=_by - _BAR_H / 2.0, y1=_by + _BAR_H / 2.0,
-                fillcolor=fade(SPACE_COLOR, 0.28),
-                line=dict(color=SPACE_COLOR, width=1.6)))
-            _annotations.append(dict(
-                xref='x', yref='y', x=_LABEL_W - 10, y=_by,
-                xanchor='right', yanchor='middle', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE - 2, color=INK), text='Campaign 1'))
-            _annotations.append(dict(
-                xref='x', yref='y', x=_at(_hi) + 8, y=_by,
-                xanchor='left', yanchor='middle', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE - 3, color=INK_SOFT), text=_c1_note[_role]))
-
-            for _i, _name in enumerate(_names):
-                _ry = _y + _HEAD_H + (_i + 1.5) * _ROW_H
-                _rlo, _rhi = C2_V_RANGES[_role][
-                    [_k for _k in C2_V_RANGES[_role] if pretty(_k) == _name][0]]
-                _shapes.append(dict(
-                    type='rect', xref='x', yref='y',
-                    x0=_at(_rlo), x1=_at(_rhi), y0=_ry - _BAR_H / 2.0, y1=_ry + _BAR_H / 2.0,
-                    fillcolor=fade(NEW_COLOR, 0.35),
-                    line=dict(color=NEW_COLOR, width=1.6)))
-                _annotations.append(dict(
-                    xref='x', yref='y', x=_LABEL_W - 10, y=_ry,
-                    xanchor='right', yanchor='middle', showarrow=False,
-                    font=dict(size=ANNOTATION_SIZE - 2, color=INK), text=_name))
-                _annotations.append(dict(
-                    xref='x', yref='y', x=_at(_rhi) + 8, y=_ry,
-                    xanchor='left', yanchor='middle', showarrow=False,
-                    font=dict(size=ANNOTATION_SIZE - 3, color=INK),
-                    text='{:g}–{:g} %'.format(_rlo, _rhi)))
-
-            _y += _group_h + _GROUP_GAP
-
-        # The scale, once, under all three groups. Drawn as a rule and annotations rather than
-        # by a visible axis, so it stays on the pixel grid with everything else.
-        _axis_y = _y + 2.0
-        _shapes.append(dict(type='line', xref='x', yref='y',
-                            x0=_at(0.0), x1=_at(_SCALE_MAX), y0=_axis_y, y1=_axis_y,
-                            line=dict(color=INK, width=1.4)))
-        for _t in (0, 10, 20, 30, 40):
-            _shapes.append(dict(type='line', xref='x', yref='y',
-                                x0=_at(_t), x1=_at(_t), y0=_axis_y, y1=_axis_y + 5,
-                                line=dict(color=INK, width=1.4)))
-            _annotations.append(dict(
-                xref='x', yref='y', x=_at(_t), y=_axis_y + 8,
-                xanchor='center', yanchor='top', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE - 3, color=INK), text='{:g}'.format(_t)))
-        _annotations.append(dict(
-            xref='x', yref='y', x=_at(_SCALE_MAX), y=_axis_y + 8,
-            xanchor='right', yanchor='top', showarrow=False,
-            font=dict(size=ANNOTATION_SIZE - 3, color=INK_SOFT), text='% v/v'))
-
-        # ---- right: the score ------------------------------------------------------------
-        _sx, _sy, _sw, _sh = pixel_axes((0.640, 0.985), (0.000, 1.000), anchor=('x2', 'y2'))
-        _NAME_W = 168.0
-        _COL = (_NAME_W + 46.0, _NAME_W + 132.0)   # centres of the two weight columns
-        _sy0 = 6.0
-
-        _annotations.append(dict(
-            xref='x2', yref='y2', x=0.0, y=_sy0 + 18,
-            xanchor='left', yanchor='bottom', showarrow=False,
-            font=dict(size=ANNOTATION_SIZE, color=INK), text='<b>What the score reads</b>'))
-        for _cx, _head, _col in zip(_COL, ('Campaign 1', 'Campaign 2'),
-                                    (SPACE_COLOR, NEW_COLOR)):
-            _annotations.append(dict(
-                xref='x2', yref='y2', x=_cx, y=_sy0 + 46,
-                xanchor='center', yanchor='bottom', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE - 2, color=_col), text=_head))
-
-        # The five rows are set at a generous pitch on purpose: the panel carries far less ink
-        # than the ranges beside it, so an airy right column balances the two rather than
-        # leaving a tight block floating at the top of the canvas.
-        _CHIP_W, _CHIP_H = 40.0, 26.0
-        _row_h = 58.0
-        _ry0 = _sy0 + 66.0
-        for _i, (_stem, _label) in enumerate(SCORE_ROWS):
-            _cy = _ry0 + (_i + 0.5) * _row_h
-            _is_new = _stem in NEW_STEMS
-            _annotations.append(dict(
-                xref='x2', yref='y2', x=_NAME_W - 12, y=_cy,
-                xanchor='right', yanchor='middle', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE - 1, color=NEW_COLOR if _is_new else INK),
-                text='<b>{}</b>'.format(_label) if _is_new else _label))
-            for _cx, _w, _col in zip(_COL, (C1_W.get(_stem), C2_W.get(_stem)),
-                                     (SPACE_COLOR, NEW_COLOR)):
-                if _w is None:
-                    # Not scored at all, which is the panel's point for two of the rows. An
-                    # en dash rather than an empty cell: a blank reads as an oversight.
-                    _annotations.append(dict(
-                        xref='x2', yref='y2', x=_cx, y=_cy,
-                        xanchor='center', yanchor='middle', showarrow=False,
-                        font=dict(size=ANNOTATION_SIZE - 1, color=INK_SOFT), text='—'))
-                    continue
-                _shapes.append(dict(
-                    type='rect', xref='x2', yref='y2',
-                    x0=_cx - _CHIP_W / 2.0, x1=_cx + _CHIP_W / 2.0,
-                    y0=_cy - _CHIP_H / 2.0, y1=_cy + _CHIP_H / 2.0,
-                    fillcolor=fade(_col, 0.28), line=dict(color=_col, width=1.6)))
-                _annotations.append(dict(
-                    xref='x2', yref='y2', x=_cx, y=_cy,
-                    xanchor='center', yanchor='middle', showarrow=False,
-                    font=dict(size=ANNOTATION_SIZE - 1, color=INK), text='{:g}'.format(_w)))
-
-        # Phase separation, apart. It is not a weight in the same sense as the five above --
-        # Campaign 1 adds 10 x sep to the loss, Campaign 2 divides the loss by 1 - sep -- so it
-        # is written as the operator and ruled off rather than set as a number in the column.
-        _rule_y = _ry0 + len(SCORE_ROWS) * _row_h + 6.0
-        _shapes.append(dict(type='line', xref='x2', yref='y2',
-                            x0=0.0, x1=_COL[1] + _CHIP_W, y0=_rule_y, y1=_rule_y,
-                            line=dict(color=INK, width=1.2)))
-        _sep_y = _rule_y + 24.0
-        _annotations.append(dict(
-            xref='x2', yref='y2', x=_NAME_W - 12, y=_sep_y,
-            xanchor='right', yanchor='middle', showarrow=False,
-            font=dict(size=ANNOTATION_SIZE - 1, color=INK), text='Phase separation'))
-        for _cx, _txt, _col in zip(_COL,
-                                   ('+ {:g} × sep'.format(C1_W['sep']),
-                                    '÷ (1 − sep)'),
-                                   (SPACE_COLOR, NEW_COLOR)):
-            _annotations.append(dict(
-                xref='x2', yref='y2', x=_cx, y=_sep_y,
-                xanchor='center', yanchor='middle', showarrow=False,
-                font=dict(size=ANNOTATION_SIZE - 2, color=_col), text=_txt))
-
-        _annotations.append(dict(
-            xref='x2', yref='y2', x=0.0, y=_sep_y + 30,
-            xanchor='left', yanchor='top', showarrow=False, align='left',
-            font=dict(size=ANNOTATION_SIZE - 3, color=INK_SOFT),
-            text='PDI is hinged at 0.3 in Campaign 1 and at 0.1 in Campaign 2.'))
-        _annotations.append(dict(
-            xref='x2', yref='y2', x=0.0, y=_sep_y + 52,
-            xanchor='left', yanchor='top', showarrow=False, align='left',
-            font=dict(size=ANNOTATION_SIZE - 3, color=INK_SOFT),
-            text='Both objectives are losses, so lower is better and a heavier<br>'
-                 'weight is a property the optimiser is less willing to trade away.'))
-
-        # ---- legend proxies -------------------------------------------------------------
-        _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Campaign 1',
-            marker=dict(size=MARKER_SIZE, color=fade(SPACE_COLOR, 0.28), symbol='square',
-                        line=dict(width=1.4, color=SPACE_COLOR))))
-        _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Campaign 2',
-            marker=dict(size=MARKER_SIZE, color=fade(NEW_COLOR, 0.35), symbol='square',
-                        line=dict(width=1.4, color=NEW_COLOR))))
-
-        _annotations += [
-            dict(xref='paper', yref='paper', x=0.5, y=1.100, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
-                 text='<b>And what changed underneath them?</b>'),
-            dict(xref='paper', yref='paper', x=0.5, y=1.045, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
-                 text='Every ingredient carries its own volume range, and the score reads '
-                      'two properties Campaign 1 never scored'),
-        ]
-
-        _layout = go.Layout(
-            width=FIG_WIDTH, height=FIG_HEIGHT,
-            paper_bgcolor='white', plot_bgcolor='white',
-            font=dict(family=FONT_FAMILY, color=INK),
-            margin=SCHEMATIC_MARGIN,
-            xaxis=_vx, yaxis=_vy,
-            xaxis2=_sx, yaxis2=_sy,
-            shapes=_shapes, annotations=_annotations,
-            legend=dict(orientation='h', xanchor='center', x=0.5, yanchor='top', y=-0.02,
-                        font=dict(size=LEGEND_SIZE), itemsizing='constant',
-                        bgcolor='rgba(0,0,0,0)'),
-        )
-        return go.Figure(data=_traces, layout=_layout)
-
-
-    boundaries_figure = build_boundaries_state()
-    boundaries_figure
-    return (boundaries_figure,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     ## Export
 
     Three states at the house 1280 x 720, one data unit to one exported pixel. `EXPORT_FORMATS`
@@ -1253,7 +907,6 @@ def _(
     FONT_SCHEMES,
     OUTPUT_DIR,
     PNG_SCALE,
-    boundaries_figure,
     explored_figure,
     narrowed_figure,
     with_font_scheme,
@@ -1261,7 +914,6 @@ def _(
     FIGURES = {
         'Design_Space_Transition_Explored': (explored_figure, FIG_WIDTH, FIG_HEIGHT),
         'Design_Space_Transition_Narrowed': (narrowed_figure, FIG_WIDTH, FIG_HEIGHT),
-        'Design_Space_Transition_Boundaries': (boundaries_figure, FIG_WIDTH, FIG_HEIGHT),
     }
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

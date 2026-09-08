@@ -154,7 +154,6 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Design_Space/` (`_Expansion`) | That design as one system of a hundred, and its three settings as ranges | Table 1 |
 | `Design_Space_Transition/` (`_Explored`) | Of Table 1's hundred systems, the twenty-four Campaign 1 made | Table 1 |
 | `Design_Space_Transition/` (`_Narrowed`) | The same field cut to the forty-eight Campaign 2 can propose | — |
-| `Design_Space_Transition/` (`_Boundaries`) | One volume range per ingredient, and the two properties the score gained | — |
 | `Campaign1_Progress/` | Objective per formulation in campaign order, running best | Fig. 2 |
 | `Campaign2_Progress/` | The same, for Campaign 2's two API tracks side by side | — |
 | `Surrogate_Performance/` | Parity plots per target across the five batches | Fig. 1 |
@@ -213,15 +212,14 @@ four here are the design's comparable survivors — the only runs that can go on
 Table 2 targets at all. Slide one's footnote says so, because a reader will otherwise ask where the
 other rows went.
 
-### `Design_Space_Transition/` — one slide, three states
+### `Design_Space_Transition/` — one slide, two states
 
-Campaign 1's design space becoming Campaign 2's, told in three beats. Three exports, one
-move each: mark what Campaign 1 made, cut the field to what Campaign 2 can propose,
-then show what changed underneath. **It reuses `Design_Space_Expansion`'s 5 × 20 field on
-purpose** — slide two of Act 1 already taught the reader that grid, and re-teaching it in a new
+Campaign 1's design space becoming Campaign 2's. Two exports, one move each: mark what
+Campaign 1 made, then cut the field to what Campaign 2 can propose. **It reuses
+`Design_Space_Expansion`'s 5 × 20 field on purpose** — slide two of Act 1 already taught the reader that grid, and re-teaching it in a new
 geometry to make a *different* point would spend the slide on the frame.
 
-**States 1 and 2 are one builder, two category lists.** `build_grid_state()` computes the cell
+**Both states are one builder, two category lists.** `build_grid_state()` computes the cell
 pitch, the origin and the dial strip from Campaign 1's full lists *whatever it is asked to draw*,
 so state 2's cells sit on state 1's pixels and the two exports lay over each other without a mark
 moving. The dropped row, block and column simply go. This is the `Campaign1_Leaderboard` pattern
@@ -230,8 +228,8 @@ from **Animation states** below, applied to a schematic instead of a bar chart.
 The strip under the grid is `Design_Space_Expansion`'s, kept whole: each dial drawn twice, the
 Box-Behnken design's three stops above Campaign 1's continuous range. Table 1 did not widen the
 dials — it removed the stops between them, and that reading needs both rows. It is **identical
-in both states**, because the settings do not change until state 3 and a strip that also moved
-would give the reader two things to track in one step. `#E69F00` is the design, as it is in
+in both states**: a strip that also moved would give the reader two things to track in one
+step. `#E69F00` is the design, as it is in
 `Design_Space/` and `Campaign1_Progress/`.
 
 **The claim the cut rests on is asserted, not asserted-looking.** For all three roles the mesh is
@@ -246,33 +244,20 @@ those three dropped names: **the cut lands on the vocabulary, not on the evidenc
 `EXPLORED` is read out of `data/`, never listed. Explored means *measured*, not *liked* — a phase
 separation counts as much as a champion, because the state is about reach.
 
-**State 3 drops the field** and spends the canvas on the two changes that are not about which
-ingredients. Volumes come from upstream's three per-ingredient dicts; the score's weights are
-**parsed out of the column names `Figures/objectives.py` returns** (`'size_score (w=3)'`), so the
-panel is a view of the objective rather than a second copy of it. Phase separation is set apart
-below a rule and written as its operator — `+ 10 × sep` against `÷ (1 − sep)` — because it is not
-a weight in the same sense as the five above it.
-
-The volume panel's honest word is **specific, not wider**: Campaign 2's oil floor drops to 5 %
-but its per-oil ceiling is 15 % or 10 %, well under Table 1's 22.5 %. What grew is the number of
-independent knobs — `Surfactant_V + Cosurfactant_V == 40` in every Campaign 1 row, which is why
-Table 1 writes an S<sub>mix</sub> *ratio*, and Campaign 2 breaking that coupling turns three
-continuous dials into four. Both facts are asserted against the CSVs.
-
 **Purple is the borrowing that needs saying.** `#5A2E8C` is the A190 track's darkest step on the
 Campaign 2 board; here it means Campaign 2 as a whole. That would be wrong on a slide that drew
 either track — this one draws neither, and no green appears on it, so the hue cannot be read as
 "A190 rather than fenofibrate". The alternative was to draw Campaign 2 as an ink boundary, the
 device `Design_Space/` uses for the Table 2 targets; the hue won because the deck asked for one
-colour to carry across three states, and ink already belongs to the grid's labels. `#2067F4` runs under the
+colour to carry across both states, and ink already belongs to the grid's labels. `#2067F4` runs under the
 same licence `Design_Space/` states: no batches on the slide, so the blue is the family.
 
 **`pixel_axes()` takes an `anchor` pair here**, unlike `Design_Space/`'s. Every plotly axis after
 the first anchors to `x` / `y` by default, which puts a second pair's line — and on a *visible*
 pair its ticks and its title — in the first pair's panel. `Design_Space/` never noticed because
-both of its pairs are invisible. State 3's scale is drawn as shapes on the pixel grid rather than
-by a visible axis, so nothing goes wrong today; the argument is threaded through from the start so
-the first visible axis added here does not have to find the bug.
+both of its pairs are invisible. Neither state here has a visible axis either, so nothing goes
+wrong today; the argument is threaded through from the start so the first visible axis added does
+not have to find the bug.
 
 ### Animation states
 
