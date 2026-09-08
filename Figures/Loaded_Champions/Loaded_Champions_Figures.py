@@ -768,10 +768,15 @@ def _(mo):
     own height.
 
     **The bands are not all the same height.** A champion's holds three marks and is a full unit;
-    DoE-OPT's holds one and is `DOE_BAND` of a unit, because at full height its row was a third of
-    the panel given over to white space around a single diamond. Band edges are computed once, and
-    the rules, the row labels and the axis range all come off them, so changing a height moves
-    everything together.
+    DoE-OPT's holds one, and at full height its row was a third of the panel given over to white
+    space around a single diamond.
+
+    `DOE_BAND` is **derived rather than chosen**: a champion's outermost mark clears its band edge
+    by `0.5 − max|dy|`, so giving DoE-OPT's single mark that same clearance above and below makes
+    its band twice that — 0.48 of a unit. The diamond is then spaced exactly as a champion's outer
+    marks are, and the band is as short as it can be without crowding. Band edges are computed
+    once, and the rules, the row labels and the axis range all come off them, so a change to the
+    offsets moves everything together.
 
     A missing measurement leaves **no mark**, and there are three such gaps: DoE-OPT is a single
     A190 mark (no blank counterpart, no fenofibrate run), and no blank formulation has drug loading
@@ -845,10 +850,13 @@ def _(
     ROW_STYLE = {DOE_NAME: dict(color=DOE_COLOR,
                                 legend='DoE-OPT baseline')}
 
-    # DoE-OPT's band height, in units of a champion's. A champion band holds three marks stacked
-    # at +/- 0.26; DoE-OPT holds one, and at a full unit it read as a third of the panel given
-    # over to white space around a single diamond.
-    DOE_BAND = 0.62
+    # DoE-OPT's band height, in units of a champion's -- derived, not chosen.
+    #
+    # A champion band is 1.0 tall and its outermost marks sit at +/- max|dy|, so a mark clears its
+    # band edge by `0.5 - max|dy|`. Give DoE-OPT's single mark that same clearance above and below
+    # and the band comes out at twice it: 0.48. So the one diamond is spaced exactly as a
+    # champion's outer marks are, and the band is as short as it can be without crowding.
+    DOE_BAND = 2.0 * (0.5 - max(abs(_s['dy']) for _s in STATE_STYLE.values()))
 
     # One entry per panel, left to right. `BARRIER_PANELS` is one per output `campaign2` reads;
     # `PHYSCHEM_PANELS` is the three both campaigns measure, with every barrier taken off.
