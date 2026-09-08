@@ -287,7 +287,7 @@ band, and `TRIAL_COLOR` on that ground stops being a mark.
 `Campaign2_Progress/` is the same slide for Campaign 2, and **two panels, because Campaign 2 ran
 two independent tracks** — A190 and fenofibrate were separate optimisations, so they are two
 progressions rather than one series split in half. They share a value axis and its splice (four
-phase separations park at 5438 while the stable campaign lives between 0.13 and 2.98, so
+phase separations park at 104 while the stable campaign lives between 0.13 and 2.98, so
 `BREAK_AT = 3.75` — the axis runs 0 · 0.5 · … · 3.5 and then skips) and each panel is a closed, separately ticked box; they do not share an x
 axis, because experiment 7 on one track has nothing to do with experiment 7 on the other. The
 four break marks are placed once against paper coordinates, which is why both value axes take the

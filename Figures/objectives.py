@@ -25,18 +25,25 @@ C:/PyCharmProjects/BatchedBayes), which is the source of truth:
 
   campaign1  <- Analysis-Cleanup:analysis/build_score_datasets.py
                 (``original_objective``); the paper's Eq. 1-4.
-  campaign2  <- Analysis-Cleanup:score_dataset.py
-                (``compute_component_scores``).
+  campaign2  <- BayesianOptimization/applications.py
+                (``MicroemulsionFormulation.objective_function``); the five
+                component scores match Analysis-Cleanup:score_dataset.py
+                (``compute_component_scores``) exactly.
 
-Known split in Campaign 2's phase-separation term, present upstream as well:
-the optimiser's own objective (``BayesianOptimization/applications.py``,
-``objective_function``, since 3a3df18 / 3cba64f, 2026-05-13) adds
+Campaign 2's phase-separation term follows the optimiser, not the analysis
+scripts. Upstream carries two forms of it: ``BayesianOptimization/applications.py``
+(``objective_function``, since 3a3df18 / 3cba64f, 2026-05-13) *adds*
 ``50 * clip(sep, 0, 1)`` to the loss, while the analysis side -- upstream's
-``score_dataset.py`` and this file -- divides by the stability factor. The five
-component scores are identical between them; only the phase-separation handling
-differs. The divisive form is what every published ranking in this project was
-computed with, so it is what stays here. Do not "reconcile" the two without
-deciding which numbers you are willing to move.
+``score_dataset.py``, and this file until 2026-09-07 -- *divided* by the
+stability factor ``1 - sep`` floored at 0.01. The five component scores are
+identical between them; only this term ever differed.
+
+``campaign2`` now uses the **additive** form, so that what this repo draws is
+what the optimiser actually minimised. On the measured data the swap is nearly
+inert: ``Phase_Sep`` is binary there, so every stable row is unchanged to the
+last digit and the four separated formulations move from 5438 to 104 without
+changing places. Anything quoting 5438 for a separated run is stale; no
+ranking in the project is.
 """
 import numpy as np
 import pandas as pd
@@ -78,10 +85,12 @@ def campaign1(df: pd.DataFrame) -> pd.DataFrame:
 def campaign2(df: pd.DataFrame) -> pd.DataFrame:
     """Campaign 2's weighted objective.
 
-    ``(3*size + 2*pdi + 1*zeta + 2*drug_loading + 3*permeability)`` divided by
-    the stability factor ``1 - phase_sep`` (floored at 0.01, so a fully
-    separated formulation lands around 100x its stable-side loss rather than at
-    infinity -- which is why leaderboards cut at ``objective < 100``).
+    ``3*size + 2*pdi + 1*zeta + 2*drug_loading + 3*permeability``, plus an
+    additive phase-separation penalty of ``50 * clip(sep, 0, 1)``. The penalty
+    is bounded rather than multiplicative: a fully separated formulation is
+    charged a flat 50 on top of whatever its stable-side loss came to, which
+    still lands it far clear of anything real (the worst stable run scores
+    under 3.5) without the sign hazard of dividing a loss that can go negative.
 
     Differences from Campaign 1 beyond the weights: PDI is hinged at 0.1 rather
     than 0.3, and PDI and permeability both have a gentle bonus side at one
@@ -128,7 +137,7 @@ def campaign2(df: pd.DataFrame) -> pd.DataFrame:
         + 2.0 * dl_score
         + 3.0 * perm_score
     )
-    stability = 1.0 - np.clip(sep, 0.0, 1.0)
+    sep_score = 50.0 * np.clip(sep, 0.0, 1.0)
 
     return pd.DataFrame({
         "size_score (w=3)": size_score,
@@ -136,7 +145,7 @@ def campaign2(df: pd.DataFrame) -> pd.DataFrame:
         "zeta_score (w=1)": zeta_score,
         "dl_score (w=2)": dl_score,
         "perm_score (w=3)": perm_score,
+        "sep_score (w=50)": sep_score,
         "formulation_loss": formulation_loss,
-        "stability_factor": stability,
-        "objective": formulation_loss / np.maximum(stability, 0.01),
+        "objective": formulation_loss + sep_score,
     }, index=df.index)

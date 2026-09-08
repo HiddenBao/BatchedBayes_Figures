@@ -43,7 +43,7 @@ def _(mo):
     the bar is the mean of the three, and the ringed dots are the repeats themselves.
 
     The objective is Campaign 2's weighted form — `3·size + 2·pdi + 1·zeta + 2·drug_loading +
-    3·permeability`, divided by the stability factor, PDI hinged at 0.1 — imported from
+    3·permeability`, plus `50 × phase separation`, PDI hinged at 0.1 — imported from
     `Figures/objectives.py` rather than restated. It uses all six measured outputs, so unlike the
     Campaign 1 slide it can only rank formulations that were actually loaded with an API.
 
@@ -324,8 +324,9 @@ def _(mo):
     top three of the Campaign 1 slide: on a score-then-average blank board `D3` ranks second, but
     it was never loaded, so it has no Campaign 2 objective.
 
-    `SEP_CUT` catches phase separation: dividing by the stability factor floored at 0.01 sends a
-    fully separated formulation to roughly 100× its stable-side loss, well clear of anything real.
+    `SEP_CUT` catches phase separation: the flat `+50` penalty parks every separated formulation
+    above 50, while the whole stable campaign scores under 3.5 — a cut anywhere between the two
+    picks out the same rows, and the value is asserted against both sides below.
 
     ### Row names
 
@@ -359,7 +360,7 @@ def _(mo):
 
 @app.cell
 def _(DATA_CSV, campaign2, pd):
-    SEP_CUT = 100.0
+    SEP_CUT = 25.0
 
     PANELS = ('A190', 'Feno')
     PANEL_TITLE = {'A190': 'A190-Loaded', 'Feno': 'Fenofibrate-Loaded'}
@@ -450,6 +451,12 @@ def _(DATA_CSV, campaign2, pd):
         mean_objective = rows.groupby('Exp')['objective'].mean().sort_values()
         ranked = mean_objective[mean_objective < SEP_CUT]
         separated = sorted(mean_objective[mean_objective >= SEP_CUT].index)
+
+        # The cut has to fall in open ground, not just somewhere: the additive penalty leaves a
+        # clear band between the worst stable run and the cheapest separation, and SEP_CUT is
+        # only meaningful while it sits inside that band.
+        assert ranked.empty or ranked.iloc[-1] < SEP_CUT, '{}: SEP_CUT clips a stable run'.format(api)
+        assert not separated or mean_objective[separated].min() > SEP_CUT,             '{}: a separated run scores below SEP_CUT={}'.format(api, SEP_CUT)
         row_label = {exp: row_label_of(api, exp) for exp in ranked.index}
         assert len(set(row_label.values())) == len(row_label),             '{} row labels collide once the API tag is dropped'.format(api)
         repeats = rows[rows['Exp'].isin(ranked.index)].copy()

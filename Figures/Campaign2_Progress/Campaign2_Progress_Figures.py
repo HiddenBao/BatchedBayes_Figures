@@ -77,7 +77,7 @@ def _(mo):
     ## Scoring
 
     Campaign 2's weighted objective — `3·size + 2·pdi + 1·zeta + 2·drug_loading + 3·perm`,
-    divided by the stability factor, PDI hinged at 0.1 — imported from `Figures/objectives.py`
+    plus `50 × phase separation`, PDI hinged at 0.1 — imported from `Figures/objectives.py`
     rather than restated. It reads all six measured outputs, which is why **only loaded rows can
     appear here at all**: the blank Campaign 1 history in these CSVs has no drug loading and no
     permeability, so it has no Campaign 2 objective to plot. That is the difference from the
@@ -102,8 +102,8 @@ def _(mo):
     ## One panel each, one spliced axis
 
     Four formulations phase-separated — `A-B2`, `A-C1`, `A-C4` on A190 and `F-C4` on fenofibrate.
-    Dividing by a stability factor floored at 0.01 parks every one of them at 5438, while the
-    whole stable campaign lives between 0.13 and 2.98.
+    The flat `+50` phase-separation penalty parks every one of them at 104, while the whole
+    stable campaign lives between 0.13 and 2.98.
 
     So the value axis is **spliced**, exactly as on the Campaign 1 slide and for the same reason:
     everything at or below `BREAK_AT` is drawn where it falls, the separated cluster is drawn

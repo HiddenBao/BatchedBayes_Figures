@@ -81,19 +81,21 @@ The `analysis/` folder — `build_score_datasets.py`, `export_leaderboard_data.p
 - `campaign1` — Campaign 1 **as published** (paper Eq. 1–4): equal weights,
   `+10*phase_sep`, PDI hinged at 0.3. **Act 1 figures use this.**
 - `campaign2` — Campaign 2's weighted form:
-  `(3*size + 2*pdi + 1*zeta + 2*drug_loading + 3*perm) / max(1-phase_sep, 0.01)`,
+  `3*size + 2*pdi + 1*zeta + 2*drug_loading + 3*perm + 50*clip(phase_sep, 0, 1)`,
   PDI hinged at 0.1. Everything else uses this.
 
 Both are transcribed from upstream (`Analysis-Cleanup:analysis/build_score_datasets.py`
 and `Analysis-Cleanup:score_dataset.py`). Nothing imports `MicroemulsionFormulation` any
 more, so if upstream's objective changes these drift silently — diff them when it matters.
 
-**Campaign 2's phase-separation term differs between upstream's own two copies**, and this
-is not a bug to fix casually. The optimiser (`BayesianOptimization/applications.py`,
-`objective_function`, since 2026-05-13) *adds* `50 * clip(sep, 0, 1)`; the analysis side
-(upstream `score_dataset.py`, and `objectives.py` here) *divides* by `1 - sep`. The five
-component scores are identical; only this term differs. Every published ranking in this
-project used the divisive form, so that is what `campaign2` keeps.
+**Campaign 2's phase-separation term differs between upstream's own two copies.** The
+optimiser (`BayesianOptimization/applications.py`, `objective_function`, since 2026-05-13)
+*adds* `50 * clip(sep, 0, 1)`; the analysis side (upstream `score_dataset.py`) *divides* by
+`1 - sep`. The five component scores are identical; only this term differs. Since 2026-09-07
+`campaign2` here follows the **optimiser**, so the figures score what was actually minimised.
+The swap is nearly inert on the measured data — `Phase_Sep` is binary, so every stable row is
+unchanged and the four separated ones move 5438 → 104 without changing places — but anything
+quoting 5438 predates it.
 
 ## Campaigns — do not mix them up
 
