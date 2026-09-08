@@ -156,6 +156,7 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Design_Space_Transition/` (`_Narrowed`) | The same field cut to the forty-eight Campaign 2 can propose | — |
 | `Loaded_Champions/` (`_Physicochemical`) | Campaign 1's three champions and DoE-OPT, blank and drug-loaded — size, PDI and ζ, no boundaries | — |
 | `Loaded_Champions/` (`_Barriers`) | The same rows against Campaign 2's objective barriers, plus drug loading and permeability | — |
+| `Champions_Head_to_Head/` | Campaign 2's best three per track against Campaign 1's three revalidated champions — the objective and every output it reads | — |
 | `Campaign1_Progress/` | Objective per formulation in campaign order, running best | Fig. 2 |
 | `Campaign2_Progress/` | The same, for Campaign 2's two API tracks side by side | — |
 | `Surrogate_Performance/` | Parity plots per target across the five batches | Fig. 1 |
@@ -163,7 +164,8 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Permeability/` | Effective permeability, A190- and fenofibrate-loaded | Fig. 5 |
 
 The two leaderboards, `Campaign1_Progress/`, `Campaign2_Progress/`, `Design_Space/`,
-`Design_Space_Transition/` and `Loaded_Champions/` are built; the rest are not.
+`Design_Space_Transition/`, `Loaded_Champions/` and `Champions_Head_to_Head/` are built; the rest
+are not.
 
 ### `Loaded_Champions/` — one slide built up, and barriers probed rather than restated
 
@@ -231,6 +233,42 @@ tight enough that plotly silently rotates a crowded tick row to vertical — whi
 five reads as a different kind of axis and drops that panel's title out of line. Pinning the angle
 turns a silent re-layout into a visible collision; the fix for a collision is fewer ticks, which is
 why drug loading is ticked at its two dead-zone edges and not at 100.
+
+### `Champions_Head_to_Head/` — the Campaign 2 board opened up
+
+`Loaded_Champions_Barriers`' grammar with different rows: six panels — **the objective, then the
+five outputs it is made of** — and twelve rows in two sections, one per API. Each section holds
+**Campaign 2's best three on that track and the three Campaign 1 champions revalidated with that
+API**, ranked together by the objective, both campaigns interleaved. Where the Campaign 1 rows land
+is the point, so grouping them would make the slide take two readings instead of one.
+
+Campaign 2's three are **computed from the data**, not typed — score-then-average over that track's
+own proposals — and then asserted against the set the slide was drawn for, so a data change fails
+rather than quietly redrawing the comparison. Campaign 1's three are `Loaded_Champions`' rows and
+are named against `Campaign1_Leaderboard`'s `CARRIED`; they are *not* the Campaign 1 board's top
+three, because `D3` ranks second there and was never loaded.
+
+**Hue is the campaign here, and that is the Campaign 2 board's palette, not `Loaded_Champions`'.**
+On that suite purple and green mean *loaded with this API*; here every mark is loaded and the
+section already says which API, so hue carries the one thing a section cannot — `#2067F4` a
+revalidated Campaign 1 champion, `#5A2E8C` Campaign 2's A190 track, `#00572B` its fenofibrate
+track. That is exactly what the Campaign 2 board does with the same rows. The track ramps are used
+at **one step, not three**: a ramp claims a batch order, and three rows of a track are not the
+track. Shape stays `Loaded_Champions`' — diamond A190, square fenofibrate — so hue says whose a
+formulation is and shape says which API.
+
+The objective panel carries **no barrier and no shaded band**: `campaign2` is a loss with no pass
+mark, and shading a side of it would invent a specification the optimiser does not have. Its axis
+starts below zero, because the PDI and permeability terms both have a bonus side. The five
+measurement panels keep `Loaded_Champions`' ranges exactly, so a value sits in the same place on
+both slides.
+
+Two things the sixth panel costs. **Panel widths are not equal** — each panel's `width` is the
+share of the row it takes, set by the title and tick set it has to carry; there is no shared scale
+between panels, so a width claims nothing about the values. And **row labels are set at 14 pt**,
+the one type departure: twelve of them at the tick 18 would give the gutter a third of the canvas.
+Section headers sit in that gutter in a band of their own rather than floating over the panels,
+because a header above one of six boxes reads as that box's caption.
 
 ### `Design_Space/` is two slides, one suite
 
