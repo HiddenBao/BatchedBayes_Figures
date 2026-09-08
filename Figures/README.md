@@ -154,7 +154,8 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Design_Space/` (`_Expansion`) | That design as one system of a hundred, and its three settings as ranges | Table 1 |
 | `Design_Space_Transition/` (`_Explored`) | Of Table 1's hundred systems, the twenty-four Campaign 1 made | Table 1 |
 | `Design_Space_Transition/` (`_Narrowed`) | The same field cut to the forty-eight Campaign 2 can propose | — |
-| `Objective_Barriers/` | Campaign 1's three champions and DoE-OPT, blank and drug-loaded, against Campaign 2's barriers | — |
+| `Loaded_Champions/` (`_Physicochemical`) | Campaign 1's three champions and DoE-OPT, blank and drug-loaded — size, PDI and ζ, no boundaries | — |
+| `Loaded_Champions/` (`_Barriers`) | The same rows against Campaign 2's objective barriers, plus drug loading and permeability | — |
 | `Campaign1_Progress/` | Objective per formulation in campaign order, running best | Fig. 2 |
 | `Campaign2_Progress/` | The same, for Campaign 2's two API tracks side by side | — |
 | `Surrogate_Performance/` | Parity plots per target across the five batches | Fig. 1 |
@@ -162,21 +163,41 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Permeability/` | Effective permeability, A190- and fenofibrate-loaded | Fig. 5 |
 
 The two leaderboards, `Campaign1_Progress/`, `Campaign2_Progress/`, `Design_Space/`,
-`Design_Space_Transition/` and `Objective_Barriers/` are built; the rest are not.
+`Design_Space_Transition/` and `Loaded_Champions/` are built; the rest are not.
 
-### `Objective_Barriers/` — the barriers, probed rather than restated
+### `Loaded_Champions/` — one slide built up, and barriers probed rather than restated
 
-Five panels, one per output `campaign2` reads, and four rows: `B4`, `S5`, `E2` — the three
-champions `Campaign1_Leaderboard` marks as `CARRIED` — and `DoE-OPT` below a rule. Each row
-carries up to three marks: **hue is the API, not the formulation**, because the comparison runs
-*along* a row. `#2067F4` is the blank Campaign 1 measurement (the revalidated-champion hue, for
-the same three rows in the same role), `#5A2E8C` A190 and `#00572B` fenofibrate — the darkest,
-lightness-matched step of each track's ramp, with circle / diamond / square as a second channel.
+Four rows — `B4`, `S5`, `E2` (the three champions `Campaign1_Leaderboard` marks as `CARRIED`) and
+`DoE-OPT` below a rule — each carrying up to three marks: the blank measurement and one per API.
+**Hue is the API, not the formulation**, because the comparison runs *along* a row. `#2067F4` is
+the blank Campaign 1 measurement (the revalidated-champion hue, for the same three rows in the
+same role), `#5A2E8C` A190 and `#00572B` fenofibrate — the darkest, lightness-matched step of each
+track's ramp, with circle / diamond / square as a second channel.
+
+**Two exports, one builder.** `build_slide()` takes the panel list and a `barriers` flag, so the
+rows, offsets, rules, gutter and type are shared by construction:
+
+| export | panels | barriers |
+|---|---|---|
+| `_Physicochemical` | size · PDI · \|ζ\| | none — nothing on it is a pass or a fail |
+| `_Barriers` | those three, plus drug loading and permeability | Campaign 2's |
+
+Two of the three shared panels keep the same range in both, so a reader who sees both reads one
+scale. Only the PDI ticks and the zeta range differ, and both differences are the barriers' doing:
+the PDI panel is ticked at 0.1 and 0.3 *because* they are boundaries, and zeta runs to 12 only to
+leave room for one at 10. The suite asserts the physicochemical panels are the barrier figure's
+first three, in order, and that none of them carries a `pass_range`, a `line` or a `soft_line`.
+
+**Each formulation's band is closed by a hairline rule** running the full width, gutter included.
+Offsets alone group the marks only while a reader trusts the spacing, and on a panel where one
+row's marks are spread and its neighbour's are clustered, the spacing stops being obvious — so the
+grouping is structural: three marks between two rules are one formulation. DoE-OPT's is the one
+**dotted** rule, because that boundary is a section break rather than a row break.
 
 **Every boundary it draws is probed out of `objectives.py`, not read off it.** The cell sweeps one
 output at a time through `campaign2` and asserts the kink is where the constant says — size 100 nm,
 PDI 0.1, |ζ| 10 mV, loading 100 ± 5 %, permeability 20 × 10⁻⁶ — and separately asserts `campaign1`
-does *not* read loading or permeability, which is the slide's "two new axes" claim. Campaign 1's
+does *not* read loading or permeability, which is the barrier slide's "two new axes" claim. Campaign 1's
 superseded PDI hinge at 0.3 is drawn dotted behind the dashed 0.1, and is probed against
 `campaign1` as the quartering **step** it is rather than as a slope change.
 

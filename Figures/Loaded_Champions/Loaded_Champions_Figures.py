@@ -30,13 +30,22 @@ app = marimo.App()
 @app.cell
 def _(mo):
     mo.md(r"""
-    # Objective Barriers Figure Suite
+    # Loaded Champions Figure Suite
 
-    **One figure, one question.** `Objective_Barriers.svg` — the four formulations Act 1 finished
-    with, each measured blank and again drug-loaded, against **Campaign 2's** objective barriers.
+    **Two figures, one set of rows.** The four formulations Act 1 finished with, each measured
+    blank and again drug-loaded:
 
-    The slide it owns asks: *when the champions were loaded with an API, did they still clear the
-    bar?* — and the bar is not the one they were selected against.
+    | export | slide | what it asks |
+    | --- | --- | --- |
+    | `Loaded_Champions_Physicochemical.svg` | one | did loading an API change the measurement? Size, dispersity and charge, no boundary drawn |
+    | `Loaded_Champions_Barriers.svg` | two | and does it still clear the bar — **Campaign 2's** bar, which reads two outputs no blank formulation has |
+
+    They stay one suite because both rest on the same resolved row set: the same four
+    formulations, the same Campaign 1 ranking, and the same reading of `DoEOPT` out of two
+    disagreeing files. That resolution is the part that must not drift, and splitting the suite
+    would duplicate it.
+
+    Slide one is the plain observation. Slide two lays Campaign 2's objective over it.
 
     ## The rows: what Act 1 handed over
 
@@ -60,7 +69,7 @@ def _(mo):
     the id. The suite asserts `Ran5` and `F5_A` are the same composition, exactly as
     `Campaign1_Leaderboard` does.
 
-    ### DoE-OPT is the trap on this slide
+    ### DoE-OPT is the trap in this suite
 
     **`data/` carries two different `DoEOPT` measurements under one id, in two different files.**
 
@@ -111,7 +120,7 @@ def _(mo):
 
     **There is no objective panel.** The totals for these very rows are `Campaign2_Leaderboard`'s
     whole subject, and a sixth panel here would be that board a second time at a fifth of the
-    width. This slide is the components and the boundaries; the ranking is the next one.
+    width. These slides are the components and the boundaries; the ranking is the next one.
 
     ## Environment
 
@@ -119,8 +128,8 @@ def _(mo):
     launches it *is* the kernel. Run it from the **`BatchedBayes`** conda environment:
 
     ```
-    conda run -n BatchedBayes marimo edit Figures/Objective_Barriers/Objective_Barriers_Figures.py
-    conda run -n BatchedBayes python Figures/Objective_Barriers/Objective_Barriers_Figures.py
+    conda run -n BatchedBayes marimo edit Figures/Loaded_Champions/Loaded_Champions_Figures.py
+    conda run -n BatchedBayes python Figures/Loaded_Champions/Loaded_Champions_Figures.py
     ```
     """)
     return
@@ -188,7 +197,7 @@ def _(Path, sys):
         _HERE = Path.cwd()
 
     REPO_ROOT = _find_repo_root(_HERE)
-    OUTPUT_DIR = REPO_ROOT / 'Figures' / 'Objective_Barriers' / 'Output'
+    OUTPUT_DIR = REPO_ROOT / 'Figures' / 'Loaded_Champions' / 'Output'
     DATA_CSV = REPO_ROOT / 'data' / 'MicroemulsionFormulation_Comprehensive.csv'
     # The blank DoE-OPT lives here and nowhere else. Both are read and asserted identical.
     PER_API_CSV = {
@@ -271,6 +280,9 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
     # black, because on a projector a grey label reads as washed out rather than as quieter.
     INK_SOFT = 'rgba(0, 0, 0, 0.55)'
     RULE = 'rgba(0, 0, 0, 0.22)'
+    # The hairline closing each formulation's band. Lighter than RULE and solid rather than
+    # dotted, so the one dotted rule on the figure still reads as the section break it is.
+    ROW_RULE = 'rgba(0, 0, 0, 0.16)'
     # The pass side of every barrier, and the `Breaking-the-Boundaries` SCREEN_BAND value.
     PASS_BAND = 'rgba(0, 0, 0, 0.055)'
 
@@ -365,6 +377,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         MARKER_SIZE,
         PASS_BAND,
         RULE,
+        ROW_RULE,
         TITLE_SIZE,
         with_font_scheme,
     )
@@ -648,27 +661,46 @@ def _(DATA_CSV, PER_API_CSV, campaign1, campaign2, pd):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## The figure
+    ## The two figures
 
-    **Five panels across the house width**, one per output `campaign2` reads, sharing a row order
-    and a single row-label gutter so they read as one table rather than five charts. `PANELS` is
-    the whole layout: a panel is a row in that list, and adding or dropping an output is an edit
-    to it.
+    **One builder, two panel lists.** `build_slide()` takes the panels and a flag for whether to
+    draw barriers, so the rows, the offsets, the row rules and the type are shared by
+    construction and the two exports cannot drift apart.
 
-    | panel | axis | barrier | what the shaded band holds |
+    | export | panels | barriers | the question it answers |
     | --- | --- | --- | --- |
-    | droplet size, nm | 0 – 270 | 100 nm | the six small ones |
-    | PDI | 0 – 0.5 | **0.1**, with Campaign 1's 0.3 dotted behind it | nothing |
-    | \|ζ\|, mV | 0 – 12 | 10 mV | every mark |
-    | drug loading, % | 88 – 116 | 100 ± 5 | the loaded marks that landed on target |
-    | permeability, ×10⁻⁶ | 0 – 36 | 20 | everything except DoE-OPT |
+    | `Loaded_Champions_Physicochemical.svg` | size · PDI · \|ζ\| | **none** | did the measurement move when the formulation was loaded? |
+    | `Loaded_Champions_Barriers.svg` | those three, plus drug loading and permeability | Campaign 2's | and did it still clear the bar — the new bar? |
+
+    The physicochemical figure comes **first in the deck**. It is the plain observation, on the
+    three outputs both campaigns measure and neither API changes the meaning of, with no boundary
+    drawn at all: nothing on it is a pass or a fail, it is three properties measured twice. The
+    barrier figure is that same reading with Campaign 2's objective laid over it, and two axes
+    added that only the loaded rows can report.
+
+    ### The panels
+
+    | panel | physicochemical | barrier figure | barrier |
+    | --- | --- | --- | --- |
+    | droplet size, nm | 0 – 270 | 0 – 270 | 100 nm |
+    | PDI | 0 – 0.5, ticked 0 / 0.2 / 0.4 | 0 – 0.5, ticked 0 / **0.1** / 0.3 / 0.5 | 0.1, with Campaign 1's 0.3 dotted behind it |
+    | \|ζ\|, mV | **0 – 8** | 0 – 12 | 10 mV |
+    | drug loading, % | — | 88 – 116 | 100 ± 5 |
+    | permeability, ×10⁻⁶ | — | 0 – 36 | 20 |
+
+    Two of the three shared panels are **identical between the figures**, so a reader who sees both
+    reads one scale. Only the ticks and the zeta range differ, and both differences are the
+    barriers' doing: the PDI panel is ticked at 0.1 and 0.3 *because* they are boundaries, and once
+    they are gone an even 0 / 0.2 / 0.4 is the honest set. Zeta runs to 12 to make room for a
+    boundary at 10; with no boundary to clear, half that panel would be empty, so the
+    physicochemical figure stops at 8 — every reading is inside 6.3.
 
     Each panel is named by its **x-axis title**, at the house axis-title size, rather than by a
     header floating above the box — the label sits with the scale it describes.
 
     **No boundary is labelled.** Its value is an axis tick instead, so a reader takes it off the
     same scale as the data rather than from a caption floating beside the line. That is why each
-    panel names its ticks explicitly and every list contains its barriers.
+    panel names its ticks explicitly and every barrier is asserted to be one of them.
 
     Every panel shades the side that **satisfies** its barrier, which is why the shading is a
     range rather than a direction: below 100 nm, below a PDI of 0.1, inside \|ζ\| < 10, *between*
@@ -690,22 +722,28 @@ def _(mo):
     across replicates, and a spread that wide *is* the reading for that row.
 
     Zeta plots the **magnitude**. It is measured negative throughout and the barrier is on \|ζ\|,
-    so the panel runs 0 → 12 rather than −12 → 0; the data cell asserts the sign, so that is a flip
-    and never a fold.
+    so the panel runs left to right on \|ζ\| rather than −12 → 0; the data cell asserts the sign,
+    so that is a flip and never a fold.
 
-    ### Three marks to a row
+    ### Three marks to a row, and a rule between rows
 
     Within a row the three measurements sit at fixed offsets — blank above, A190 on the row line,
-    fenofibrate below — so a row reads as one group and the same state is always in the same place.
-    Rows are a full unit apart against an offset of 0.26, so the grouping is unambiguous without a
-    band or a connector; the slide's ink stays on the measurements and the boundaries.
+    fenofibrate below — so the same state is always in the same place and a row reads as one group.
+
+    **Each formulation's band is closed by a hairline rule.** Offsets alone group the marks only as
+    long as a reader trusts the spacing, and on a panel where one row's marks are spread across the
+    axis and its neighbour's are clustered, the spacing stops being obvious. The rules make the
+    grouping structural rather than perceptual: three marks between two rules are one formulation,
+    whatever the values do. They run the full width, across the label gutter and every panel, so a
+    band is one band rather than five.
+
+    DoE-OPT's boundary is the one **dotted** rule among them — it is a section break, not a row
+    break — exactly the way `Campaign1_Progress`, both leaderboards and `Design_Space`'s first
+    slide set DoE-OPT off as its own section.
 
     A missing measurement leaves **no mark**, and there are three such gaps: DoE-OPT has no
     fenofibrate row, and no blank formulation has drug loading or permeability. Nothing is drawn
     at zero and nothing is drawn as a hollow placeholder — an absent measurement is absent.
-
-    DoE-OPT sits below a dotted rule as its own section, exactly the way `Campaign1_Progress`,
-    both leaderboards and `Design_Space`'s first slide separate it.
     """)
     return
 
@@ -737,6 +775,7 @@ def _(
     PERM_KNEE,
     ROW_ORDER,
     RULE,
+    ROW_RULE,
     RUNS,
     SPEC_SIZE_NM,
     SPEC_ZETA_ABS,
@@ -757,21 +796,22 @@ def _(
                       legend='Loaded with fenofibrate'),
     }
 
-    # One entry per panel, left to right, and one per output `campaign2` reads.
+    # One entry per panel, left to right. `BARRIER_PANELS` is one per output `campaign2` reads;
+    # `PHYSCHEM_PANELS` is the three both campaigns measure, with every barrier taken off.
     #
     # `pass_range` is the interval that SATISFIES the barrier, shaded. It is a range rather than a
     # direction because the five barriers do not all point the same way: size, PDI and |zeta| pass
     # below, drug loading passes *between* two edges, and permeability passes *above* -- more is
     # better there, and campaign2 pays a bonus for it.
     #
-    # `lines` are the barriers themselves, dashed. `soft_lines` is the one superseded boundary on
-    # the slide: Campaign 1's PDI hinge at 0.3, dotted, so a reader can see where the bar was
+    # `lines` are the barriers themselves, dashed. `soft_lines` is the one superseded boundary in
+    # the deck: Campaign 1's PDI hinge at 0.3, dotted, so a reader can see where the bar was
     # before Campaign 2 moved it. No line is labelled -- every value in `lines` and `soft_lines`
     # is in `ticks` instead, read off the same scale as the data.
     #
     # `absolute` plots |value|; `scale` divides before plotting, for an axis whose raw column is
     # in a decade five panels have no width to tick in exponents.
-    PANELS = [
+    BARRIER_PANELS = [
         dict(key='Droplet_Size', title='<b>Droplet size</b>, nm',
              axis_range=(0, 270), ticks=(0, 100, 200),
              pass_range=(0, SPEC_SIZE_NM), lines=(SPEC_SIZE_NM,)),
@@ -795,9 +835,29 @@ def _(
              pass_range=(PERM_KNEE / 1e-6, 36), lines=(PERM_KNEE / 1e-6,)),
     ]
 
+    # The three physicochemical outputs, with no barrier of any kind: no shaded pass band, no
+    # dashed line, no dotted hinge. Nothing on that figure is a pass or a fail.
+    #
+    # Two of the three keep their barrier-figure range exactly, so a reader who sees both figures
+    # reads one scale. The two differences are the barriers' own doing:
+    #
+    #   PDI     ticked 0 / 0.2 / 0.4. The barrier figure's 0.1 and 0.3 are ticks BECAUSE they are
+    #           boundaries; with the boundaries gone, an uneven tick set would be arbitrary.
+    #   |zeta|  0 -> 8 rather than 0 -> 12. The wider axis exists to leave room for a boundary at
+    #           10. With no boundary to clear, it would be four fifths of a panel of white space:
+    #           every reading on the slide is inside 6.3 mV.
+    PHYSCHEM_PANELS = [
+        dict(key='Droplet_Size', title='<b>Droplet size</b>, nm',
+             axis_range=(0, 270), ticks=(0, 100, 200)),
+        dict(key='PDI', title='<b>PDI</b>',
+             axis_range=(0, 0.5), ticks=(0, 0.2, 0.4)),
+        dict(key='Zeta_P', title='<b>Zeta potential</b>, |&#950;| mV', absolute=True,
+             axis_range=(0, 8), ticks=(0, 2, 4, 6, 8)),
+    ]
+
     # Every barrier a panel draws has to be readable off that panel's own ticks, and has to be
     # inside its own axis. Both are easy to break by nudging a range; neither is easy to see.
-    for _panel in PANELS:
+    for _panel in BARRIER_PANELS:
         for _line in tuple(_panel['lines']) + tuple(_panel.get('soft_lines', ())):
             # Compared with a tolerance, not for equality: a barrier divided by its panel's
             # `scale` lands a few ulps off the round number it is meant to be (20e-6 / 1e-6 is
@@ -806,12 +866,30 @@ def _(
                 '{}: the barrier at {} is not an axis tick'.format(_panel['key'], _line)
             assert _panel['axis_range'][0] <= _line <= _panel['axis_range'][1], \
                 '{}: the barrier at {} is off the axis'.format(_panel['key'], _line)
-    assert [p['key'] for p in PANELS] == ['Droplet_Size', 'PDI', 'Zeta_P',
-                                          'Drug_Loading', 'Permeability'], \
+    assert [p['key'] for p in BARRIER_PANELS] == ['Droplet_Size', 'PDI', 'Zeta_P',
+                                                  'Drug_Loading', 'Permeability'], \
         'the panels no longer cover exactly the five outputs campaign2 reads'
+    # The physicochemical figure is the barrier figure's first three panels, in the same order and
+    # for the same outputs -- not a second, parallel selection that could drift from it.
+    assert [p['key'] for p in PHYSCHEM_PANELS] == [p['key'] for p in BARRIER_PANELS[:3]], \
+        "the physicochemical panels are no longer the barrier figure's first three"
+    # ... and no barrier survives on it, in any of the three forms a panel can carry one.
+    for _panel in PHYSCHEM_PANELS:
+        assert not (set(_panel) & {'pass_range', 'lines', 'soft_lines'}), \
+            '{}: the physicochemical figure draws no barriers'.format(_panel['key'])
 
 
-    def build_barriers_slide():
+    def build_slide(panels, title, subtitle, barriers=True):
+        """One figure. `panels` is the layout; `barriers` draws the bands, lines and their legend.
+
+        Both exports come through here, so the rows, the offsets, the row rules, the gutter and
+        the type are shared by construction rather than by two builders agreeing.
+        """
+        # Copied, because the layout below writes `domain` and `suffix` into each panel and the
+        # two figures are given different numbers of panels. Mutating the module-level lists would
+        # leave whichever figure was built first wearing the other's domains.
+        panels = [dict(p) for p in panels]
+
         _n_rows = len(ROW_ORDER)
         # First row at the top; DoE-OPT is last in ROW_ORDER and so lands at the bottom.
         _y_of = {name: _n_rows - i for i, name in enumerate(ROW_ORDER)}
@@ -821,10 +899,12 @@ def _(
         #
         # The gap has to clear two tick labels, not one: every panel's last tick sits on its own
         # right edge and its neighbour's first tick on the left edge, so a gap sized for one
-        # label runs them together.
-        _gutter, _right, _gap = 0.078, 0.988, 0.030
-        _span = (_right - _gutter - _gap * (len(PANELS) - 1)) / len(PANELS)
-        for _i, _panel in enumerate(PANELS):
+        # label runs them together. It is widened for the three-panel figure, which has the room
+        # and would otherwise read as five panels with two missing.
+        _gutter, _right = 0.078, 0.988
+        _gap = 0.030 if len(panels) > 3 else 0.055
+        _span = (_right - _gutter - _gap * (len(panels) - 1)) / len(panels)
+        for _i, _panel in enumerate(panels):
             _x0 = _gutter + _i * (_span + _gap)
             _panel['domain'] = [_x0, _x0 + _span]
             _panel['suffix'] = '' if _i == 0 else str(_i + 1)
@@ -861,57 +941,72 @@ def _(
             return _out
 
         _traces = []
-        for _panel in PANELS:
+        for _panel in panels:
             _traces += _panel_traces(_panel)
 
         # --- legend proxies -----------------------------------------------------------------
-        # Three marks and two lines. The lines are in the legend rather than annotated on the PDI
-        # panel because both strokes appear on more than one panel between them, and a caption
-        # beside one line would read as belonging to that panel alone.
+        # Three marks, and on the barrier figure two lines as well. The lines are in the legend
+        # rather than annotated on the PDI panel because both strokes appear on more than one
+        # panel between them, and a caption beside one line would read as belonging to that
+        # panel alone.
         for _state in STATES:
             _style = STATE_STYLE[_state]
             _traces.append(go.Scatter(
                 x=[None], y=[None], mode='markers', name=_style['legend'],
                 marker=dict(size=MARKER_SIZE, color=_style['color'], symbol=_style['symbol'],
                             line=dict(width=1.4, color=INK))))
-        for _name, _dash in (("Campaign 2's barrier", 'dash'),
-                             ('Campaign 1 PDI hinge, superseded', 'dot')):
-            _traces.append(go.Scatter(
-                x=[None], y=[None], mode='lines', name=_name,
-                line=dict(color=INK, width=1.8, dash=_dash)))
+        if barriers:
+            for _name, _dash in (("Campaign 2's barrier", 'dash'),
+                                 ('Campaign 1 PDI hinge, superseded', 'dot')):
+                _traces.append(go.Scatter(
+                    x=[None], y=[None], mode='lines', name=_name,
+                    line=dict(color=INK, width=1.8, dash=_dash)))
 
         _shapes = []
-        for _panel in PANELS:
-            _ref = 'x' + _panel['suffix']
+        if barriers:
+            for _panel in panels:
+                _ref = 'x' + _panel['suffix']
+                _shapes.append(dict(
+                    type='rect', xref=_ref, yref='paper',
+                    x0=_panel['pass_range'][0], x1=_panel['pass_range'][1],
+                    y0=_panel_bottom, y1=_panel_top,
+                    fillcolor=PASS_BAND, line=dict(width=0), layer='below'))
+                for _line in _panel.get('soft_lines', ()):
+                    _shapes.append(dict(
+                        type='line', xref=_ref, yref='paper', x0=_line, x1=_line,
+                        y0=_panel_bottom, y1=_panel_top,
+                        line=dict(color=INK_SOFT, width=1.6, dash='dot')))
+                for _line in _panel['lines']:
+                    _shapes.append(dict(
+                        type='line', xref=_ref, yref='paper', x0=_line, x1=_line,
+                        y0=_panel_bottom, y1=_panel_top,
+                        line=dict(color=INK, width=1.8, dash='dash')))
+
+        # --- row rules ----------------------------------------------------------------------
+        # One hairline under every row but the last, so a formulation's three marks are a band
+        # between two rules rather than a group a reader has to infer from spacing. They span the
+        # gutter as well as the panels, so a band is one band across the whole figure.
+        #
+        # DoE-OPT's is the one dotted rule, because that boundary is a *section* break rather than
+        # a row break -- as on Campaign1_Progress, both leaderboards and Design_Space's slide one.
+        _section_y = _y_of[DOE_NAME] + 0.5
+        for _name in ROW_ORDER[:-1]:
+            _rule_y = _y_of[_name] - 0.5
+            _is_section = abs(_rule_y - _section_y) < 1e-9
             _shapes.append(dict(
-                type='rect', xref=_ref, yref='paper',
-                x0=_panel['pass_range'][0], x1=_panel['pass_range'][1],
-                y0=_panel_bottom, y1=_panel_top,
-                fillcolor=PASS_BAND, line=dict(width=0), layer='below'))
-            for _line in _panel.get('soft_lines', ()):
-                _shapes.append(dict(
-                    type='line', xref=_ref, yref='paper', x0=_line, x1=_line,
-                    y0=_panel_bottom, y1=_panel_top,
-                    line=dict(color=INK_SOFT, width=1.6, dash='dot')))
-            for _line in _panel['lines']:
-                _shapes.append(dict(
-                    type='line', xref=_ref, yref='paper', x0=_line, x1=_line,
-                    y0=_panel_bottom, y1=_panel_top,
-                    line=dict(color=INK, width=1.8, dash='dash')))
-        # DoE-OPT sits below a rule, as its own section -- as on Campaign1_Progress.
-        _shapes.append(dict(
-            type='line', xref='paper', yref='y', x0=_gutter, x1=_right,
-            y0=_y_of[DOE_NAME] + 0.5, y1=_y_of[DOE_NAME] + 0.5,
-            line=dict(color=RULE, width=1.2, dash='dot')))
+                type='line', xref='paper', yref='y', x0=_gutter, x1=_right,
+                y0=_rule_y, y1=_rule_y,
+                line=dict(color=RULE if _is_section else ROW_RULE,
+                          width=1.2 if _is_section else 1.0,
+                          dash='dot' if _is_section else 'solid')))
 
         _annotations = [
             dict(xref='paper', yref='paper', x=0.5, y=1.0, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
-                 text='<b>The bar moved, and then the champions were loaded</b>'),
+                 text='<b>{}</b>'.format(title)),
             dict(xref='paper', yref='paper', x=0.5, y=0.955, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
-                 text='Campaign 1&#8217;s three best formulations and DoE-OPT, blank and '
-                      'drug-loaded, against Campaign 2&#8217;s objective'),
+                 text=subtitle),
         ]
 
         _layout = go.Layout(
@@ -927,7 +1022,7 @@ def _(
         # Only the leftmost panel carries the row labels; the rest share its scale with blank
         # ticks, so the panels read as one table rather than as separate charts.
         _ticks = [_y_of[name] for name in ROW_ORDER]
-        for _i, _panel in enumerate(PANELS):
+        for _i, _panel in enumerate(panels):
             _s = _panel['suffix']
             _layout['xaxis' + _s] = dict(
                 AXIS_COMMON, domain=_panel['domain'], anchor='y' + _s,
@@ -944,9 +1039,20 @@ def _(
         return go.Figure(data=_traces, layout=_layout)
 
 
-    barriers_figure = build_barriers_slide()
-    barriers_figure
-    return (barriers_figure,)
+    # The physicochemical figure first: it is the plain observation, and the barrier figure is
+    # that same reading with Campaign 2's objective laid over it.
+    physchem_figure = build_slide(
+        PHYSCHEM_PANELS, barriers=False,
+        title='Does loading an API change the formulation?',
+        subtitle='Campaign 1&#8217;s three best formulations and DoE-OPT, measured blank and '
+                 'again with each API &#8212; size, dispersity and charge')
+    barriers_figure = build_slide(
+        BARRIER_PANELS, barriers=True,
+        title='The bar moved, and then the champions were loaded',
+        subtitle='The same rows against Campaign 2&#8217;s objective, which reads two outputs '
+                 'no blank formulation can report')
+    physchem_figure
+    return barriers_figure, physchem_figure
 
 
 @app.cell(hide_code=True)
@@ -954,15 +1060,15 @@ def _(mo):
     mo.md(r"""
     ## Export
 
-    The figure at the house 1280 × 720, one data unit to one exported pixel. `EXPORT_FORMATS`
+    Each figure at the house 1280 × 720, one data unit to one exported pixel. `EXPORT_FORMATS`
     writes a 2× raster alongside if `png` is added to it.
 
-    **It is exported twice, once per entry in `FONT_SCHEMES`.**
+    **Every figure is exported twice, once per entry in `FONT_SCHEMES`.**
 
     | file | body | headings |
     | --- | --- | --- |
-    | `Objective_Barriers.svg` | `Open Sans` | `Open Sans` |
-    | `Objective_Barriers_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
+    | `<stem>.svg` | `Open Sans` | `Open Sans` |
+    | `<stem>_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
 
     Headings are the slide title, the axis titles and the tick labels; body is everything else —
     the subtitle and the legend. The split follows the deck: the reading face sets prose, the
@@ -988,10 +1094,12 @@ def _(
     OUTPUT_DIR,
     PNG_SCALE,
     barriers_figure,
+    physchem_figure,
     with_font_scheme,
 ):
     FIGURES = {
-        'Objective_Barriers': (barriers_figure, FIG_WIDTH, FIG_HEIGHT),
+        'Loaded_Champions_Physicochemical': (physchem_figure, FIG_WIDTH, FIG_HEIGHT),
+        'Loaded_Champions_Barriers': (barriers_figure, FIG_WIDTH, FIG_HEIGHT),
     }
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

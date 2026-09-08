@@ -146,7 +146,7 @@ The datasets disagree about it, and neither is wrong — the id is.
 Different numbers, not a re-export: blank 179.9 nm / PDI 0.337 against loaded 184.6 / 0.325. So
 `Design_Space` plots drug loading for DoE-OPT and `Campaign2_Progress` says it has none, and both
 are reading their own file correctly. **Check which file a suite opened before believing anything
-about DoE-OPT.** `Objective_Barriers` is the one suite that reads both, and it asserts the split
+about DoE-OPT.** `Loaded_Champions` is the one suite that reads both, and it asserts the split
 rather than assuming it. There is no fenofibrate DoE-OPT anywhere.
 
 The loaded champions split the other way: the comprehensive file has all three replicates of
