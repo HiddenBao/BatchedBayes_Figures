@@ -803,11 +803,11 @@ def _(
         # The same two entries in both states, in the same order, so the legend does not jump
         # between exports.
         _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Declared, never made',
+            x=[None], y=[None], mode='markers', name='Possible',
             marker=dict(size=MARKER_SIZE, color=fade(SPACE_COLOR, 0.11), symbol='square',
                         line=dict(width=1.4, color=SPACE_COLOR))))
         _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Made in Campaign 1',
+            x=[None], y=[None], mode='markers', name='Explored',
             marker=dict(size=MARKER_SIZE, color=fade(NEW_COLOR, 0.35), symbol='square',
                         line=dict(width=1.4, color=NEW_COLOR))))
 
