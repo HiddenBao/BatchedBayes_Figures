@@ -968,10 +968,12 @@ def _(
         _y_of = {name: (top + bottom) / 2.0 for name, (top, bottom) in zip(ROW_ORDER, _edges)}
         # The rule between one band and the next; the outer two edges are the axis box itself.
         _rule_ys = [bottom for _, bottom in _edges[:-1]]
-        # The axis box adds the same margin outside the first and last band, so the field is
-        # padded symmetrically whatever the bands inside it do.
-        _BAND_PAD = 0.20
-        _y_range = [_edges[-1][1] - _BAND_PAD, _edges[0][0] + _BAND_PAD]
+        # The box closes the outer two bands exactly as the rules close the inner ones: no extra
+        # margin. A pad would be invisible on a champion band, whose marks are 0.24 of a unit
+        # clear of its edges either way, but it hangs off the bottom of DoE-OPT's short band and
+        # puts its single diamond high in the space a reader sees below the last rule. Without it
+        # that diamond is centred in its band on the page as well as in the coordinates.
+        _y_range = [_edges[-1][1], _edges[0][0]]
 
         # The panels run across the house width, sharing one row-label gutter. The gutter is a
         # fixed ~98 px -- 'DoE-OPT' at 18 pt -- and the panels split what is left evenly.
