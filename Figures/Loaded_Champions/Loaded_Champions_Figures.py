@@ -243,32 +243,43 @@ def _(mo):
     black mirrored axis box, no gridlines, five type sizes (20 / 18 / 18 / 14 / 14), a centred
     title, a horizontal legend in a bottom gutter.
 
-    **Hue is the API, not the formulation.** The formulation is the row; what a mark's colour says
-    is which of the three measurements it is, because the comparison the slide makes is *along* a
-    row rather than between rows.
+    **Every hue is a leaderboard token, carrying the meaning it already carries there.** Nothing
+    on these slides invents a colour, so a reader who has seen either board arrives knowing the
+    palette.
 
     | token | hex | what it means | where else |
     | --- | --- | --- | --- |
     | `BLANK_COLOR` | `#2067F4` | the blank Campaign 1 measurement | the revalidated champions on the Campaign 2 board |
     | `A190_COLOR` | `#5A2E8C` | loaded with A190 | the A190 ramp's darkest step |
     | `FENO_COLOR` | `#00572B` | loaded with fenofibrate | the fenofibrate ramp's darkest step |
+    | `DOE_COLOR` | `#D55E00` | DoE-OPT, the screening baseline | both leaderboards, `Campaign1_Progress`, `Design_Space` |
 
-    All three already mean this in the deck. `#2067F4` is the revalidated-champion hue on the
-    Campaign 2 board — the same three formulations, in the same role — and here it marks their
-    blank half, which is the Campaign 1 measurement the board's blue stands for. The two API hues
-    are the **darkest step of each track's ramp**, taken at matched lightness (L\* ≈ 30 for both) so
-    that neither API reads as deeper than the other; there are no batches on this slide, so the
-    ramps are not in play and each hue carries the one thing its family means — which API.
+    `#2067F4` is the revalidated-champion hue on the Campaign 2 board — the same three
+    formulations, in the same role — and here it marks their blank half, which is the Campaign 1
+    measurement the board's blue stands for. The two API hues are the **darkest step of each
+    track's ramp**, taken at matched lightness (L\* ≈ 30 for both) so that neither API reads as
+    deeper than the other; there are no batches on these slides, so the ramps are not in play and
+    each hue carries the one thing its family means — which API.
+
+    **Hue is the API, except on the one row where the deck says otherwise.** For the three
+    champions a mark's colour says which of the three measurements it is, because the comparison
+    runs *along* a row rather than between rows. DoE-OPT breaks that and wears `#D55E00`, which is
+    what it wears on every other figure in the project — painting it purple to say "A190" would
+    trade the one hue the deck keeps constant everywhere for a local rule. The Campaign 2 board
+    runs the same licence: it groups by what a row is *doing* on the figure, not by where it came
+    from.
 
     Marks carry a **second channel as well**: circle for blank, diamond for A190, square for
-    fenofibrate. The two API hues separate at ΔE 98 and the blue is a third family again, so shape
-    is redundancy rather than the only signal — but three series interleaved within one row is
-    exactly the case where a reader should not have to resolve a hue to read a group.
+    fenofibrate. DoE-OPT keeps the A190 diamond, so on that row shape says which API while hue
+    says which role. The two API hues separate at ΔE 98 and the blue is a third family again, so
+    shape is redundancy rather than the only signal — but three series interleaved within one row
+    is exactly the case where a reader should not have to resolve a hue to read a group.
 
     Boundaries are drawn in **ink**, never in a hue: dashed for a barrier `campaign2` charges
     against, dotted for the Campaign 1 hinge it replaced. A specification is not a series, and
-    giving one a colour would put it in competition with the three measurements for the reader's
-    category sense.
+    giving one a colour would put it in competition with the measurements for the reader's
+    category sense. That dash/dot pair is the figure's **only** line distinction — the row rules
+    are one weight, one colour, one dash throughout.
     """)
     return
 
@@ -278,14 +289,16 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
     BLANK_COLOR = '#2067F4'    # blue    -- the blank Campaign 1 measurement
     A190_COLOR = '#5A2E8C'     # purple  -- loaded with A190; the A190 ramp's darkest step
     FENO_COLOR = '#00572B'     # green   -- loaded with fenofibrate; that ramp's darkest step
+    DOE_COLOR = '#D55E00'      # red     -- DoE-OPT, the screening baseline; its hue deck-wide
 
     INK = 'black'
     # Subtitles only. Everything that labels the geometry -- row names, tick values -- is full
     # black, because on a projector a grey label reads as washed out rather than as quieter.
     INK_SOFT = 'rgba(0, 0, 0, 0.55)'
-    RULE = 'rgba(0, 0, 0, 0.22)'
-    # The hairline closing each formulation's band. Lighter than RULE and solid rather than
-    # dotted, so the one dotted rule on the figure still reads as the section break it is.
+    # The hairline closing each formulation's band. One weight, one colour, one dash for every
+    # rule on the figure -- DoE-OPT's included. It used to be dotted and darker, to say "section
+    # break rather than row break"; that distinction is now carried by DoE-OPT's own hue and by
+    # its shorter band, and a second marker for it made the rules read as two kinds of line.
     ROW_RULE = 'rgba(0, 0, 0, 0.16)'
     # The pass side of every barrier, and the `Breaking-the-Boundaries` SCREEN_BAND value.
     PASS_BAND = 'rgba(0, 0, 0, 0.055)'
@@ -328,13 +341,19 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
 
 
     def with_font_scheme(fig, body, heading, tick):
-        """A copy of `fig` re-fonted: `heading` on the title and axes, `body` on everything else.
+        """A copy of `fig` re-fonted: `heading` on the slide title, `body` on everything else.
 
         Applied after the figure is built rather than threaded through the builder, so the two
         exports cannot drift: there is one figure, drawn once, wearing two type schemes. Heading
         text is tagged where it is written with `name='heading'`; everything else is body by
         definition, which is the safe default -- a new annotation joins the reading face rather
         than silently claiming to be a title.
+
+        The **axis titles are body**, unlike the other suites', which set them on the display
+        face. Five panel names in a row is a lot of display type for what is really a set of
+        labels, and the display face's heavier strokes at 18 pt crowded the ticks under them.
+        Ticks keep their own slot and stay on the display face, so the numbers still read as
+        frame rather than as prose.
         """
         out = go.Figure(fig.to_dict())
         out.layout.font.family = body
@@ -343,9 +362,8 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         for _ann in out.layout.annotations:
             _ann.font.family = heading if _ann.name == 'heading' else body
         for _axis in list(out.select_xaxes()) + list(out.select_yaxes()):
-            # Ticks have their own slot; an axis title is a heading with the slide title.
             _axis.tickfont.family = tick
-            _axis.title.font.family = heading
+            _axis.title.font.family = body
         return out
 
 
@@ -369,6 +387,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         AXIS_COMMON,
         AXIS_TITLE_SIZE,
         BLANK_COLOR,
+        DOE_COLOR,
         ERROR_WIDTH,
         FENO_COLOR,
         FONT_FAMILY,
@@ -380,7 +399,6 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         MARKER_RING,
         MARKER_SIZE,
         PASS_BAND,
-        RULE,
         ROW_RULE,
         TITLE_SIZE,
         with_font_scheme,
@@ -726,21 +744,34 @@ def _(mo):
     so the panel runs left to right on \|ζ\| rather than −12 → 0; the data cell asserts the sign,
     so that is a flip and never a fold.
 
-    ### Three marks to a row, and a rule between rows
+    ### Bands, not rows
 
-    Within a row the three measurements sit at fixed offsets — blank above, A190 on the row line,
-    fenofibrate below — so the same state is always in the same place and a row reads as one group.
+    Within a band the three measurements sit at fixed offsets — blank above, A190 on the band's
+    centre line, fenofibrate below — so the same state is always in the same place and a band
+    reads as one group.
 
     **Each formulation's band is closed by a hairline rule.** Offsets alone group the marks only as
     long as a reader trusts the spacing, and on a panel where one row's marks are spread across the
     axis and its neighbour's are clustered, the spacing stops being obvious. The rules make the
     grouping structural rather than perceptual: three marks between two rules are one formulation,
-    whatever the values do. They run the full width, across the label gutter and every panel, so a
-    band is one band rather than five.
+    whatever the values do.
 
-    DoE-OPT's boundary is the one **dotted** rule among them — it is a section break, not a row
-    break — exactly the way `Campaign1_Progress`, both leaderboards and `Design_Space`'s first
-    slide set DoE-OPT off as its own section.
+    **They are drawn one segment per panel, not once across the canvas.** A single paper-width rule
+    is the obvious implementation and the wrong drawing: it runs on through the gaps between the
+    panels and through the label gutter, so the white space that separates five boxes becomes ruled
+    space and the figure reads as one table with gaps cut out of it. Inside the boxes the rules
+    divide bands; between them, nothing is drawn.
+
+    **Every rule is the same weight, colour and dash.** DoE-OPT's used to be dotted and darker, to
+    say section break rather than row break. Two kinds of hairline read as two systems, and the
+    distinction is already carried twice over — DoE-OPT wears its own hue and sits in a band of its
+    own height.
+
+    **The bands are not all the same height.** A champion's holds three marks and is a full unit;
+    DoE-OPT's holds one and is `DOE_BAND` of a unit, because at full height its row was a third of
+    the panel given over to white space around a single diamond. Band edges are computed once, and
+    the rules, the row labels and the axis range all come off them, so changing a height moves
+    everything together.
 
     A missing measurement leaves **no mark**, and there are three such gaps: DoE-OPT is a single
     A190 mark (no blank counterpart, no fenofibrate run), and no blank formulation has drug loading
@@ -757,6 +788,7 @@ def _(
     AXIS_COMMON,
     AXIS_TITLE_SIZE,
     BLANK_COLOR,
+    DOE_COLOR,
     DL_DEAD_ZONE,
     DL_TARGET,
     DOE_NAME,
@@ -776,7 +808,6 @@ def _(
     PDI_HINGE_C2,
     PERM_KNEE,
     ROW_ORDER,
-    RULE,
     ROW_RULE,
     RUNS,
     SPEC_SIZE_NM,
@@ -789,14 +820,35 @@ def _(
     # makes runs *along* a row. Shape is a second channel for the same distinction: three series
     # interleaved inside one row is exactly the case where a reader should not have to resolve a
     # hue to read a group. `dy` is the offset from the row line, in row units.
+    # `legend` is kept SHORT on purpose: the barrier figure carries six entries and the house
+    # legend is one horizontal row at 14 pt. Prose belongs in the subtitle, which already says
+    # these are Campaign 1's formulations measured blank and with each API.
     STATE_STYLE = {
         'blank': dict(color=BLANK_COLOR, symbol='circle', dy=0.26,
-                      legend='Blank  ·  as Campaign 1 measured it'),
+                      legend='Blank'),
         'A190':  dict(color=A190_COLOR, symbol='diamond', dy=0.00,
-                      legend='Loaded with A190'),
+                      legend='A190-loaded'),
         'Feno':  dict(color=FENO_COLOR, symbol='square', dy=-0.26,
-                      legend='Loaded with fenofibrate'),
+                      legend='Fenofibrate-loaded'),
     }
+
+    # DoE-OPT is the one row whose hue is NOT its API, and that is the deck's rule rather than an
+    # exception to it. `#D55E00` is DoE-OPT on Campaign1_Progress, both leaderboards and
+    # Design_Space's first slide, so a reader arriving here has already learned it; painting the
+    # row purple to say "A190" would break the one hue this project keeps constant across every
+    # figure. The Campaign 2 board runs the same licence -- it groups by what a row is *doing* on
+    # the figure, not by where it came from.
+    #
+    # The API is still on the mark: DoE-OPT keeps the A190 diamond, so shape says which API while
+    # hue says which role. It is also the only row below the last rule and the only one in a short
+    # band, so nothing rests on the colour alone.
+    ROW_STYLE = {DOE_NAME: dict(color=DOE_COLOR,
+                                legend='DoE-OPT baseline')}
+
+    # DoE-OPT's band height, in units of a champion's. A champion band holds three marks stacked
+    # at +/- 0.26; DoE-OPT holds one, and at a full unit it read as a third of the panel given
+    # over to white space around a single diamond.
+    DOE_BAND = 0.62
 
     # One entry per panel, left to right. `BARRIER_PANELS` is one per output `campaign2` reads;
     # `PHYSCHEM_PANELS` is the three both campaigns measure, with every barrier taken off.
@@ -892,9 +944,26 @@ def _(
         # leave whichever figure was built first wearing the other's domains.
         panels = [dict(p) for p in panels]
 
-        _n_rows = len(ROW_ORDER)
-        # First row at the top; DoE-OPT is last in ROW_ORDER and so lands at the bottom.
-        _y_of = {name: _n_rows - i for i, name in enumerate(ROW_ORDER)}
+        # --- row bands ----------------------------------------------------------------------
+        # Rows are laid out as BANDS with explicit heights rather than as evenly spaced lines,
+        # because they no longer hold the same number of marks. A champion band holds three and
+        # is a full unit; DoE-OPT holds one and is `DOE_BAND` of a unit, so its row is not a
+        # third of the panel of white space around a single diamond.
+        #
+        # Bands are stacked downward from the top, and both the row rules and the row labels are
+        # computed from the same edges, so a change to one height moves everything together.
+        _heights = [DOE_BAND if _name == DOE_NAME else 1.0 for _name in ROW_ORDER]
+        _edges, _e = [], sum(_heights)
+        for _h in _heights:
+            _edges.append((_e, _e - _h))          # (top, bottom) of the band
+            _e -= _h
+        _y_of = {name: (top + bottom) / 2.0 for name, (top, bottom) in zip(ROW_ORDER, _edges)}
+        # The rule between one band and the next; the outer two edges are the axis box itself.
+        _rule_ys = [bottom for _, bottom in _edges[:-1]]
+        # The axis box adds the same margin outside the first and last band, so the field is
+        # padded symmetrically whatever the bands inside it do.
+        _BAND_PAD = 0.20
+        _y_range = [_edges[-1][1] - _BAND_PAD, _edges[0][0] + _BAND_PAD]
 
         # The panels run across the house width, sharing one row-label gutter. The gutter is a
         # fixed ~98 px -- 'DoE-OPT' at 18 pt -- and the panels split what is left evenly.
@@ -913,33 +982,46 @@ def _(
 
         _panel_top, _panel_bottom = 0.865, 0.175
 
+        def _colour_of(formulation, state):
+            """The hue a mark wears: its row's, where the row overrides, else its API's.
+
+            Only DoE-OPT overrides, and it keeps the deck's meaning of `#D55E00` rather than the
+            API meaning of purple. See ROW_STYLE.
+            """
+            if formulation in ROW_STYLE:
+                return ROW_STYLE[formulation]['color']
+            return STATE_STYLE[state]['color']
+
+
         def _panel_traces(panel):
-            """One marker trace per state for one panel. A missing measurement leaves no mark."""
+            """One marker trace per (state, hue) for one panel. A missing value leaves no mark."""
             _scale = panel.get('scale', 1.0)
             _out = []
             for _state in STATES:
                 _style = STATE_STYLE[_state]
                 _sub = RUNS[RUNS['state'].eq(_state)]
-                _x, _y, _e = [], [], []
+                # Grouped by hue as well as state, because DoE-OPT's A190 mark is not the A190
+                # hue: one trace carries one colour, so a row override splits the state's trace.
+                _by_colour = {}
                 for _r in _sub.itertuples():
                     _v = getattr(_r, panel['key'])
                     if _v != _v:                     # NaN -- the measurement was never made
                         continue
                     _sd = getattr(_r, panel['key'] + '_sd')
+                    _c = _colour_of(_r.formulation, _state)
+                    _x, _y, _e = _by_colour.setdefault(_c, ([], [], []))
                     _x.append((abs(_v) if panel.get('absolute') else _v) / _scale)
                     _y.append(_y_of[_r.formulation] + _style['dy'])
                     _e.append((0.0 if _sd != _sd else _sd) / _scale)
-                if not _x:
-                    continue
-                _out.append(go.Scatter(
-                    x=_x, y=_y, xaxis='x' + panel['suffix'], yaxis='y' + panel['suffix'],
-                    mode='markers', hoverinfo='skip', showlegend=False,
-                    error_x=dict(type='data', array=_e, color=_style['color'],
-                                 thickness=ERROR_WIDTH, width=5),
-                    marker=dict(size=MARKER_SIZE, color=_style['color'],
-                                symbol=_style['symbol'],
-                                line=dict(width=MARKER_RING, color='white')),
-                ))
+                for _c, (_x, _y, _e) in _by_colour.items():
+                    _out.append(go.Scatter(
+                        x=_x, y=_y, xaxis='x' + panel['suffix'], yaxis='y' + panel['suffix'],
+                        mode='markers', hoverinfo='skip', showlegend=False,
+                        error_x=dict(type='data', array=_e, color=_c,
+                                     thickness=ERROR_WIDTH, width=5),
+                        marker=dict(size=MARKER_SIZE, color=_c, symbol=_style['symbol'],
+                                    line=dict(width=MARKER_RING, color='white')),
+                    ))
             return _out
 
         _traces = []
@@ -947,7 +1029,8 @@ def _(
             _traces += _panel_traces(_panel)
 
         # --- legend proxies -----------------------------------------------------------------
-        # Three marks, and on the barrier figure two lines as well. The lines are in the legend
+        # Three states, then DoE-OPT -- which is a fourth entry because it is the one mark whose
+        # hue is not its API. On the barrier figure two lines follow. The lines are in the legend
         # rather than annotated on the PDI panel because both strokes appear on more than one
         # panel between them, and a caption beside one line would read as belonging to that
         # panel alone.
@@ -956,6 +1039,12 @@ def _(
             _traces.append(go.Scatter(
                 x=[None], y=[None], mode='markers', name=_style['legend'],
                 marker=dict(size=MARKER_SIZE, color=_style['color'], symbol=_style['symbol'],
+                            line=dict(width=1.4, color=INK))))
+        for _name, _row in ROW_STYLE.items():
+            _traces.append(go.Scatter(
+                x=[None], y=[None], mode='markers', name=_row['legend'],
+                marker=dict(size=MARKER_SIZE, color=_row['color'],
+                            symbol=STATE_STYLE['A190']['symbol'],
                             line=dict(width=1.4, color=INK))))
         if barriers:
             for _name, _dash in (("Campaign 2's barrier", 'dash'),
@@ -985,22 +1074,25 @@ def _(
                         line=dict(color=INK, width=1.8, dash='dash')))
 
         # --- row rules ----------------------------------------------------------------------
-        # One hairline under every row but the last, so a formulation's three marks are a band
-        # between two rules rather than a group a reader has to infer from spacing. They span the
-        # gutter as well as the panels, so a band is one band across the whole figure.
+        # One hairline under every band but the last, so a formulation's marks are a band between
+        # two rules rather than a group a reader has to infer from spacing.
         #
-        # DoE-OPT's is the one dotted rule, because that boundary is a *section* break rather than
-        # a row break -- as on Campaign1_Progress, both leaderboards and Design_Space's slide one.
-        _section_y = _y_of[DOE_NAME] + 0.5
-        for _name in ROW_ORDER[:-1]:
-            _rule_y = _y_of[_name] - 0.5
-            _is_section = abs(_rule_y - _section_y) < 1e-9
-            _shapes.append(dict(
-                type='line', xref='paper', yref='y', x0=_gutter, x1=_right,
-                y0=_rule_y, y1=_rule_y,
-                line=dict(color=RULE if _is_section else ROW_RULE,
-                          width=1.2 if _is_section else 1.0,
-                          dash='dot' if _is_section else 'solid')))
+        # Drawn ONE SEGMENT PER PANEL, against that panel's own x axis, rather than as a single
+        # paper-width line: a paper-width rule runs on through the gaps between the panels and
+        # through the label gutter, which turns the white space that separates the panels into
+        # ruled space and makes five boxes read as one table with gaps cut out of it. Inside the
+        # boxes only, the rules divide rows; between them, nothing is drawn.
+        #
+        # Every rule is the same weight, colour and dash -- DoE-OPT's included. It used to be
+        # dotted and darker to mark a section break; that is now said by DoE-OPT's own hue and by
+        # its shorter band, and two kinds of hairline for one distinction read as two systems.
+        for _rule_y in _rule_ys:
+            for _panel in panels:
+                _shapes.append(dict(
+                    type='line', xref='x' + _panel['suffix'], yref='y' + _panel['suffix'],
+                    x0=_panel['axis_range'][0], x1=_panel['axis_range'][1],
+                    y0=_rule_y, y1=_rule_y,
+                    line=dict(color=ROW_RULE, width=1.0), layer='below'))
 
         _annotations = [
             dict(xref='paper', yref='paper', x=0.5, y=1.0, xanchor='center', yanchor='bottom',
@@ -1033,10 +1125,7 @@ def _(
                 tickmode='array', tickvals=list(_panel['ticks']))
             _layout['yaxis' + _s] = dict(
                 AXIS_COMMON, domain=[_panel_bottom, _panel_top], anchor='x' + _s,
-                # Not symmetric: the bottom row is DoE-OPT, which has no fenofibrate mark, so
-                # half a row of headroom under it would be half a row of nothing. The top row
-                # keeps its full clearance because its blank mark sits at the row's high offset.
-                range=[0.58, _n_rows + 0.6], tickmode='array', tickvals=_ticks,
+                range=list(_y_range), tickmode='array', tickvals=_ticks,
                 ticktext=list(ROW_ORDER) if _i == 0 else ['' for _ in ROW_ORDER], ticks='')
         return go.Figure(data=_traces, layout=_layout)
 
@@ -1072,8 +1161,12 @@ def _(mo):
     | `<stem>.svg` | `Open Sans` | `Open Sans` |
     | `<stem>_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
 
-    Headings are the slide title, the axis titles and the tick labels; body is everything else —
-    the subtitle and the legend. The split follows the deck: the reading face sets prose, the
+    Headings are the slide title and the tick labels; body is everything else — the subtitle, the
+    legend, the row names and **the axis titles**. That last one differs from the other suites,
+    which set axis titles on the display face: five panel names in a row is a lot of display type
+    for what is really a set of labels, and at 18 pt the display face's heavier strokes crowded the
+    ticks under them. The ticks stay display, so the numbers still read as frame rather than as
+    prose. The split otherwise follows the deck: the reading face sets prose, the
     display face labels the frame.
 
     **Sizes are identical in both.** The house 20/18/18/14/14 does not move, so a `_Pretendard`

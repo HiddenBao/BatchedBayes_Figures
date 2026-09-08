@@ -168,11 +168,16 @@ The two leaderboards, `Campaign1_Progress/`, `Campaign2_Progress/`, `Design_Spac
 ### `Loaded_Champions/` — one slide built up, and barriers probed rather than restated
 
 Four rows — `B4`, `S5`, `E2` (the three champions `Campaign1_Leaderboard` marks as `CARRIED`) and
-`DoE-OPT` below a rule — each carrying up to three marks: the blank measurement and one per API.
-**Hue is the API, not the formulation**, because the comparison runs *along* a row. `#2067F4` is
-the blank Campaign 1 measurement (the revalidated-champion hue, for the same three rows in the
-same role), `#5A2E8C` A190 and `#00572B` fenofibrate — the darkest, lightness-matched step of each
-track's ramp, with circle / diamond / square as a second channel.
+`DoE-OPT` — each carrying up to three marks: the blank measurement and one per API.
+
+**Every hue is a leaderboard token.** `#2067F4` is the blank Campaign 1 measurement (the
+revalidated-champion hue, for the same three rows in the same role), `#5A2E8C` A190 and `#00572B`
+fenofibrate — the darkest, lightness-matched step of each track's ramp — and `#D55E00` DoE-OPT,
+as everywhere else in the deck. So **hue is the API, except on DoE-OPT**, which keeps the one
+colour this project holds constant across every figure rather than turning purple to say "A190";
+the Campaign 2 board runs that same licence. Shape is the second channel — circle blank, diamond
+A190, square fenofibrate — and DoE-OPT keeps the A190 diamond, so on that row shape says which
+API while hue says which role.
 
 **Two exports, one builder.** `build_slide()` takes the panel list and a `barriers` flag, so the
 rows, offsets, rules, gutter and type are shared by construction:
@@ -188,11 +193,22 @@ the PDI panel is ticked at 0.1 and 0.3 *because* they are boundaries, and zeta r
 leave room for one at 10. The suite asserts the physicochemical panels are the barrier figure's
 first three, in order, and that none of them carries a `pass_range`, a `line` or a `soft_line`.
 
-**Each formulation's band is closed by a hairline rule** running the full width, gutter included.
-Offsets alone group the marks only while a reader trusts the spacing, and on a panel where one
-row's marks are spread and its neighbour's are clustered, the spacing stops being obvious — so the
-grouping is structural: three marks between two rules are one formulation. DoE-OPT's is the one
-**dotted** rule, because that boundary is a section break rather than a row break.
+**Each formulation's band is closed by a hairline rule.** Offsets alone group the marks only while
+a reader trusts the spacing, and on a panel where one row's marks are spread and its neighbour's
+are clustered, the spacing stops being obvious — so the grouping is structural: three marks between
+two rules are one formulation.
+
+The rules are drawn **one segment per panel**, not once across the canvas. A paper-width rule is
+the obvious implementation and the wrong drawing: it runs on through the gaps between panels and
+through the label gutter, turning the white space that separates five boxes into ruled space.
+Every rule is also the **same weight, colour and dash**, DoE-OPT's included — that section break
+is already said twice, by its hue and by its band height. **Bands are not all one height**: a
+champion's holds three marks and is a full unit, DoE-OPT's holds one and is `DOE_BAND` of a unit.
+Band edges are computed once and the rules, row labels and axis range all come off them.
+
+`AXIS_COMMON` aside, one more type departure: **axis titles are set on the body face**, not the
+display face the other suites use. Five panel names in a row is a lot of display type for a set of
+labels, and at 18 pt its heavier strokes crowded the ticks. Ticks stay display.
 
 **Every boundary it draws is probed out of `objectives.py`, not read off it.** The cell sweeps one
 output at a time through `campaign2` and asserts the kink is where the constant says — size 100 nm,
