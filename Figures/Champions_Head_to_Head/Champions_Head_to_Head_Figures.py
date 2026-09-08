@@ -699,10 +699,12 @@ def _(mo):
     carry: a title and a tick set. There is no shared scale between panels, so a width claims
     nothing about the values inside it.
 
-    Two titles are shorter than `Loaded_Champions`' for the same reason -- `Objective` rather than
-    `Campaign 2 objective`, which the subtitle says instead, and `Zeta, \|z\| mV` rather than
-    `Zeta potential, \|z\| mV`. Shortened rather than set smaller: the house type scale is already
-    departed from once on this slide, for the row labels, and once is enough.
+    Two titles are shorter than `Loaded_Champions`' for the same reason -- `Objective` rather
+    than `Campaign 2 objective`, and `Zeta, \|z\| mV` rather than `Zeta potential, \|z\| mV`.
+    Shortened rather than set smaller: the house type scale is already departed from once on this
+    slide, for the row labels, and once is enough. There is one score column and every row on both
+    boxes is ranked on it, so `Objective` is not ambiguous -- the only other objective on the
+    figure is the dotted PDI hinge, which the legend names as Campaign 1's.
 
     **The objective panel carries no barrier and no shaded band**, because there is no bar to
     clear on it: `campaign2` is a loss with no pass mark, and shading a side of it would invent a
@@ -725,6 +727,22 @@ def _(mo):
     in the 10^-6 - 10^-5 decade and six panels have no width for exponent tick labels. **No unit
     is named beyond the magnitude**, and deliberately: `data/` records none, and neither
     `objectives.py` nor anything else in this repo states one.
+
+    ### What is not on it
+
+    **No subtitle, and the title is a question.** A grey line under the title is where a slide
+    states its conclusion, and a figure that needs one has not drawn it; what such a line would
+    have carried -- which rows these are, what they are ranked on -- is already in the row labels,
+    the box captions and the axis titles. The title asks rather than answers for the same reason:
+    the answer is the ordering, and the ordering is on the figure.
+
+    **The graded band has no legend key either.** A swatch would be a caption for one tone
+    deepening toward one end of one panel, with the goal ticked on the axis under it. If that does
+    not read, a square in the gutter will not rescue it.
+
+    **The top box shows no x ticks.** Both boxes share a range by construction, so a second tick
+    row would be the same six numbers printed twice -- and would invite a reader to check that
+    they matched before trusting the comparison. The scale is under the bottom box, 41 px away.
 
     ### Two boxes, not one box with a rule across it
 
@@ -826,7 +844,7 @@ def _(
 
     # Four hue/shape combinations, three legend entries: the Campaign 1 champions are one series
     # across both sections and take the shape of the section they are drawn in, so the entry
-    # shows the diamond and the row's own mark says which API. Prose belongs in the subtitle.
+    # shows the diamond and the row's own mark says which API.
     LEGEND_ENTRIES = [
         ('Campaign 1 champion', C1_COLOR, 'diamond'),
         ('Campaign 2 &#183; A190', A190_COLOR, 'diamond'),
@@ -850,8 +868,10 @@ def _(
     # The objective panel has neither `pass_range` nor `lines`: `campaign2` is a loss with no
     # pass mark, and shading a side of it would invent a specification the optimiser lacks.
     PANELS = [
-        # `Objective` alone, not `Campaign 2 objective`: the subtitle names whose objective
-        # this is, and the panel is the narrowest on the slide. See `width` below.
+        # `Objective` alone, not `Campaign 2 objective`. There is one score column on this
+        # slide and every row on both boxes is ranked on it; the only other objective that
+        # appears is the dotted PDI hinge, which its own legend entry names as Campaign 1's.
+        # `Campaign 2 objective` set at 18 pt also does not fit six panels -- see `width`.
         dict(key='objective', title='Objective', width=0.60,
              axis_range=(-0.5, 2.6), ticks=(0, 1, 2)),
         # The one panel on a LOG axis, and the one that draws a goal rather than a barrier.
@@ -981,7 +1001,7 @@ def _(
                  'the other units on a log axis'.format(_panel['key'], _v))
 
 
-    def build_slide(title, subtitle):
+    def build_slide(title):
         """The one figure: six panel columns by two API boxes, drawn from the tables above."""
         panels = [dict(p) for p in PANELS]
 
@@ -994,7 +1014,7 @@ def _(
         # Both boxes carry their own x ticks, so either can be read on its own. The axis titles
         # are under the bottom box only: the column is one scale and naming it twice would say
         # there are two.
-        BOX_DOMAIN = {'A190': (0.565, 0.865), 'Feno': (0.140, 0.440)}
+        BOX_DOMAIN = {'A190': (0.545, 0.875), 'Feno': (0.140, 0.470)}
         CAPTION_LIFT = 0.010   # the section caption sits this far above its box
 
         # The panels run across the house width, sharing one row-label gutter. The gutter fits
@@ -1133,27 +1153,24 @@ def _(
                 x=[None], y=[None], mode='markers', name=_name,
                 marker=dict(size=MARKER_SIZE, color=_colour, symbol=_symbol,
                             line=dict(width=1.4, color=INK))))
-        _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Size goal, 10 nm',
-            # Set a shade deeper than the band's own deepest tone and given an outline: at
-            # legend size a 0.15 alpha square on white is a blank, and a legend key that cannot
-            # be seen is not a key. It still reads as the dark end of that band and nothing
-            # else on the figure wears it.
-            marker=dict(size=MARKER_SIZE, symbol='square', color='rgba(0, 0, 0, 0.20)',
-                        line=dict(width=1.0, color=INK_SOFT))))
-        for _name, _dash in (("Campaign 2&#8217;s target", 'dash'),
+        # The graded band has NO legend key. A swatch for it would be a caption saying what the
+        # band already shows -- one tone deepening toward one end of one panel, with the goal
+        # ticked on the axis under it. If a reader cannot see that darker is the direction, a
+        # square in the gutter will not tell them.
+        for _name, _dash in (('Campaign 2 target', 'dash'),
                              ('Campaign 1 target', 'dot')):
             _traces.append(go.Scatter(
                 x=[None], y=[None], mode='lines', name=_name,
                 line=dict(color=INK, width=1.8, dash=_dash)))
 
+        # The title and nothing else. There is no subtitle line: a grey sentence under the title
+        # is where a slide states its conclusion, and a figure that needs one has not drawn it.
+        # What such a line would have carried -- which rows these are, what they are ranked on --
+        # is on the figure already, in the row labels, the box captions and the axis titles.
         _annotations = [
             dict(xref='paper', yref='paper', x=0.5, y=1.0, xanchor='center', yanchor='bottom',
                  showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
                  text='<b>{}</b>'.format(title)),
-            dict(xref='paper', yref='paper', x=0.5, y=0.955, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
-                 text=subtitle),
         ]
         # One caption per box, left-aligned over the row-label gutter rather than centred over
         # the panels: it names the rows, and a caption centred over six boxes would read as a
@@ -1169,7 +1186,7 @@ def _(
             width=FIG_WIDTH, height=FIG_HEIGHT,
             paper_bgcolor='white', plot_bgcolor='white',
             font=dict(family=FONT_FAMILY, color=INK),
-            margin=dict(l=10, r=10, t=104, b=LEGEND_MARGIN),
+            margin=dict(l=10, r=10, t=76, b=LEGEND_MARGIN),
             shapes=_shapes, annotations=_annotations,
             legend=dict(orientation='h', xanchor='center', x=0.5, yanchor='top', y=-0.02,
                         font=dict(size=LEGEND_SIZE), itemsizing='constant',
@@ -1182,11 +1199,18 @@ def _(
                 # `range` is the one field that IS log10 on a log axis. See SHAPES_IN_LOG_UNITS.
                 _range = ([float(np.log10(_v)) for _v in _panel['axis_range']]
                           if _panel.get('log') else list(_panel['axis_range']))
-                _title = _panel['title'] if _api == _bottom else ''
+                # The bottom box carries the scale for the column: its ticks and its axis title.
+                # The top box shows neither -- the two share a range by construction, so a
+                # second tick row would be the same six numbers printed twice, and a reader
+                # comparing the boxes would have to check they matched before trusting them.
+                # The boxes are 41 px apart, close enough to read one scale across both.
+                _labelled = _api == _bottom
                 _layout['xaxis' + _s] = dict(
                     AXIS_COMMON, domain=_panel['domain'], anchor='y' + _s,
                     type='log' if _panel.get('log') else 'linear',
-                    title=dict(text=_title, font=dict(size=AXIS_TITLE_SIZE)),
+                    title=dict(text=_panel['title'] if _labelled else '',
+                               font=dict(size=AXIS_TITLE_SIZE)),
+                    showticklabels=_labelled, ticks='outside' if _labelled else '',
                     range=_range, tickmode='array', tickvals=list(_panel['ticks']))
                 # Only the leftmost panel of each box carries the row labels; the rest share its
                 # scale with blank ticks, so a box reads as one table rather than six charts.
@@ -1199,11 +1223,11 @@ def _(
         return go.Figure(data=_traces, layout=_layout)
 
 
+    # A question, not a finding. `Loaded_Champions` titles its first slide the same way. The
+    # answer is the ordering, and the ordering is on the figure -- a title that gave it away
+    # would be reading the plot out loud to someone already looking at it.
     showdown_figure = build_slide(
-        title='Campaign 2&#8217;s best against the champions it inherited',
-        subtitle='Top three per API track and Campaign 1&#8217;s three revalidated champions, '
-                 'ranked on Campaign 2&#8217;s objective &#8212; lower is better &#8212; and on '
-                 'every output it reads')
+        title='Did Campaign 2 beat the champions it inherited?')
     showdown_figure
     return (showdown_figure,)
 
@@ -1224,8 +1248,8 @@ def _(mo):
     | `Champions_Head_to_Head_Pretendard.svg` | Pretendard | Gmarket Sans TTF Medium |
 
     Headings are the slide title, the axis titles and the x-axis ticks; body is everything else --
-    the subtitle, the legend, the row names and the section headers. The y axis is body on
-    purpose: its ticks are prose, not a scale.
+    the legend, the row names and the box captions. The y axis is body on purpose: its ticks are
+    prose, not a scale.
 
     **Sizes are identical in both**, so a `_Pretendard` export is a drop-in replacement for its
     plain twin and nothing has to be re-checked for fit.

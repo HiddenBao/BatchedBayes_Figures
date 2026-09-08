@@ -1057,7 +1057,7 @@ def _(
                             symbol=STATE_STYLE['A190']['symbol'],
                             line=dict(width=1.4, color=INK))))
         if barriers:
-            for _name, _dash in (("Campaign 2's target", 'dash'),
+            for _name, _dash in (('Campaign 2 target', 'dash'),
                                  ('Campaign 1 target', 'dot')):
                 _traces.append(go.Scatter(
                     x=[None], y=[None], mode='lines', name=_name,

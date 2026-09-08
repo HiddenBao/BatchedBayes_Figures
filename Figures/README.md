@@ -290,12 +290,22 @@ under which every band and barrier on that panel lands off-axis and simply does 
 log axis cannot draw an error bar through zero, so the lower whisker is clamped to the axis
 minimum. `SHAPES_IN_LOG_UNITS` names the first and an assertion checks it.
 
+**It carries no subtitle, its title is a question, and neither the graded band nor the top box's
+scale is spelled out.** A grey line under the title is where a slide states its conclusion, and the
+things such a line would carry — which rows these are, what they are ranked on — are already in the
+row labels, the box captions and the axis titles. The graded band gets no legend swatch, because a
+swatch is a caption for one tone deepening across one panel with its goal ticked underneath. And
+the top box shows no x ticks: both boxes share a range by construction, so a second tick row is the
+same numbers twice and an invitation to check they match.
+
 Two things the sixth panel costs. **Panel widths are not equal** — each panel's `width` is the
 share of the row it takes, set by the title and tick set it has to carry; there is no shared scale
 between panels, so a width claims nothing about the values. And **row labels are set at 14 pt**,
 the one type departure: twelve of them at the tick 18 would give the gutter a third of the canvas.
-Two titles are shortened for the same reason — `Objective`, which the subtitle qualifies, and
-`Zeta, |ζ| mV`. Shortened rather than set smaller: once past the house scale is enough.
+Two titles are shortened for the same reason — `Objective` and `Zeta, |ζ| mV`. Shortened rather
+than set smaller: once past the house scale is enough. `Objective` is unambiguous because there is
+one score column and every row on both boxes is ranked on it; the only other objective on the
+figure is the dotted PDI hinge, which the legend names as Campaign 1's.
 
 ### `Design_Space/` is two slides, one suite
 
