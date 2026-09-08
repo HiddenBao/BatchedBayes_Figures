@@ -237,10 +237,18 @@ why drug loading is ticked at its two dead-zone edges and not at 100.
 ### `Champions_Head_to_Head/` — the Campaign 2 board opened up
 
 `Loaded_Champions_Barriers`' grammar with different rows: six panels — **the objective, then the
-five outputs it is made of** — and twelve rows in two sections, one per API. Each section holds
-**Campaign 2's best three on that track and the three Campaign 1 champions revalidated with that
-API**, ranked together by the objective, both campaigns interleaved. Where the Campaign 1 rows land
-is the point, so grouping them would make the slide take two readings instead of one.
+five outputs it is made of** — drawn twice, once per API, as **two closed axis boxes** rather than
+one box with a rule across it. Each box holds **Campaign 2's best three on that track and the three
+Campaign 1 champions revalidated with that API**, ranked together by the objective, both campaigns
+interleaved. Where the Campaign 1 rows land is the point, so grouping them would make the slide
+take two readings instead of one.
+
+The two boxes are two rankings that share a scale, not one ranking split in half — a formulation's
+objective depends on which API it was loaded with, so the twelve rows are not one ordering. Both
+carry their own x ticks so either reads alone; the axis titles are under the bottom box only,
+because a column is one scale and naming it twice would claim two. Each box's caption is
+left-aligned over the row-label gutter: it names the rows, and a caption centred over six panels
+reads as a title for whichever one it lands on.
 
 Campaign 2's three are **computed from the data**, not typed — score-then-average over that track's
 own proposals — and then asserted against the set the slide was drawn for, so a data change fails
@@ -259,16 +267,35 @@ formulation is and shape says which API.
 
 The objective panel carries **no barrier and no shaded band**: `campaign2` is a loss with no pass
 mark, and shading a side of it would invent a specification the optimiser does not have. Its axis
-starts below zero, because the PDI and permeability terms both have a bonus side. The five
+starts below zero, because the PDI and permeability terms both have a bonus side. Four of the five
 measurement panels keep `Loaded_Champions`' ranges exactly, so a value sits in the same place on
 both slides.
+
+**Size is the fifth, and it is the one panel in the deck that draws a goal rather than a barrier.**
+`campaign2` charges nothing below 100 nm; the project is aiming at 10, where 11 nm is better than
+24 and 24 better than 87 — and neither the objective nor a flat pass band can say so. Two changes
+carry it. The band is **graded**, deepening from the `PASS_BAND` tone at the 100 nm barrier to its
+darkest at 10 and staying there below it, so the shading says *further in is better* rather than
+just *inside*; the dashed barrier at 100 is untouched, so what the objective charges and what the
+project wants are two marks. And the axis is **logarithmic**, because on the barrier slide's linear
+0–270 nine of these twelve rows fall inside the first tenth of the box and 10 nm sits four pixels
+off the axis line — there is nowhere to draw a goal, and no way to see 11 against 24.
+
+The 10 nm goal is **the one number on the slide that is not in `objectives.py`**, so the barriers
+cell probes it the other way round: it asserts the size score is *flat* at 10, 50 and 100 nm.
+Everything else there is checked to show the objective bends; the goal is checked to show it does
+not. Two plotly traps come with the log axis and both fail silently — `range` is in log10 while
+data, `tickvals` and shape coordinates are in data units (an older contract put shapes in log10,
+under which every band and barrier on that panel lands off-axis and simply does not draw), and a
+log axis cannot draw an error bar through zero, so the lower whisker is clamped to the axis
+minimum. `SHAPES_IN_LOG_UNITS` names the first and an assertion checks it.
 
 Two things the sixth panel costs. **Panel widths are not equal** — each panel's `width` is the
 share of the row it takes, set by the title and tick set it has to carry; there is no shared scale
 between panels, so a width claims nothing about the values. And **row labels are set at 14 pt**,
 the one type departure: twelve of them at the tick 18 would give the gutter a third of the canvas.
-Section headers sit in that gutter in a band of their own rather than floating over the panels,
-because a header above one of six boxes reads as that box's caption.
+Two titles are shortened for the same reason — `Objective`, which the subtitle qualifies, and
+`Zeta, |ζ| mV`. Shortened rather than set smaller: once past the house scale is enough.
 
 ### `Design_Space/` is two slides, one suite
 
