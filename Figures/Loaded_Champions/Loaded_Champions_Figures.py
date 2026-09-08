@@ -32,8 +32,8 @@ def _(mo):
     mo.md(r"""
     # Loaded Champions Figure Suite
 
-    **Two figures, one set of rows.** The four formulations Act 1 finished with, each measured
-    blank and again drug-loaded:
+    **Two figures, one set of rows.** The three champions Act 1 finished with, each measured blank
+    and again with both APIs, above the DoE-OPT baseline the project started from:
 
     | export | slide | what it asks |
     | --- | --- | --- |
@@ -41,7 +41,7 @@ def _(mo):
     | `Loaded_Champions_Barriers.svg` | two | and does it still clear the bar — **Campaign 2's** bar, which reads two outputs no blank formulation has |
 
     They stay one suite because both rest on the same resolved row set: the same four
-    formulations, the same Campaign 1 ranking, and the same reading of `DoEOPT` out of two
+    formulations, the same Campaign 1 ranking, and the same reading of `DoEOPT` across two
     disagreeing files. That resolution is the part that must not drift, and splitting the suite
     would duplicate it.
 
@@ -56,7 +56,7 @@ def _(mo):
     | `B4` | Campaign 1's best-scoring formulation | `B4` | `B4_A` | `B4_F` |
     | `S5` | the quasi-random screen row the paper calls `F5` | `Ran5` | `F5_A` | `F5_F` |
     | `E2` | Campaign 1's batch-E champion | `E2` | `E2_A` | `E2_F` |
-    | `DoE-OPT` | the response surface's predicted optimum — where the project started | `DoEOPT` | `DoEOPT` | — |
+    | `DoE-OPT` | the response surface's predicted optimum — where the project started | — | `DoEOPT` | — |
 
     The three champions are exactly `Campaign1_Leaderboard`'s `CARRIED`: the top-five rows that
     were reformulated drug-loaded and carried into the 30-day study. The order is **the Campaign 1
@@ -69,27 +69,34 @@ def _(mo):
     the id. The suite asserts `Ran5` and `F5_A` are the same composition, exactly as
     `Campaign1_Leaderboard` does.
 
-    ### DoE-OPT is the trap in this suite
+    ### DoE-OPT is one mark, and the second one is a trap
 
-    **`data/` carries two different `DoEOPT` measurements under one id, in two different files.**
+    **`data/` carries two different `DoEOPT` measurements under one id, in two different files** —
+    and only one of them is drawn.
 
     | file | `API_Name` | what it is |
     | --- | --- | --- |
-    | `MicroemulsionFormulation_Comprehensive.csv` | `A190` | the **loaded** re-measurement, with drug loading and permeability |
-    | `MicroemulsionFormulation_A190.csv`, `..._Feno.csv` | `blank` | the **blank** measurement, three replicates, no loading or permeability |
+    | `MicroemulsionFormulation_Comprehensive.csv` | `A190` | the current measurement, with drug loading and permeability |
+    | `MicroemulsionFormulation_A190.csv`, `..._Feno.csv` | `blank` | the **superseded** copy of the same three replicates |
 
-    They are not the same numbers — blank 179.9 nm / PDI 0.337, loaded 184.6 nm / PDI 0.325 — so
-    this is a second experiment, not a re-export of the first. Every other row on this slide comes
-    out of the comprehensive file; DoE-OPT's blank is the one thing that does not exist there, and
-    it is read from the per-API files instead. Both per-API files carry it identically, which the
-    data cell asserts before using either.
+    The numbers differ — 179.9 nm / PDI 0.337 against 184.6 / 0.325 — so it is tempting to read
+    them as a blank and its loaded counterpart and draw DoE-OPT with two marks. **They are not a
+    pair.** Upstream rebuilt the comprehensive dataset at `2cba4f2` and re-tagged *all five*
+    `DoE*` rows from `blank` to `A190`, replacing their measurements; the per-API files were never
+    rebuilt and still hold the pre-`2cba4f2` version.
 
-    That is why `Campaign2_Progress` says DoE-OPT has no drug loading and no permeability while
-    `Design_Space` plots both for it: the two suites read different files. Neither is wrong; the
-    id is.
+    Two things say revision rather than second experiment. `DoE1`, `DoE4`, `DoE10` and `DoE11`
+    were re-tagged in the same sweep and carry **no drug loading at all** — a row that had really
+    been loaded with A190 would have a loading number. And the commit rebuilt the whole file
+    rather than adding a run.
 
-    **There is no fenofibrate DoE-OPT**, in any file. Its row is two marks, not three, as on the
-    Campaign 2 board and for the same reason.
+    **The comprehensive dataset is this suite's ground truth**, so it is the only file opened, and
+    DoE-OPT's row is one A190 mark. That resolution is also why `Campaign2_Progress` says DoE-OPT
+    has no drug loading while `Design_Space` plots it: the two read different files, and the
+    per-API one is stale.
+
+    **There is no fenofibrate DoE-OPT**, in any file, as on the Campaign 2 board and for the same
+    reason.
 
     ## The barriers, and which of them moved
 
@@ -198,12 +205,10 @@ def _(Path, sys):
 
     REPO_ROOT = _find_repo_root(_HERE)
     OUTPUT_DIR = REPO_ROOT / 'Figures' / 'Loaded_Champions' / 'Output'
+    # The one dataset this suite reads. The per-API CSVs are deliberately NOT opened -- their
+    # `DoEOPT` is the superseded pre-2cba4f2 copy of these same replicates, not a blank
+    # counterpart. See the data cell.
     DATA_CSV = REPO_ROOT / 'data' / 'MicroemulsionFormulation_Comprehensive.csv'
-    # The blank DoE-OPT lives here and nowhere else. Both are read and asserted identical.
-    PER_API_CSV = {
-        'A190': REPO_ROOT / 'data' / 'MicroemulsionFormulation_A190.csv',
-        'Feno': REPO_ROOT / 'data' / 'MicroemulsionFormulation_Feno.csv',
-    }
 
     # The objective lives in Figures/objectives.py and is imported, never restated.
     if str(REPO_ROOT / 'Figures') not in sys.path:
@@ -223,7 +228,6 @@ def _(Path, sys):
         FIG_HEIGHT,
         FIG_WIDTH,
         OUTPUT_DIR,
-        PER_API_CSV,
         PNG_SCALE,
         campaign1,
         campaign2,
@@ -499,8 +503,8 @@ def _(mo):
     mo.md(r"""
     ## The data
 
-    Eleven measurements, in four rows of up to three. Each is the mean of its replicates with their
-    standard deviation, measured — not scored.
+    Ten measurements, in four rows: three each for `B4`, `S5` and `E2`, and one for DoE-OPT. Each
+    is the mean of its three replicates with their standard deviation, measured -- not scored.
 
     **Row order is computed, not typed.** The three champions are ranked by
     `objectives.campaign1` on their *blank* rows, which is the objective they were actually
@@ -514,8 +518,9 @@ def _(mo):
       drug loading. If the ranking moves, this fails here.
     - **`Ran5` and `F5_A` are one composition**, so `S5` really does name one formulation across
       the blank and loaded halves of its row.
-    - **the blank DoE-OPT is identical in both per-API files**, before either is used, and is
-      *different* from the comprehensive file's loaded DoE-OPT — the trap noted at the top.
+    - **`DoEOPT` in the comprehensive file is the A190-tagged measurement** — the one this suite
+      treats as current. If a future export puts the `blank` rows back, this fails rather than
+      quietly redrawing DoE-OPT as something else.
     - **only loaded rows carry drug loading and permeability**, and every blank row carries
       neither. The last two panels are empty for the blanks because the measurement does not
       exist, and that has to be a fact about the file rather than a NaN that happened to plot.
@@ -524,22 +529,24 @@ def _(mo):
 
 
 @app.cell
-def _(DATA_CSV, PER_API_CSV, campaign1, campaign2, pd):
+def _(DATA_CSV, campaign1, campaign2, pd):
     # (deck name, blank id, A190 id, fenofibrate id). `None` is a measurement that was never made.
     #
     # `Ran5` is the paper's `F5` and both leaderboards render it `S5`; a row has to wear one name
     # across the deck or a reader cannot follow it from slide to slide, so the deck name wins over
     # the id -- see Figures/README.md.
     #
-    # DoE-OPT's blank is the one row on this slide that is NOT in the comprehensive file; it is
-    # read from the per-API files below. Its fenofibrate cell is empty because no such measurement
-    # exists in any file, as on the Campaign 2 board.
+    # DoE-OPT has NO blank id, and that is a decision rather than a gap in the file. See the note
+    # below: the per-API CSVs do carry a `blank`-tagged DoEOPT, but it is the superseded version of
+    # the same three replicates rather than a blank counterpart, so it is not drawn. Its
+    # fenofibrate cell is empty because no such measurement exists in any file, as on the
+    # Campaign 2 board.
     FORMULATIONS = [
         ('B4', 'B4', 'B4_A', 'B4_F'),
         ('S5', 'Ran5', 'F5_A', 'F5_F'),
         ('E2', 'E2', 'E2_A', 'E2_F'),
     ]
-    DOE_ROW = ('DoE-OPT', 'DoEOPT', 'DoEOPT', None)
+    DOE_ROW = ('DoE-OPT', None, 'DoEOPT', None)
 
     # `Campaign1_Leaderboard`'s CARRIED: the top-five Campaign 1 rows that were reformulated
     # drug-loaded and carried into the 30-day study. Named so this slide fails if that set moves.
@@ -553,27 +560,23 @@ def _(DATA_CSV, PER_API_CSV, campaign1, campaign2, pd):
 
     _raw = pd.read_csv(DATA_CSV)
 
-    # --- the blank DoE-OPT, and the trap ---------------------------------------------------
-    # One id, two experiments, two files. Read both per-API copies and assert they agree before
-    # using either, then assert the comprehensive file's DoEOPT is the *loaded* one -- if a future
-    # export merges them, this slide would otherwise draw one measurement twice.
-    _per_api = {api: pd.read_csv(path) for api, path in PER_API_CSV.items()}
-    _blank_doe = {api: df[df['Exp'].eq('DoEOPT')].reset_index(drop=True)
-                  for api, df in _per_api.items()}
-    _a190, _feno = _blank_doe['A190'], _blank_doe['Feno']
-    assert len(_a190) == 3 and _a190[_MEASURED].equals(_feno[_MEASURED]), \
-        'the per-API files disagree about the blank DoE-OPT'
-    assert (_a190['API_Name'] == 'blank').all(), 'the per-API DoE-OPT is not blank'
-    assert (_raw.loc[_raw['Exp'].eq('DoEOPT'), 'API_Name'] == 'A190').all(), \
+    # --- one file, and why the other two are not opened -------------------------------------
+    # The comprehensive dataset is the ground truth for this suite. The per-API CSVs carry their
+    # own `DoEOPT` -- three replicates tagged `blank`, with no drug loading or permeability -- and
+    # it is tempting to draw it as DoE-OPT's blank half. It is not one.
+    #
+    # Upstream rebuilt the comprehensive dataset at 2cba4f2 and re-tagged ALL FIVE DoE* rows from
+    # `blank` to `A190`, replacing their measurements; the per-API files were never rebuilt and so
+    # still hold the pre-2cba4f2 version. Two things say that is a revision rather than a second
+    # experiment: DoE1 / DoE4 / DoE10 / DoE11 were re-tagged in the same sweep and carry no drug
+    # loading at all -- a row that had really been loaded would have a loading number -- and the
+    # commit rebuilt the whole file rather than adding a run.
+    #
+    # So DoE-OPT is one mark, not two, and its row is the A190-loaded measurement the current
+    # dataset holds. Asserted, not assumed.
+    ALL_ROWS = pd.read_csv(DATA_CSV)
+    assert (ALL_ROWS.loc[ALL_ROWS['Exp'].eq('DoEOPT'), 'API_Name'] == 'A190').all(), \
         "the comprehensive file's DoE-OPT is no longer the A190-loaded measurement"
-    assert not _a190['Droplet_Size'].reset_index(drop=True).equals(
-        _raw.loc[_raw['Exp'].eq('DoEOPT'), 'Droplet_Size'].reset_index(drop=True)), \
-        'the blank and loaded DoE-OPT now carry the same numbers -- check which file changed'
-
-    # A tagged copy of the blank DoE-OPT, so the rest of the cell can treat it like any other row.
-    _blank_doe_rows = _a190.copy()
-    _blank_doe_rows['Exp'] = 'DoEOPT_blank'
-    ALL_ROWS = pd.concat([_raw, _blank_doe_rows], ignore_index=True)
 
     # --- one aggregated record per measurement ---------------------------------------------
     def _aggregate(exp):
@@ -603,9 +606,7 @@ def _(DATA_CSV, PER_API_CSV, campaign1, campaign2, pd):
 
     records = []
     for _name, _blank_id, _a190_id, _feno_id in FORMULATIONS + [DOE_ROW]:
-        # The blank DoE-OPT wears the tagged id; its loaded half keeps the original.
-        _ids = {'blank': 'DoEOPT_blank' if _blank_id == 'DoEOPT' else _blank_id,
-                'A190': _a190_id, 'Feno': _feno_id}
+        _ids = {'blank': _blank_id, 'A190': _a190_id, 'Feno': _feno_id}
         for _state in STATES:
             _exp = _ids[_state]
             if _exp is None:
@@ -741,9 +742,10 @@ def _(mo):
     break — exactly the way `Campaign1_Progress`, both leaderboards and `Design_Space`'s first
     slide set DoE-OPT off as its own section.
 
-    A missing measurement leaves **no mark**, and there are three such gaps: DoE-OPT has no
-    fenofibrate row, and no blank formulation has drug loading or permeability. Nothing is drawn
-    at zero and nothing is drawn as a hollow placeholder — an absent measurement is absent.
+    A missing measurement leaves **no mark**, and there are three such gaps: DoE-OPT is a single
+    A190 mark (no blank counterpart, no fenofibrate run), and no blank formulation has drug loading
+    or permeability. Nothing is drawn at zero and nothing is drawn as a hollow placeholder — an
+    absent measurement is absent.
     """)
     return
 
@@ -1044,8 +1046,8 @@ def _(
     physchem_figure = build_slide(
         PHYSCHEM_PANELS, barriers=False,
         title='Does loading an API change the formulation?',
-        subtitle='Campaign 1&#8217;s three best formulations and DoE-OPT, measured blank and '
-                 'again with each API &#8212; size, dispersity and charge')
+        subtitle='Campaign 1&#8217;s three best formulations blank and with each API, above '
+                 'the DoE-OPT baseline &#8212; size, dispersity and charge')
     barriers_figure = build_slide(
         BARRIER_PANELS, barriers=True,
         title='The bar moved, and then the champions were loaded',

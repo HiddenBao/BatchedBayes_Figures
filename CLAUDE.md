@@ -134,20 +134,27 @@ Campaign 2's code. Deriving a Campaign 1 figure from Campaign 2's constants is t
 Experiment-stage prefixes in `Exp`: `DoE*` (prior optima) · `Misc*` (repeats) · `Ran*`
 (quasi-random screen) · `A`–`E` (Campaign 1 batches) · `F` (Campaign 2).
 
-### `DoEOPT` is two different measurements under one id
+### The `DoE*` rows: the per-API CSVs are stale, the comprehensive file is ground truth
 
-The datasets disagree about it, and neither is wrong — the id is.
+All five `DoE*` ids carry **two different sets of numbers** across `data/`, and they are not two
+experiments — they are one row before and after a revision.
 
 | file | `API_Name` | what it holds |
 |---|---|---|
-| `MicroemulsionFormulation_Comprehensive.csv` | `A190` | the **loaded** re-measurement: drug loading and permeability present |
-| `MicroemulsionFormulation_A190.csv`, `..._Feno.csv` | `blank` | the **blank** measurement, both files identical, loading and permeability empty |
+| `MicroemulsionFormulation_Comprehensive.csv` | `A190` | the current measurements; `DoEOPT` alone also has drug loading and permeability |
+| `MicroemulsionFormulation_A190.csv`, `..._Feno.csv` | `blank` | the **superseded** pre-`2cba4f2` copies, identical in both files, loading and permeability empty |
 
-Different numbers, not a re-export: blank 179.9 nm / PDI 0.337 against loaded 184.6 / 0.325. So
-`Design_Space` plots drug loading for DoE-OPT and `Campaign2_Progress` says it has none, and both
-are reading their own file correctly. **Check which file a suite opened before believing anything
-about DoE-OPT.** `Loaded_Champions` is the one suite that reads both, and it asserts the split
-rather than assuming it. There is no fenofibrate DoE-OPT anywhere.
+Upstream rebuilt the comprehensive dataset at `2cba4f2` and re-tagged `DoE1` / `DoE4` / `DoE10` /
+`DoE11` / `DoEOPT` from `blank` to `A190`, replacing their measurements. The per-API files were
+never rebuilt. It is a revision rather than a loaded re-measurement: the other four were re-tagged
+`A190` in the same sweep and carry **no drug loading at all**, and the commit rebuilt the whole
+file rather than adding runs.
+
+**Take the comprehensive file as ground truth**, and do not read the per-API `blank` DoE rows as a
+blank counterpart to the comprehensive ones — `Loaded_Champions` draws DoE-OPT as a single A190
+mark for exactly this reason. That split is also why `Design_Space` plots drug loading for DoE-OPT
+while `Campaign2_Progress` says it has none: the two read different files. There is no fenofibrate
+DoE-OPT anywhere.
 
 The loaded champions split the other way: the comprehensive file has all three replicates of
 `B4_A` / `E2_A` / `F5_A` / `B4_F` / `E2_F` / `F5_F`, and each per-API file has one.

@@ -201,14 +201,14 @@ does *not* read loading or permeability, which is the barrier slide's "two new a
 superseded PDI hinge at 0.3 is drawn dotted behind the dashed 0.1, and is probed against
 `campaign1` as the quartering **step** it is rather than as a slope change.
 
-**It reads two data files, and that is the trap it exists to survive.** `data/` carries two
-different measurements under the id `DoEOPT`: the comprehensive CSV's is the **A190-loaded**
-re-measurement (with loading and permeability), while both per-API CSVs carry a **blank** one — a
-different experiment, 179.9 nm / PDI 0.337 against the loaded 184.6 / 0.325. That is why
-`Campaign2_Progress` says DoE-OPT has no drug loading while `Design_Space` plots it: the two read
-different files. This suite reads both, asserts the per-API copies agree with each other and
-disagree with the comprehensive one, and draws each in its own slot. There is no fenofibrate
-DoE-OPT in any file, so that row is two marks.
+**DoE-OPT is one mark, and that is a decision.** `data/` carries two different `DoEOPT`
+measurements — the comprehensive CSV's, tagged `A190` with loading and permeability, and the
+per-API CSVs', tagged `blank` — and reading them as a blank/loaded pair is the trap. They are one
+row before and after upstream's `2cba4f2` rebuild, which re-tagged all five `DoE*` rows and which
+the per-API files never received; the other four were re-tagged `A190` with no loading number at
+all. The comprehensive file is this suite's ground truth, it is the only file opened, and the
+suite asserts `DoEOPT` there is still the `A190`-tagged row. See **`DoEOPT`** in
+[CLAUDE.md](../CLAUDE.md). There is no fenofibrate DoE-OPT in any file either.
 
 Its `AXIS_COMMON` pins `tickangle=0`, which the other suites do not need. Five panels at 18 pt is
 tight enough that plotly silently rotates a crowded tick row to vertical — which on one panel of
