@@ -134,6 +134,24 @@ Campaign 2's code. Deriving a Campaign 1 figure from Campaign 2's constants is t
 Experiment-stage prefixes in `Exp`: `DoE*` (prior optima) · `Misc*` (repeats) · `Ran*`
 (quasi-random screen) · `A`–`E` (Campaign 1 batches) · `F` (Campaign 2).
 
+### `DoEOPT` is two different measurements under one id
+
+The datasets disagree about it, and neither is wrong — the id is.
+
+| file | `API_Name` | what it holds |
+|---|---|---|
+| `MicroemulsionFormulation_Comprehensive.csv` | `A190` | the **loaded** re-measurement: drug loading and permeability present |
+| `MicroemulsionFormulation_A190.csv`, `..._Feno.csv` | `blank` | the **blank** measurement, both files identical, loading and permeability empty |
+
+Different numbers, not a re-export: blank 179.9 nm / PDI 0.337 against loaded 184.6 / 0.325. So
+`Design_Space` plots drug loading for DoE-OPT and `Campaign2_Progress` says it has none, and both
+are reading their own file correctly. **Check which file a suite opened before believing anything
+about DoE-OPT.** `Objective_Barriers` is the one suite that reads both, and it asserts the split
+rather than assuming it. There is no fenofibrate DoE-OPT anywhere.
+
+The loaded champions split the other way: the comprehensive file has all three replicates of
+`B4_A` / `E2_A` / `F5_A` / `B4_F` / `E2_F` / `F5_F`, and each per-API file has one.
+
 ## Figure suites
 
 `Figures/<Suite_Name>/` — a marimo notebook plus its `Output/` SVGs. `Figures/README.md` is the

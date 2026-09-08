@@ -154,14 +154,46 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Design_Space/` (`_Expansion`) | That design as one system of a hundred, and its three settings as ranges | Table 1 |
 | `Design_Space_Transition/` (`_Explored`) | Of Table 1's hundred systems, the twenty-four Campaign 1 made | Table 1 |
 | `Design_Space_Transition/` (`_Narrowed`) | The same field cut to the forty-eight Campaign 2 can propose | — |
+| `Objective_Barriers/` | Campaign 1's three champions and DoE-OPT, blank and drug-loaded, against Campaign 2's barriers | — |
 | `Campaign1_Progress/` | Objective per formulation in campaign order, running best | Fig. 2 |
 | `Campaign2_Progress/` | The same, for Campaign 2's two API tracks side by side | — |
 | `Surrogate_Performance/` | Parity plots per target across the five batches | Fig. 1 |
 | `Stability/` | 30-day storage stability, blank and loaded | Figs. 3–4 |
 | `Permeability/` | Effective permeability, A190- and fenofibrate-loaded | Fig. 5 |
 
-The two leaderboards, `Campaign1_Progress/`, `Campaign2_Progress/`, `Design_Space/` and
-`Design_Space_Transition/` are built; the rest are not.
+The two leaderboards, `Campaign1_Progress/`, `Campaign2_Progress/`, `Design_Space/`,
+`Design_Space_Transition/` and `Objective_Barriers/` are built; the rest are not.
+
+### `Objective_Barriers/` — the barriers, probed rather than restated
+
+Five panels, one per output `campaign2` reads, and four rows: `B4`, `S5`, `E2` — the three
+champions `Campaign1_Leaderboard` marks as `CARRIED` — and `DoE-OPT` below a rule. Each row
+carries up to three marks: **hue is the API, not the formulation**, because the comparison runs
+*along* a row. `#2067F4` is the blank Campaign 1 measurement (the revalidated-champion hue, for
+the same three rows in the same role), `#5A2E8C` A190 and `#00572B` fenofibrate — the darkest,
+lightness-matched step of each track's ramp, with circle / diamond / square as a second channel.
+
+**Every boundary it draws is probed out of `objectives.py`, not read off it.** The cell sweeps one
+output at a time through `campaign2` and asserts the kink is where the constant says — size 100 nm,
+PDI 0.1, |ζ| 10 mV, loading 100 ± 5 %, permeability 20 × 10⁻⁶ — and separately asserts `campaign1`
+does *not* read loading or permeability, which is the slide's "two new axes" claim. Campaign 1's
+superseded PDI hinge at 0.3 is drawn dotted behind the dashed 0.1, and is probed against
+`campaign1` as the quartering **step** it is rather than as a slope change.
+
+**It reads two data files, and that is the trap it exists to survive.** `data/` carries two
+different measurements under the id `DoEOPT`: the comprehensive CSV's is the **A190-loaded**
+re-measurement (with loading and permeability), while both per-API CSVs carry a **blank** one — a
+different experiment, 179.9 nm / PDI 0.337 against the loaded 184.6 / 0.325. That is why
+`Campaign2_Progress` says DoE-OPT has no drug loading while `Design_Space` plots it: the two read
+different files. This suite reads both, asserts the per-API copies agree with each other and
+disagree with the comprehensive one, and draws each in its own slot. There is no fenofibrate
+DoE-OPT in any file, so that row is two marks.
+
+Its `AXIS_COMMON` pins `tickangle=0`, which the other suites do not need. Five panels at 18 pt is
+tight enough that plotly silently rotates a crowded tick row to vertical — which on one panel of
+five reads as a different kind of axis and drops that panel's title out of line. Pinning the angle
+turns a silent re-layout into a visible collision; the fix for a collision is fewer ticks, which is
+why drug loading is ticked at its two dead-zone edges and not at 100.
 
 ### `Design_Space/` is two slides, one suite
 
