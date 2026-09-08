@@ -349,11 +349,11 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
         definition, which is the safe default -- a new annotation joins the reading face rather
         than silently claiming to be a title.
 
-        The **axis titles are body**, unlike the other suites', which set them on the display
-        face. Five panel names in a row is a lot of display type for what is really a set of
-        labels, and the display face's heavier strokes at 18 pt crowded the ticks under them.
-        Ticks keep their own slot and stay on the display face, so the numbers still read as
-        frame rather than as prose.
+        The **axis titles are display**, like the other suites'. They used to be body, because
+        the display face's strokes at 18 pt crowded the ticks under them -- but that was the
+        face carrying a `<b>` as well. The panel names are set in Gmarket Medium's own weight
+        now, with no bold on top, and at that weight five of them in a row sit clear of the
+        ticks.
         """
         out = go.Figure(fig.to_dict())
         out.layout.font.family = body
@@ -363,7 +363,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
             _ann.font.family = heading if _ann.name == 'heading' else body
         for _axis in list(out.select_xaxes()) + list(out.select_yaxes()):
             _axis.tickfont.family = tick
-            _axis.title.font.family = body
+            _axis.title.font.family = heading
         return out
 
 
@@ -874,25 +874,25 @@ def _(
     # `absolute` plots |value|; `scale` divides before plotting, for an axis whose raw column is
     # in a decade five panels have no width to tick in exponents.
     BARRIER_PANELS = [
-        dict(key='Droplet_Size', title='<b>Droplet size</b>, nm',
+        dict(key='Droplet_Size', title='Droplet size, nm',
              axis_range=(0, 270), ticks=(0, 100, 200),
              pass_range=(0, SPEC_SIZE_NM), lines=(SPEC_SIZE_NM,)),
-        dict(key='PDI', title='<b>PDI</b>',
+        dict(key='PDI', title='PDI',
              axis_range=(0, 0.5), ticks=(0, 0.1, 0.3, 0.5),
              pass_range=(0, PDI_HINGE_C2), lines=(PDI_HINGE_C2,),
              soft_lines=(PDI_HINGE_C1,)),
-        dict(key='Zeta_P', title='<b>Zeta potential</b>, |&#950;| mV', absolute=True,
+        dict(key='Zeta_P', title='Zeta potential, |&#950;| mV', absolute=True,
              axis_range=(0, 12), ticks=(0, 5, 10),
              pass_range=(0, SPEC_ZETA_ABS), lines=(SPEC_ZETA_ABS,)),
         # Ticked at the two dead-zone edges and NOT at 100. Three labels inside a fifth of the
         # canvas collide at 18 pt, and 100 is the one of the three that is not a barrier -- the
         # target is the shaded band between 95 and 105, which the band draws better than a tick.
-        dict(key='Drug_Loading', title='<b>Drug loading</b>, %',
+        dict(key='Drug_Loading', title='Drug loading, %',
              axis_range=(88, 116), ticks=(95, 105),
              pass_range=(DL_TARGET - DL_DEAD_ZONE, DL_TARGET + DL_DEAD_ZONE),
              lines=(DL_TARGET - DL_DEAD_ZONE, DL_TARGET + DL_DEAD_ZONE)),
         dict(key='Permeability',
-             title='<b>Permeability</b>, &#215;10<sup>&#8722;6</sup>', scale=1e-6,
+             title='Permeability, &#215;10<sup>&#8722;6</sup>', scale=1e-6,
              axis_range=(0, 36), ticks=(0, 10, 20, 30),
              pass_range=(PERM_KNEE / 1e-6, 36), lines=(PERM_KNEE / 1e-6,)),
     ]
@@ -909,11 +909,11 @@ def _(
     #           10. With no boundary to clear, it would be four fifths of a panel of white space:
     #           every reading on the slide is inside 6.3 mV.
     PHYSCHEM_PANELS = [
-        dict(key='Droplet_Size', title='<b>Droplet size</b>, nm',
+        dict(key='Droplet_Size', title='Droplet size, nm',
              axis_range=(0, 270), ticks=(0, 100, 200)),
-        dict(key='PDI', title='<b>PDI</b>',
+        dict(key='PDI', title='PDI',
              axis_range=(0, 0.5), ticks=(0, 0.2, 0.4)),
-        dict(key='Zeta_P', title='<b>Zeta potential</b>, |&#950;| mV', absolute=True,
+        dict(key='Zeta_P', title='Zeta potential, |&#950;| mV', absolute=True,
              axis_range=(0, 8), ticks=(0, 2, 4, 6, 8)),
     ]
 
