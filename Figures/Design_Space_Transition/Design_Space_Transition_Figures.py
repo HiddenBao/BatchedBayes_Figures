@@ -253,6 +253,7 @@ def _(mo):
 def _(FIG_HEIGHT, FIG_WIDTH, go):
     SPACE_COLOR = '#2067F4'   # blue    -- Campaign 1: the declared field and its three dials
     NEW_COLOR = '#5A2E8C'     # purple  -- Campaign 2: what it inherits, and what it adds
+    DOE_COLOR = '#E69F00'     # orange  -- the Box-Behnken design and its three stops per dial
 
     INK = 'black'
     # Subtitles only. Everything that labels the geometry -- heads, row names, tick values --
@@ -360,6 +361,7 @@ def _(FIG_HEIGHT, FIG_WIDTH, go):
     return (
         ANNOTATION_SIZE,
         CELL_EDGE,
+        DOE_COLOR,
         FONT_FAMILY,
         FONT_SCHEMES,
         INK,
@@ -601,6 +603,7 @@ def _(
     C1_SURFACTANTS,
     CELL_EDGE,
     COSURF_SHORT,
+    DOE_COLOR,
     EXPLORED,
     FIG_HEIGHT,
     FIG_WIDTH,
@@ -754,7 +757,12 @@ def _(
             xanchor='center', yanchor='middle', showarrow=False, textangle=-90,
             font=dict(size=TAG_SIZE, color=INK_SOFT), text='Oil'))
 
-        # ---- bottom: Campaign 1's three settings ----------------------------------------
+        # ---- bottom: the three settings, twice each -------------------------------------
+        # Design_Space_Expansion's strip, kept whole: the Box-Behnken design's three stops, and
+        # Campaign 1's continuous range beneath them. Table 1 did not widen the dials -- it
+        # removed the stops between them, and that reading is only available if both rows are
+        # drawn.
+        #
         # Identical in both states. The settings do not change until state 3, and a strip that
         # moved under a narrowing grid would give the reader two things to track in one step.
         _dial_x, _dial_y, _dw, _dh = pixel_axes(
@@ -784,11 +792,25 @@ def _(
                 _legend_x = (_dial_x['domain'][0]
                              + (_tx0 + _track_w / 2.0) / _dw
                              * (_dial_x['domain'][1] - _dial_x['domain'][0]))
-            _y_range = 60.0
+            # Two rows per dial: the design's stops at _y_stop, the campaign's range at
+            # _y_range. Both measured off Design_Space_Expansion, so the two slides' strips
+            # sit on the same pixels.
+            _y_stop, _y_range = 44.0, 78.0
             _annotations.append(dict(
-                xref='x2', yref='y2', x=_tx0 + _track_w / 2.0, y=_y_range - 26,
+                xref='x2', yref='y2', x=_tx0 + _track_w / 2.0, y=_y_stop - 20,
                 xanchor='center', yanchor='bottom', showarrow=False,
                 font=dict(size=ANNOTATION_SIZE, color=INK), text='<b>{}</b>'.format(_name)))
+            # The design's three levels: low, centre, high. The rail is faded so the three
+            # stops read as the mark and the line only as what joins them.
+            _shapes.append(dict(type='line', xref='x2', yref='y2',
+                                x0=_tx0, x1=_tx0 + _track_w, y0=_y_stop, y1=_y_stop,
+                                line=dict(color=fade(DOE_COLOR, 0.45), width=1.4)))
+            _traces.append(go.Scatter(
+                x=[_tx0, _tx0 + _track_w / 2.0, _tx0 + _track_w],
+                y=[_y_stop] * 3, xaxis='x2', yaxis='y2', mode='markers',
+                hoverinfo='skip', showlegend=False,
+                marker=dict(size=MARKER_SIZE - 2, color=DOE_COLOR,
+                            line=dict(width=1.3, color=INK))))
             _shapes.append(dict(type='rect', xref='x2', yref='y2',
                                 x0=_tx0, x1=_tx0 + _track_w, y0=_y_range - 9, y1=_y_range + 9,
                                 fillcolor=fade(SPACE_COLOR, 0.28),
@@ -800,8 +822,8 @@ def _(
                     font=dict(size=ANNOTATION_SIZE - 3, color=INK), text=_t))
 
         # ---- legend proxies -------------------------------------------------------------
-        # The same two entries in both states, in the same order, so the legend does not jump
-        # between exports.
+        # The same three entries in both states, in the same order, so the legend does not jump
+        # between exports. The two squares name the grid's marks; the circle names the strip's.
         _traces.append(go.Scatter(
             x=[None], y=[None], mode='markers', name='Possible',
             marker=dict(size=MARKER_SIZE, color=fade(SPACE_COLOR, 0.11), symbol='square',
@@ -810,6 +832,10 @@ def _(
             x=[None], y=[None], mode='markers', name='Explored',
             marker=dict(size=MARKER_SIZE, color=fade(NEW_COLOR, 0.35), symbol='square',
                         line=dict(width=1.4, color=NEW_COLOR))))
+        _traces.append(go.Scatter(
+            x=[None], y=[None], mode='markers', name='Box-Behnken',
+            marker=dict(size=MARKER_SIZE, color=DOE_COLOR, symbol='circle',
+                        line=dict(width=1.4, color=INK))))
 
         _annotations += [
             # Both live in the top margin, not in the plot area: the grid runs to the very top

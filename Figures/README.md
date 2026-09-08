@@ -227,9 +227,12 @@ so state 2's cells sit on state 1's pixels and the two exports lay over each oth
 moving. The dropped row, block and column simply go. This is the `Campaign1_Leaderboard` pattern
 from **Animation states** below, applied to a schematic instead of a bar chart.
 
-The strip under the grid is **identical in both states** — Campaign 1's three settings, in both.
-The settings do not change until state 3, and a strip that also moved would give the reader two
-things to track in one step.
+The strip under the grid is `Design_Space_Expansion`'s, kept whole: each dial drawn twice, the
+Box-Behnken design's three stops above Campaign 1's continuous range. Table 1 did not widen the
+dials — it removed the stops between them, and that reading needs both rows. It is **identical
+in both states**, because the settings do not change until state 3 and a strip that also moved
+would give the reader two things to track in one step. `#E69F00` is the design, as it is in
+`Design_Space/` and `Campaign1_Progress/`.
 
 **The claim the cut rests on is asserted, not asserted-looking.** For all three roles the mesh is
 a subset of Table 1's list, one name lighter each (Oleic acid · PEG 400 · Tween 80), and every
