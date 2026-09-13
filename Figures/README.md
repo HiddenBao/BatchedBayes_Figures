@@ -153,7 +153,7 @@ Keep the DLL guard above `import marimo` — see **Environment** in [CLAUDE.md](
 | `Design_Space/` (`_DoE`) | What the Box-Behnken design produced, against the Table 2 targets | Tables 1–2 |
 | `Design_Space/` (`_Expansion`) | That design as one system of a hundred, and its three settings as ranges | Table 1 |
 | `Design_Space_Transition/` (`_Explored`) | Of Table 1's hundred systems, the twenty-four Campaign 1 made | Table 1 |
-| `Design_Space_Transition/` (`_Narrowed`) | The same field cut to the forty-eight Campaign 2 can propose | — |
+| `Design_Space_Transition/` (`_Narrowed`) | The same field cut to the forty-eight Campaign 2 can propose, over its per-ingredient volume ranges | — |
 | `Loaded_Champions/` (`_Physicochemical`) | Campaign 1's three champions and DoE-OPT, blank and drug-loaded — size, PDI and ζ, no boundaries | — |
 | `Loaded_Champions/` (`_Barriers`) | The same rows against Campaign 2's objective barriers, plus drug loading and permeability | — |
 | `Champions_Head_to_Head/` | Campaign 2's best three per track against Campaign 1's three revalidated champions — the objective and every output it reads | — |
@@ -369,12 +369,15 @@ so state 2's cells sit on state 1's pixels and the two exports lay over each oth
 moving. The dropped row, block and column simply go. This is the `Campaign1_Leaderboard` pattern
 from **Animation states** below, applied to a schematic instead of a bar chart.
 
-The strip under the grid is `Design_Space_Expansion`'s, kept whole: each dial drawn twice, the
-Box-Behnken design's three stops above Campaign 1's continuous range. Table 1 did not widen the
-dials — it removed the stops between them, and that reading needs both rows. It is **identical
-in both states**: a strip that also moved would give the reader two things to track in one
-step. `#E69F00` is the design, as it is in
-`Design_Space/` and `Campaign1_Progress/`.
+The strip under the grid is **whose continuous settings**, and it changes between the states.
+State 1 keeps `Design_Space_Expansion`'s strip whole: each dial drawn twice, the Box-Behnken
+design's three stops above Campaign 1's continuous range (Table 1 did not widen the dials — it
+removed the stops between them). `#E69F00` is the design, as it is in `Design_Space/` and
+`Campaign1_Progress/`. State 2 draws Campaign 2's four dials from upstream's `oil_v_ranges` /
+`surfactant_v_ranges` / `cosurfactant_v_ranges`: the S<sub>mix</sub> ratio splits into
+independent surfactant and cosurfactant volumes, and every volume dial gets one blue bar per
+meshed ingredient, with Campaign 1's oil and sonication ranges outlined dashed over them. The
+Box-Behnken legend entry goes with the stops; a dashed "Campaign 1 range" entry replaces it.
 
 **The claim the cut rests on is asserted, not asserted-looking.** For all three roles the mesh is
 a subset of Table 1's list, one name lighter each (Oleic acid · PEG 400 · Tween 80), and every

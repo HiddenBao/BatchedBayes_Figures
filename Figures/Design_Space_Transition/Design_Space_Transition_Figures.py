@@ -38,13 +38,14 @@ def _(mo):
     | export | state | the one move it makes |
     | --- | --- | --- |
     | `Design_Space_Transition_Explored.svg` | 1 | of the hundred, mark the twenty-four ever made |
-    | `Design_Space_Transition_Narrowed.svg` | 2 | drop the row, the block and the column Campaign 2 cannot propose |
+    | `Design_Space_Transition_Narrowed.svg` | 2 | drop the row, the block and the column Campaign 2 cannot propose, and swap in its continuous settings |
 
-    The two are the **same figure with a different category list**: both come out of one
-    `build_grid_state()`, and the cell pitch, the origin and the dial strip are computed from
+    The two grids are the **same figure with a different category list**: both come out of one
+    `build_grid_state()`, and the cell pitch, the origin and the strip's span are computed from
     Campaign 1's full 5 x 20 field in both. So state 2's cells sit exactly where state 1 left
     them and the two exports lay over each other in PowerPoint without a mark moving — the row,
-    the block and the column simply go.
+    the block and the column simply go. The strip under the grid is the one part that changes
+    wholesale: Campaign 1's three dials in state 1, Campaign 2's four in state 2.
 
     This is `Design_Space/Design_Space_Expansion.svg`'s field, deliberately. Slide two of Act 1
     already taught the reader that grid; re-teaching it in a new geometry to make a *different*
@@ -84,6 +85,15 @@ def _(mo):
     — and all five fall outside because of one of those three dropped names. The suite asserts
     that, because it is the state's whole reading: the cut lands on the vocabulary, not on the
     evidence.
+
+    The continuous settings change too, and the strip under the grid carries it. Campaign 1's
+    surfactant and cosurfactant volumes were coupled (`Surfactant_V + Cosurfactant_V = 40` in every
+    row, which is why Table 1 writes an S<sub>mix</sub> ratio); Campaign 2 frees them into two
+    dials. And each volume dial has **one interval per meshed ingredient** — upstream's
+    `oil_v_ranges`, `surfactant_v_ranges`, `cosurfactant_v_ranges` — where Campaign 1 had one oil
+    range for every oil. So three dials become four, and Campaign 1's oil and sonication ranges are
+    outlined dashed over the new bars. Oil's floor drops from 7.5 % to 5 %, but its per-oil ceiling
+    is 15 % or 10 %, under Table 1's 22.5 %.
 
     ## Colour
 
@@ -502,7 +512,7 @@ def _(C1_CSV, pd, pretty):
     assert (C1_ROWS['Surfactant_V'] + C1_ROWS['Cosurfactant_V'] == C1_SMIX_TOTAL).all(), \
         'a Campaign 1 row does not have Surfactant_V + Cosurfactant_V = {}'.format(C1_SMIX_TOTAL)
     assert not (C2_ROWS['Surfactant_V'] + C2_ROWS['Cosurfactant_V'] == C1_SMIX_TOTAL).all(), \
-        'Campaign 2 rows still satisfy the Smix coupling -- state 3 has nothing to show'
+        'Campaign 2 rows still satisfy the Smix coupling -- state 2 would split a dial that is not split'
 
     # The per-ingredient bounds, against the rows Campaign 2 actually ran.
     for _role, _col in zip(ROLES, ('Oil_V', 'Surfactant_V', 'Cosurfactant_V')):
@@ -551,14 +561,17 @@ def _(mo):
     on state 1's pixels exactly. Passing Campaign 1's own lists gives state 1; passing Campaign 2's
     mesh gives state 2, with the dropped row, block and column absent rather than moved.
 
-    Everything below the grid is identical in both states on purpose. The dial strip is Campaign
-    1's three settings in both, because the settings do not change until state 3 — a strip that
-    also moved would give the reader two things to track in one step.
+    The strip below the grid is **whose settings**, picked by `campaign=`. State 1 draws Table 1's
+    three dials, each twice: the Box-Behnken stops over Campaign 1's continuous range. State 2
+    draws Campaign 2's four — oil, surfactant and cosurfactant volume, sonication — with one blue
+    bar per meshed ingredient, in the grid's order, and Campaign 1's range outlined dashed where it
+    had one. Every tick is a bound one of the two campaigns declares, so the scale is made of
+    exactly the numbers the bars stop at. Blue keeps its grid meaning: what can be proposed.
 
     **The strip is measured off the grid above it**, not off its own axis: the two share a paper
-    domain, so equal data values land on equal exported pixels. Oil Volume opens on the leftmost
-    cell's left edge and Sonication closes on the rightmost cell's right edge, so the strip is
-    visibly as wide as the space it describes.
+    domain, so equal data values land on equal exported pixels. The first track opens on the
+    leftmost cell's left edge and Sonication closes on the rightmost cell's right edge, so the strip
+    is visibly as wide as the space it describes.
 
     Two details are inherited from `Design_Space_Expansion` and are measured constants, not
     formulas — re-measure them if `HEAD_SIZE` moves. `HEAD_DX` / `HEAD_DY` absorb the padding a
@@ -581,6 +594,8 @@ def _(
     C1_SMIX_RATIO_LABELS,
     C1_SONICATION_RANGE,
     C1_SURFACTANTS,
+    C2_SONICATION_RANGE,
+    C2_V_RANGES,
     CELL_EDGE,
     COSURF_SHORT,
     DOE_COLOR,
@@ -599,6 +614,7 @@ def _(
     fade,
     go,
     pixel_axes,
+    pretty,
 ):
     # Header zone of the grid panel, top to bottom: the block rule and its surfactant name, then
     # the rotated cosurfactant heads rising off the top of the cells. GRID_TOP is where the cells
@@ -612,14 +628,19 @@ def _(
     TAG_SIZE = ANNOTATION_SIZE - 2
     COS_TAG_OFF = 3.0
     COS_TAG_DX = 17.0
+    # The dashed outline of a Campaign 1 range on state 2's strip. The dash is in px rather than
+    # plotly's 'dash', which scales with the stroke and reads as solid in the legend swatch.
+    GHOST_WIDTH = 1.3
+    GHOST_DASH = '5px,3px'
 
 
-    def build_grid_state(oils, surfactants, cosurfactants, title, subtitle):
+    def build_grid_state(oils, surfactants, cosurfactants, title, subtitle, campaign):
         """The 5 x 20 field, drawing only the categories given, on Campaign 1's full geometry.
 
         `oils` / `surfactants` / `cosurfactants` are the lists to *draw*; the cell pitch, the
-        origin and the dial strip are computed from Campaign 1's full lists whatever is passed,
-        which is what lets the two states lay over each other unmoved.
+        origin and the strip's span are computed from Campaign 1's full lists whatever is
+        passed, which is what lets the two states' grids lay over each other unmoved.
+        `campaign` (1 or 2) picks whose continuous settings the strip under the grid draws.
         """
         _traces, _annotations, _shapes = [], [], []
 
@@ -737,16 +758,84 @@ def _(
             xanchor='center', yanchor='middle', showarrow=False, textangle=-90,
             font=dict(size=TAG_SIZE, color=INK_SOFT), text='Oil'))
 
-        # ---- bottom: the three settings, twice each -------------------------------------
-        # Design_Space_Expansion's strip, kept whole: the Box-Behnken design's three stops, and
-        # Campaign 1's continuous range beneath them. Table 1 did not widen the dials -- it
-        # removed the stops between them, and that reading is only available if both rows are
-        # drawn.
-        #
-        # Identical in both states. The settings do not change until state 3, and a strip that
-        # moved under a narrowing grid would give the reader two things to track in one step.
+        # ---- bottom: the continuous settings --------------------------------------------
         _dial_x, _dial_y, _dw, _dh = pixel_axes(
             (0.015, 0.985), (0.000, 0.215), anchor=('x2', 'y2'))
+        # Measured off the grid above it, not off its own axis: the two axes share a paper
+        # domain, so a cell edge and a track end at the same data value land on the same
+        # exported pixel. Only the gaps between tracks are free.
+        _dial_x0 = _x_off + GRID_LEFT + CELL_PAD
+        _dial_x1 = _x_off + GRID_LEFT + _n_col * _cell - CELL_PAD
+        if campaign == 1:
+            _legend_x = _campaign1_strip(_traces, _annotations, _shapes,
+                                         _dial_x, _dw, _dial_x0, _dial_x1)
+        else:
+            _legend_x = _campaign2_strip(_annotations, _shapes, _dial_x, _dw, _dial_x0, _dial_x1)
+
+        # ---- legend proxies -------------------------------------------------------------
+        # The grid's two squares in both states, in the same order. Box-Behnken leads state 1,
+        # as it does on Design_Space_Expansion's legend -- the two slides sit next to each other
+        # in the deck. State 2's strip has no stops, so its lead entry goes and the dashed
+        # Campaign 1 outline the strip does draw joins at the end instead.
+        if campaign == 1:
+            _traces.append(go.Scatter(
+                x=[None], y=[None], mode='markers', name='Box-Behnken',
+                marker=dict(size=MARKER_SIZE, color=DOE_COLOR, symbol='circle',
+                            line=dict(width=1.4, color=INK))))
+        _traces.append(go.Scatter(
+            x=[None], y=[None], mode='markers', name='Possible',
+            marker=dict(size=MARKER_SIZE, color=fade(SPACE_COLOR, 0.11), symbol='square',
+                        line=dict(width=1.4, color=SPACE_COLOR))))
+        _traces.append(go.Scatter(
+            x=[None], y=[None], mode='markers', name='Explored',
+            marker=dict(size=MARKER_SIZE, color=fade(NEW_COLOR, 0.35), symbol='square',
+                        line=dict(width=1.4, color=NEW_COLOR))))
+        if campaign == 2:
+            _traces.append(go.Scatter(
+                x=[None], y=[None], mode='lines', name='Campaign 1 range',
+                line=dict(color=INK, width=GHOST_WIDTH, dash=GHOST_DASH)))
+
+        _annotations += [
+            # Both live in the top margin, not in the plot area: the grid runs to the very top
+            # of its axis, and a subtitle at paper 0.955 would land on the block rules.
+            dict(xref='paper', yref='paper', x=0.5, y=1.100, xanchor='center', yanchor='bottom',
+                 showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
+                 text='<b>{}</b>'.format(title)),
+            dict(xref='paper', yref='paper', x=0.5, y=1.045, xanchor='center', yanchor='bottom',
+                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
+                 text=subtitle),
+        ]
+
+        _layout = go.Layout(
+            width=FIG_WIDTH, height=FIG_HEIGHT,
+            paper_bgcolor='white', plot_bgcolor='white',
+            font=dict(family=FONT_FAMILY, color=INK),
+            margin=SCHEMATIC_MARGIN,
+            xaxis=_grid_x, yaxis=_grid_y,
+            xaxis2=_dial_x, yaxis2=_dial_y,
+            shapes=_shapes, annotations=_annotations,
+            legend=dict(orientation='h', xanchor='center', x=_legend_x, yanchor='top', y=-0.02,
+                        font=dict(size=LEGEND_SIZE), itemsizing='constant',
+                        bgcolor='rgba(0,0,0,0)'),
+        )
+        return go.Figure(data=_traces, layout=_layout)
+
+
+    def _paper_x(dial_x, dw, x):
+        """Paper x of a data x on the strip's pixel axis -- where the legend should hang."""
+        return dial_x['domain'][0] + x / dw * (dial_x['domain'][1] - dial_x['domain'][0])
+
+
+    def _campaign1_strip(traces, annotations, shapes, dial_x, dw, dial_x0, dial_x1):
+        """State 1: Table 1's three settings, each drawn twice.
+
+        Design_Space_Expansion's strip, kept whole: the Box-Behnken design's three stops, and
+        Campaign 1's continuous range beneath them. Table 1 did not widen the dials -- it
+        removed the stops between them, and that reading is only available if both rows are
+        drawn. Returns the legend's paper x.
+        """
+        _traces, _annotations, _shapes = traces, annotations, shapes
+        _dial_x, _dw, _dial_x0, _dial_x1 = dial_x, dw, dial_x0, dial_x1
         _dials = [
             ('Oil Volume', ['{:g} %'.format(C1_OIL_V_RANGE[0]),
                             '{:g} %'.format(sum(C1_OIL_V_RANGE) / 2),
@@ -756,11 +845,6 @@ def _(
                             '{:g}'.format(sum(C1_SONICATION_RANGE) / 2),
                             '{:g} min'.format(C1_SONICATION_RANGE[1])]),
         ]
-        # Measured off the grid above it, not off its own axis: the two axes share a paper
-        # domain, so a cell edge and a track end at the same data value land on the same
-        # exported pixel. Only the two gaps between tracks are free.
-        _dial_x0 = _x_off + GRID_LEFT + CELL_PAD
-        _dial_x1 = _x_off + GRID_LEFT + _n_col * _cell - CELL_PAD
         _dial_gap = 56.0
         _track_w = (_dial_x1 - _dial_x0 - 2 * _dial_gap) / 3.0
         _legend_x = None
@@ -769,9 +853,7 @@ def _(
             if _name.startswith('S<sub>mix</sub>'):
                 # Paper x of this track's centre, so the legend hangs under the middle dial
                 # rather than under the canvas.
-                _legend_x = (_dial_x['domain'][0]
-                             + (_tx0 + _track_w / 2.0) / _dw
-                             * (_dial_x['domain'][1] - _dial_x['domain'][0]))
+                _legend_x = _paper_x(_dial_x, _dw, _tx0 + _track_w / 2.0)
             # Two rows per dial: the design's stops at _y_stop, the campaign's range at
             # _y_range. Both measured off Design_Space_Expansion, so the two slides' strips
             # sit on the same pixels.
@@ -800,50 +882,99 @@ def _(
                     xref='x2', yref='y2', x=_tx0 + (_ti / 2.0) * _track_w, y=_y_range + 18,
                     xanchor='center', yanchor='top', showarrow=False,
                     font=dict(size=ANNOTATION_SIZE - 3, color=INK), text=_t))
+        return _legend_x
 
-        # ---- legend proxies -------------------------------------------------------------
-        # The same three entries in both states, in the same order, so the legend does not jump
-        # between exports. Box-Behnken leads, as it does on Design_Space_Expansion's legend --
-        # the two slides sit next to each other in the deck and a reordered legend under the
-        # same strip reads as a different chart. The circle names the strip's mark, the two
-        # squares the grid's.
-        _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Box-Behnken',
-            marker=dict(size=MARKER_SIZE, color=DOE_COLOR, symbol='circle',
-                        line=dict(width=1.4, color=INK))))
-        _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Possible',
-            marker=dict(size=MARKER_SIZE, color=fade(SPACE_COLOR, 0.11), symbol='square',
-                        line=dict(width=1.4, color=SPACE_COLOR))))
-        _traces.append(go.Scatter(
-            x=[None], y=[None], mode='markers', name='Explored',
-            marker=dict(size=MARKER_SIZE, color=fade(NEW_COLOR, 0.35), symbol='square',
-                        line=dict(width=1.4, color=NEW_COLOR))))
 
-        _annotations += [
-            # Both live in the top margin, not in the plot area: the grid runs to the very top
-            # of its axis, and a subtitle at paper 0.955 would land on the block rules.
-            dict(xref='paper', yref='paper', x=0.5, y=1.100, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=TITLE_SIZE, color=INK), name='heading',
-                 text='<b>{}</b>'.format(title)),
-            dict(xref='paper', yref='paper', x=0.5, y=1.045, xanchor='center', yanchor='bottom',
-                 showarrow=False, font=dict(size=ANNOTATION_SIZE, color=INK_SOFT),
-                 text=subtitle),
+    def _campaign2_strip(annotations, shapes, dial_x, dw, dial_x0, dial_x1):
+        """State 2: Campaign 2's four settings, one bar per ingredient.
+
+        The S<sub>mix</sub> ratio goes: surfactant and cosurfactant volume are two independent
+        dials, and every volume dial carries one interval per meshed ingredient rather than one
+        interval for the role. Campaign 1's range is outlined dashed over the bars where it had
+        one -- oil volume and sonication -- so the change reads against what it replaced.
+        Returns the legend's paper x.
+        """
+        _v = {_role: {pretty(_k): _r for _k, _r in C2_V_RANGES[_role].items()}
+              for _role in C2_V_RANGES}
+        # Bars in the grid's order, so an ingredient sits in the same rank here as it does above.
+        _dials = [
+            ('Oil Volume', [(_o, _v['Oil'][_o]) for _o in C1_OILS if _o in _v['Oil']],
+             C1_OIL_V_RANGE, '%'),
+            ('Surfactant Volume',
+             [(_s, _v['Surfactant'][_s]) for _s in C1_SURFACTANTS if _s in _v['Surfactant']],
+             None, '%'),
+            ('Cosurfactant Volume',
+             [(COSURF_SHORT[_c], _v['Cosurfactant'][_c])
+              for _c in C1_COSURFACTANTS if _c in _v['Cosurfactant']],
+             None, '%'),
+            ('Sonication', [(None, C2_SONICATION_RANGE)], C1_SONICATION_RANGE, 'min'),
         ]
+        _rows_max = max(len(_rows) for _, _rows, _, _ in _dials)
+        _dial_gap = 40.0
+        _track_w = (dial_x1 - dial_x0 - (len(_dials) - 1) * _dial_gap) / len(_dials)
+        _ROW, _BAR = 14.0, 8.0
+        _y_top = 36.0
+        _y_tick = _y_top + _rows_max * _ROW + 6.0
+        _NAME_W = 76.0
+        _TICK_CLEAR = 22.0   # px: a bound closer than this to the last labelled one goes unlabelled
 
-        _layout = go.Layout(
-            width=FIG_WIDTH, height=FIG_HEIGHT,
-            paper_bgcolor='white', plot_bgcolor='white',
-            font=dict(family=FONT_FAMILY, color=INK),
-            margin=SCHEMATIC_MARGIN,
-            xaxis=_grid_x, yaxis=_grid_y,
-            xaxis2=_dial_x, yaxis2=_dial_y,
-            shapes=_shapes, annotations=_annotations,
-            legend=dict(orientation='h', xanchor='center', x=_legend_x, yanchor='top', y=-0.02,
-                        font=dict(size=LEGEND_SIZE), itemsizing='constant',
-                        bgcolor='rgba(0,0,0,0)'),
-        )
-        return go.Figure(data=_traces, layout=_layout)
+        for _di, (_name, _rows, _c1_range, _unit) in enumerate(_dials):
+            _tx0 = dial_x0 + _di * (_track_w + _dial_gap)
+            _labelled = _rows[0][0] is not None
+            _sx0 = _tx0 + (_NAME_W if _labelled else 0.0)
+            _sx1 = _tx0 + _track_w
+            _bounds = [_b for _, _r in _rows for _b in _r] + list(_c1_range or ())
+            _lo, _hi = min(_bounds), max(_bounds)
+
+            def _at(value, _sx0=_sx0, _sx1=_sx1, _lo=_lo, _hi=_hi):
+                return _sx0 + (value - _lo) / (_hi - _lo) * (_sx1 - _sx0)
+
+            annotations.append(dict(
+                xref='x2', yref='y2', x=_tx0 + _track_w / 2.0, y=24.0,
+                xanchor='center', yanchor='bottom', showarrow=False,
+                font=dict(size=ANNOTATION_SIZE, color=INK), text='<b>{}</b>'.format(_name)))
+
+            # A shorter list is centred in the tallest one's block, so the four tracks share a
+            # middle line and a tick row.
+            _y0 = _y_top + (_rows_max - len(_rows)) * _ROW / 2.0
+            for _ri, (_label, (_rlo, _rhi)) in enumerate(_rows):
+                _cy = _y0 + (_ri + 0.5) * _ROW
+                shapes.append(dict(
+                    type='rect', xref='x2', yref='y2',
+                    x0=_at(_rlo), x1=_at(_rhi), y0=_cy - _BAR / 2.0, y1=_cy + _BAR / 2.0,
+                    fillcolor=fade(SPACE_COLOR, 0.28), line=dict(color=SPACE_COLOR, width=1.4)))
+                if _label is not None:
+                    annotations.append(dict(
+                        xref='x2', yref='y2', x=_sx0 - 6.0, y=_cy,
+                        xanchor='right', yanchor='middle', showarrow=False,
+                        font=dict(size=ANNOTATION_SIZE - 3, color=INK), text=_label))
+
+            if _c1_range is not None:
+                shapes.append(dict(
+                    type='rect', xref='x2', yref='y2',
+                    x0=_at(_c1_range[0]), x1=_at(_c1_range[1]),
+                    y0=_y0 - 3.0, y1=_y0 + len(_rows) * _ROW + 3.0,
+                    fillcolor='rgba(0,0,0,0)',
+                    line=dict(color=INK, width=GHOST_WIDTH, dash=GHOST_DASH)))
+
+            # One tick per distinct bound, either campaign's: the scale is made of exactly the
+            # numbers the bars and the outline stop at. Only the last carries the unit: on oil
+            # volume 5 and 7.5 sit too close for a unit between them.
+            _ticks = sorted(set(_bounds))
+            _last_x = None
+            for _ti, _t in enumerate(_ticks):
+                _x = _at(_t)
+                _end = _ti == len(_ticks) - 1
+                if _last_x is not None and _x - _last_x < _TICK_CLEAR and not _end:
+                    continue
+                _last_x = _x
+                annotations.append(dict(
+                    xref='x2', yref='y2', x=_x, y=_y_tick,
+                    xanchor='center', yanchor='top', showarrow=False,
+                    font=dict(size=ANNOTATION_SIZE - 3, color=INK),
+                    text='{:g} {}'.format(_t, _unit) if _end else '{:g}'.format(_t)))
+
+        return _paper_x(dial_x, dw, (dial_x0 + dial_x1) / 2.0)
     return (build_grid_state,)
 
 
@@ -861,6 +992,7 @@ def _(
         'Which of the hundred did Campaign 1 ever make?',
         'Table 1 declares {} systems; the campaign measured {}'.format(
             N_DECLARED, len(EXPLORED)),
+        campaign=1,
     )
     explored_figure
     return (explored_figure,)
@@ -875,6 +1007,7 @@ def _(C2_LISTS, DROPPED, EXPLORED, LOST, N_MESH, ROLES, build_grid_state):
         'already made'.format(
             ', '.join(DROPPED[_r][0] for _r in ROLES),
             N_MESH, len(EXPLORED) - len(LOST), len(EXPLORED)),
+        campaign=2,
     )
     narrowed_figure
     return (narrowed_figure,)
